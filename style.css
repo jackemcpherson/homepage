@@ -1,0 +1,244 @@
+/* ── Custom Properties ─────────────────────────────────── */
+
+:root {
+  --color-bg: #FAFAFA;
+  --color-fg: #111111;
+  --color-muted: #555555;
+  --color-rule: #D0D0D0;
+  --color-accent: #C0392B;
+
+  --font-serif: Charter, 'Bitstream Charter', 'Sitka Text', Cambria, serif;
+  --font-sans: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+
+  --space-xs: 0.5rem;   /*  8px */
+  --space-sm: 1rem;     /* 16px */
+  --space-md: 1.5rem;   /* 24px */
+  --space-lg: 2.5rem;   /* 40px */
+  --space-xl: 4rem;     /* 64px */
+}
+
+/* ── Reset ────────────────────────────────────────────── */
+
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+::selection {
+  background: var(--color-accent);
+  color: #fff;
+}
+
+/* ── Accent Line ──────────────────────────────────────── */
+
+.accent-rule {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: var(--color-accent);
+  z-index: 10;
+  transform-origin: left;
+  animation: rule-draw 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes rule-draw {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+
+/* ── Layout ───────────────────────────────────────────── */
+
+body {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-bg);
+  font-family: var(--font-serif);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.card {
+  text-align: center;
+  padding: var(--space-lg);
+  animation: card-enter 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.3s both;
+}
+
+@keyframes card-enter {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── Portrait ─────────────────────────────────────────── */
+
+.portrait {
+  display: block;
+  width: 160px;
+  height: auto;
+  margin: 0 auto var(--space-md);
+  filter: grayscale(100%) contrast(1.1);
+}
+
+/* ── Name ─────────────────────────────────────────────── */
+
+.name {
+  font-family: var(--font-serif);
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  color: var(--color-fg);
+  line-height: 1.1;
+}
+
+/* ── Hairline Rule ────────────────────────────────────── */
+
+.divider {
+  width: 40px;
+  height: 0;
+  border: none;
+  border-top: 1px solid var(--color-rule);
+  margin: var(--space-md) auto;
+}
+
+/* ── Social Links ─────────────────────────────────────── */
+
+.social {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: var(--space-xs) 0;
+  list-style: none;
+}
+
+.social li {
+  display: flex;
+  align-items: center;
+}
+
+/* Middot separators */
+.social li + li::before {
+  content: '\00B7';
+  display: inline-block;
+  margin: 0 0.85em;
+  color: var(--color-rule);
+  font-size: 15px;
+  line-height: 1;
+}
+
+.social a {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--color-muted);
+  position: relative;
+  transition: color 0.2s ease;
+}
+
+/* Underline that slides in from the left on hover */
+.social a::after {
+  content: '';
+  position: absolute;
+  bottom: -3px;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background: var(--color-accent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.social a:hover {
+  color: var(--color-fg);
+}
+
+.social a:hover::after {
+  transform: scaleX(1);
+}
+
+/* Focus — visible ring for keyboard nav */
+.social a:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 4px;
+}
+
+.social svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+/* ── Responsive ───────────────────────────────────────── */
+
+@media (max-width: 480px) {
+  .card {
+    padding: var(--space-md);
+  }
+
+  .portrait {
+    width: 120px;
+  }
+
+  .name {
+    font-size: 1.625rem;
+  }
+
+  .social li + li::before {
+    margin: 0 0.6em;
+  }
+
+  .social a {
+    font-size: 10px;
+    letter-spacing: 0.08em;
+  }
+
+  .social svg {
+    width: 12px;
+    height: 12px;
+  }
+}
+
+/* ── Print ────────────────────────────────────────────── */
+
+@media print {
+  .accent-rule {
+    display: none;
+  }
+
+  body {
+    min-height: auto;
+    display: block;
+    padding: 2rem;
+    background: #fff;
+  }
+
+  .card {
+    animation: none;
+    opacity: 1;
+  }
+
+  .social a {
+    color: var(--color-fg);
+  }
+
+  .social a::after {
+    display: none;
+  }
+}
