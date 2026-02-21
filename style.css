@@ -215,26 +215,44 @@ body {
   }
 
   .post {
-    padding-top: var(--space-lg);
+    padding: var(--space-lg) var(--space-md) var(--space-lg);
   }
 
-  .post ol {
-    font-size: 1rem;
+  .post-title {
+    font-size: 1.625rem;
   }
 
-  .post h2 {
-    font-size: 1.1rem;
+  .album-list li {
+    grid-template-columns: 2rem 1fr;
+  }
+
+  .artist,
+  .album {
+    font-size: 0.95rem;
+  }
+
+  .mentions-list li {
+    font-size: 0.88rem;
+  }
+
+  .post-index a {
+    font-size: 1.05rem;
   }
 }
 
 /* ── Post Pages ──────────────────────────────────────── */
 
+.post-page {
+  align-items: flex-start;
+  justify-content: center;
+}
+
 .post {
-  text-align: left;
-  max-width: 640px;
+  max-width: 620px;
   width: 100%;
   margin: 0 auto;
-  padding-top: var(--space-xl);
+  padding: 3.5rem var(--space-lg) var(--space-xl);
+  animation: card-enter 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.3s both;
 }
 
 .back-link {
@@ -246,7 +264,7 @@ body {
   text-transform: uppercase;
   text-decoration: none;
   color: var(--color-muted);
-  margin-bottom: var(--space-md);
+  margin-bottom: var(--space-lg);
   transition: color 0.2s ease;
 }
 
@@ -259,61 +277,209 @@ body {
   outline-offset: 4px;
 }
 
-.post .name {
+/* ── Post Header ─────────────────────────────────────── */
+
+.post-header {
   margin-bottom: var(--space-lg);
 }
 
-.post-list {
+.post-title {
+  font-family: var(--font-serif);
+  font-size: 2.25rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--color-fg);
+  line-height: 1.15;
+}
+
+.post-header .divider {
+  margin: var(--space-md) 0;
+}
+
+/* ── Album List (Top 10) ─────────────────────────────── */
+
+.album-list {
+  list-style: none;
+  counter-reset: rank;
+  margin-bottom: var(--space-xl);
+}
+
+.album-list li {
+  counter-increment: rank;
+  display: grid;
+  grid-template-columns: 2.5rem 1fr;
+  grid-template-rows: auto auto;
+  column-gap: 0;
+  padding: 0.7rem 0;
+  border-bottom: 1px solid var(--color-rule);
+  animation: item-enter 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.album-list li:first-child {
+  border-top: 1px solid var(--color-rule);
+}
+
+/* Staggered entrance */
+.album-list li:nth-child(1)  { animation-delay: 0.35s; }
+.album-list li:nth-child(2)  { animation-delay: 0.40s; }
+.album-list li:nth-child(3)  { animation-delay: 0.45s; }
+.album-list li:nth-child(4)  { animation-delay: 0.50s; }
+.album-list li:nth-child(5)  { animation-delay: 0.55s; }
+.album-list li:nth-child(6)  { animation-delay: 0.60s; }
+.album-list li:nth-child(7)  { animation-delay: 0.65s; }
+.album-list li:nth-child(8)  { animation-delay: 0.70s; }
+.album-list li:nth-child(9)  { animation-delay: 0.75s; }
+.album-list li:nth-child(10) { animation-delay: 0.80s; }
+
+@keyframes item-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.album-list li::before {
+  content: counter(rank);
+  font-family: var(--font-sans);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--color-accent);
+  grid-row: 1 / -1;
+  padding-top: 0.25rem;
+}
+
+.artist {
+  font-family: var(--font-serif);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--color-fg);
+  line-height: 1.3;
+}
+
+.album {
+  font-family: var(--font-serif);
+  font-size: 1.05rem;
+  font-style: italic;
+  font-weight: 400;
+  color: var(--color-fg);
+}
+
+.artist::after {
+  content: ' — ';
+  font-weight: 400;
+}
+
+.album-list .label {
+  display: block;
+  grid-column: 2;
+  font-family: var(--font-sans);
+  font-size: 0.7rem;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+  margin-top: 0.15rem;
+}
+
+/* ── Honorable Mentions ──────────────────────────────── */
+
+.mentions {
+  animation: card-enter 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.9s both;
+}
+
+.mentions-heading {
+  font-family: var(--font-sans);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+  margin-bottom: var(--space-md);
+}
+
+.mentions-list {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;
+}
+
+.mentions-list li {
+  display: inline;
+  font-family: var(--font-serif);
+  font-size: 0.95rem;
+  line-height: 1.8;
+  color: var(--color-fg);
+}
+
+.mentions-list li + li::before {
+  content: '\00B7';
+  margin: 0 0.6em;
+  color: var(--color-rule);
+}
+
+.mentions-list cite {
+  font-style: italic;
+}
+
+.mentions-list .label {
+  display: inline;
+  font-size: 0.65rem;
+  margin-top: 0;
+  color: var(--color-rule);
+}
+
+.mentions-list .label::before {
+  content: '(';
+}
+
+.mentions-list .label::after {
+  content: ')';
+}
+
+.aside {
+  font-family: var(--font-serif);
+  font-size: 0.85rem;
+  font-style: italic;
+  color: var(--color-muted);
+}
+
+/* ── Post Index ──────────────────────────────────────── */
+
+.post-index {
   list-style: none;
 }
 
-.post-list li {
-  padding: 0.4em 0;
+.post-index li {
+  border-bottom: 1px solid var(--color-rule);
 }
 
-.post-list a {
+.post-index li:first-child {
+  border-top: 1px solid var(--color-rule);
+}
+
+.post-index a {
+  display: block;
+  padding: 1rem 0;
   font-family: var(--font-serif);
-  font-size: 1.1rem;
+  font-size: 1.15rem;
   color: var(--color-fg);
   text-decoration: none;
   transition: color 0.2s ease;
 }
 
-.post-list a:hover {
+.post-index a:hover {
   color: var(--color-accent);
 }
 
-.post-list a:focus-visible {
+.post-index a:focus-visible {
   outline: 2px solid var(--color-accent);
   outline-offset: 4px;
-}
-
-.post ol {
-  font-family: var(--font-serif);
-  font-size: 1.1rem;
-  line-height: 1.6;
-  color: var(--color-fg);
-  padding-left: 1.5em;
-  margin-bottom: var(--space-lg);
-}
-
-.post ol li {
-  padding: 0.25em 0;
-}
-
-.post h2 {
-  font-family: var(--font-serif);
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: var(--color-fg);
-  margin-bottom: var(--space-sm);
-}
-
-.post p {
-  font-family: var(--font-serif);
-  font-size: 1rem;
-  line-height: 1.7;
-  color: var(--color-muted);
 }
 
 /* ── Print ────────────────────────────────────────────── */
@@ -344,6 +510,16 @@ body {
   }
 
   .post {
+    animation: none;
+    opacity: 1;
+  }
+
+  .album-list li {
+    animation: none;
+    opacity: 1;
+  }
+
+  .mentions {
     animation: none;
     opacity: 1;
   }
