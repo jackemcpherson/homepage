@@ -223,7 +223,13 @@ body {
   }
 
   .album-list li {
-    grid-template-columns: 2rem 1fr;
+    grid-template-columns: 2rem 44px 1fr;
+  }
+
+  .cover {
+    width: 44px;
+    height: 44px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 0 0 0.5px rgba(0, 0, 0, 0.06);
   }
 
   .artist,
@@ -303,10 +309,11 @@ body {
 .album-list li {
   counter-increment: rank;
   display: grid;
-  grid-template-columns: 2.5rem 1fr;
+  grid-template-columns: 2.5rem 56px 1fr;
   grid-template-rows: auto auto;
-  column-gap: 0;
-  padding: 0.7rem 0;
+  align-content: center;
+  column-gap: 0.75rem;
+  padding: 0.9rem 0;
   border-bottom: 1px solid var(--color-rule);
   animation: item-enter 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
@@ -346,7 +353,24 @@ body {
   letter-spacing: 0.02em;
   color: var(--color-accent);
   grid-row: 1 / -1;
-  padding-top: 0.25rem;
+  align-self: center;
+}
+
+.cover {
+  grid-row: 1 / -1;
+  align-self: center;
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+  border-radius: 2px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12), 0 0 0 0.5px rgba(0, 0, 0, 0.06);
+  transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.album-list li:hover .cover {
+  transform: scale(1.04);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15), 0 0 0 0.5px rgba(0, 0, 0, 0.06);
 }
 
 .artist {
@@ -372,7 +396,7 @@ body {
 
 .album-list .label {
   display: block;
-  grid-column: 2;
+  grid-column: 3;
   font-family: var(--font-sans);
   font-size: 0.7rem;
   font-weight: 400;
@@ -500,6 +524,15 @@ body {
   .album-list li {
     animation: none;
     opacity: 1;
+    grid-template-columns: 2.5rem 1fr;
+  }
+
+  .cover {
+    display: none;
+  }
+
+  .album-list .label {
+    grid-column: 2;
   }
 
   .mentions {
