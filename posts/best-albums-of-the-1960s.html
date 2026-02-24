@@ -7,13 +7,18 @@
   <meta name="description" content="Jack McPherson's ten best albums of the 1960s.">
   <meta name="theme-color" content="#C0392B">
   <link rel="icon" href="../favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/charter-webfont@4/charter.min.css">
-  <link rel="stylesheet" href="../style.css?v=4">
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="preconnect" href="https://coverartarchive.org">
+  <link rel="preconnect" href="https://archive.org" crossorigin>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/charter-webfont@4/charter.min.css" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/charter-webfont@4/charter.min.css"></noscript>
+  <link rel="stylesheet" href="../style.css?v=5">
 </head>
 <body class="post-page">
 
   <div class="accent-rule" aria-hidden="true"></div>
 
+  <main>
   <article class="post">
     <a href="../" class="back-link">&larr; Home</a>
 
@@ -25,7 +30,7 @@
     <ol class="album-list">
       <li>
         <img class="cover" src="https://coverartarchive.org/release/2d2b2557-5000-37ae-b18f-1fec5d66b67f/front-250"
-             alt="A Love Supreme cover art" width="56" height="56" loading="lazy">
+             alt="A Love Supreme cover art" width="56" height="56" fetchpriority="high">
         <strong class="artist">John Coltrane</strong>
         <cite class="album">A Love Supreme</cite>
         <span class="label">Impulse, 1965</span>
@@ -118,6 +123,7 @@
       </ul>
     </section>
   </article>
+  </main>
 
 </body>
 </html>
