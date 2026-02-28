@@ -1,0 +1,180 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Gold Coast Suns 2026 AFL Calendar//EN
+X-WR-CALNAME:Gold Coast Suns 2026
+X-WR-TIMEZONE:Australia/Melbourne
+BEGIN:VEVENT
+SUMMARY:Opening Round: Gold Coast Suns vs. Geelong Cats (People First Stad
+ ium)
+DTSTART;TZID=Australia/Melbourne:20260306T200500
+DTEND;TZID=Australia/Melbourne:20260306T223500
+DESCRIPTION:TV: Seven/Fox
+LOCATION:People First Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 1: Gold Coast Suns vs. West Coast Eagles (People First Stadi
+ um)
+DTSTART;TZID=Australia/Melbourne:20260315T181000
+DTEND;TZID=Australia/Melbourne:20260315T204000
+DESCRIPTION:TV: Fox Footy
+LOCATION:People First Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 2: Richmond vs. Gold Coast Suns (MCG)
+DTSTART;TZID=Australia/Melbourne:20260321T131500
+DTEND;TZID=Australia/Melbourne:20260321T154500
+DESCRIPTION:TV: Fox Footy
+LOCATION:MCG
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 4: Melbourne vs. Gold Coast Suns (MCG)
+DTSTART;TZID=Australia/Melbourne:20260405T151500
+DTEND;TZID=Australia/Melbourne:20260405T174500
+DESCRIPTION:TV: Seven/Fox
+LOCATION:MCG
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 5 (Gather Round): Sydney Swans vs. Gold Coast Suns (Norwood 
+ Oval)
+DTSTART;TZID=Australia/Melbourne:20260411T161500
+DTEND;TZID=Australia/Melbourne:20260411T184500
+DESCRIPTION:TV: Fox Footy
+LOCATION:Norwood Oval
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 6: Gold Coast Suns vs. Essendon (People First Stadium)
+DTSTART;TZID=Australia/Melbourne:20260418T131500
+DTEND;TZID=Australia/Melbourne:20260418T154500
+DESCRIPTION:TV: Fox Footy
+LOCATION:People First Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 7 (Anzac Round): Hawthorn vs. Gold Coast Suns (UTAS Stadium)
+DTSTART;TZID=Australia/Melbourne:20260425T121500
+DTEND;TZID=Australia/Melbourne:20260425T144500
+DESCRIPTION:TV: Fox Footy
+LOCATION:UTAS Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 8: Gold Coast Suns vs. GWS Giants (People First Stadium)
+DTSTART;TZID=Australia/Melbourne:20260503T192000
+DTEND;TZID=Australia/Melbourne:20260503T215000
+DESCRIPTION:TV: Fox Footy
+LOCATION:People First Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 9: Gold Coast Suns vs. St Kilda (TIO Stadium)
+DTSTART;TZID=Australia/Melbourne:20260509T191000
+DTEND;TZID=Australia/Melbourne:20260509T214000
+DESCRIPTION:TV: Fox Footy
+LOCATION:TIO Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 10: Gold Coast Suns vs. Hawthorn (TIO Stadium)
+DTSTART;TZID=Australia/Melbourne:20260515T193000
+DTEND;TZID=Australia/Melbourne:20260515T220000
+DESCRIPTION:TV: Seven/Fox
+LOCATION:TIO Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 10: Gold Coast Suns vs. Port Adelaide (TIO Stadium)
+DTSTART;TZID=Australia/Melbourne:20260515T201000
+DTEND;TZID=Australia/Melbourne:20260515T224000
+DESCRIPTION:TV: Fox Footy
+LOCATION:TIO Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 11 (Sir Doug Nicholls Indigenous Round): North Melbourne vs.
+  Gold Coast Suns (Marvel Stadium)
+DTSTART;TZID=Australia/Melbourne:20260523T131500
+DTEND;TZID=Australia/Melbourne:20260523T154500
+DESCRIPTION:TV: Fox Footy
+LOCATION:Marvel Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 13: Gold Coast Suns vs. Brisbane Lions (People First Stadium
+ )
+DTSTART;TZID=Australia/Melbourne:20260606T171500
+DTEND;TZID=Australia/Melbourne:20260606T194500
+DESCRIPTION:TV: Fox Footy
+LOCATION:People First Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 14: Geelong Cats vs. Gold Coast Suns (GMHBA Stadium)
+DTSTART;TZID=Australia/Melbourne:20260612T194000
+DTEND;TZID=Australia/Melbourne:20260612T221000
+DESCRIPTION:TV: Seven/Fox
+LOCATION:GMHBA Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 15: Gold Coast Suns vs. Hawthorn (People First Stadium)
+DTSTART;TZID=Australia/Melbourne:20260619T194000
+DTEND;TZID=Australia/Melbourne:20260619T221000
+DESCRIPTION:TV: Seven/Fox
+LOCATION:People First Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 16: Fremantle vs. Gold Coast Suns (Optus Stadium)
+DTSTART;VALUE=DATE:20260625
+DTEND;VALUE=DATE:20260629
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:Optus Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 17: Gold Coast Suns vs. Collingwood (People First Stadium)
+DTSTART;VALUE=DATE:20260702
+DTEND;VALUE=DATE:20260706
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:People First Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 18: Adelaide Crows vs. Gold Coast Suns (Adelaide Oval)
+DTSTART;VALUE=DATE:20260709
+DTEND;VALUE=DATE:20260713
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:Adelaide Oval
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 19: Gold Coast Suns vs. Western Bulldogs (People First Stadi
+ um)
+DTSTART;VALUE=DATE:20260716
+DTEND;VALUE=DATE:20260720
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:People First Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 20: Carlton vs. Gold Coast Suns (Marvel Stadium)
+DTSTART;VALUE=DATE:20260723
+DTEND;VALUE=DATE:20260727
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:Marvel Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 21: Gold Coast Suns vs. Melbourne (People First Stadium)
+DTSTART;VALUE=DATE:20260730
+DTEND;VALUE=DATE:20260803
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:People First Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 22: GWS Giants vs. Gold Coast Suns (Manuka Oval)
+DTSTART;VALUE=DATE:20260806
+DTEND;VALUE=DATE:20260810
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:Manuka Oval
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 23: Brisbane Lions vs. Gold Coast Suns (Gabba)
+DTSTART;VALUE=DATE:20260813
+DTEND;VALUE=DATE:20260817
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:Gabba
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 24: St Kilda vs. Gold Coast Suns (Marvel Stadium)
+DTSTART;VALUE=DATE:20260820
+DTEND;VALUE=DATE:20260824
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:Marvel Stadium
+END:VEVENT
+END:VCALENDAR

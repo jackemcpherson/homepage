@@ -1,0 +1,164 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Geelong Cats 2026 AFL Calendar//EN
+X-WR-CALNAME:Geelong Cats 2026
+X-WR-TIMEZONE:Australia/Melbourne
+BEGIN:VEVENT
+SUMMARY:Opening Round: Gold Coast Suns vs. Geelong Cats (People First Stad
+ ium)
+DTSTART;TZID=Australia/Melbourne:20260306T200500
+DTEND;TZID=Australia/Melbourne:20260306T223500
+DESCRIPTION:TV: Seven/Fox
+LOCATION:People First Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 1: Geelong Cats vs. Fremantle (GMHBA Stadium)
+DTSTART;TZID=Australia/Melbourne:20260314T161500
+DTEND;TZID=Australia/Melbourne:20260314T184500
+DESCRIPTION:TV: Fox Footy
+LOCATION:GMHBA Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 3: Geelong Cats vs. Adelaide Crows (GMHBA Stadium)
+DTSTART;TZID=Australia/Melbourne:20260326T193000
+DTEND;TZID=Australia/Melbourne:20260326T220000
+DESCRIPTION:TV: Seven/Fox
+LOCATION:GMHBA Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 4: Hawthorn vs. Geelong Cats (MCG)
+DTSTART;TZID=Australia/Melbourne:20260406T151500
+DTEND;TZID=Australia/Melbourne:20260406T174500
+DESCRIPTION:TV: Seven/Fox
+LOCATION:MCG
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 5 (Gather Round): Geelong Cats vs. West Coast Eagles (Norwoo
+ d Oval)
+DTSTART;TZID=Australia/Melbourne:20260412T123000
+DTEND;TZID=Australia/Melbourne:20260412T150000
+DESCRIPTION:TV: Fox Footy
+LOCATION:Norwood Oval
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 6: Geelong Cats vs. Western Bulldogs (GMHBA Stadium)
+DTSTART;TZID=Australia/Melbourne:20260417T192000
+DTEND;TZID=Australia/Melbourne:20260417T215000
+DESCRIPTION:TV: Seven/Fox
+LOCATION:GMHBA Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 7 (Anzac Round): Port Adelaide vs. Geelong Cats (Adelaide Ov
+ al)
+DTSTART;TZID=Australia/Melbourne:20260425T183500
+DTEND;TZID=Australia/Melbourne:20260425T210500
+DESCRIPTION:TV: Fox Footy
+LOCATION:Adelaide Oval
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 8: Geelong Cats vs. North Melbourne (GMHBA Stadium)
+DTSTART;TZID=Australia/Melbourne:20260502T163500
+DTEND;TZID=Australia/Melbourne:20260502T190500
+DESCRIPTION:TV: Fox Footy
+LOCATION:GMHBA Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 9: Geelong Cats vs. Collingwood (MCG)
+DTSTART;TZID=Australia/Melbourne:20260509T193500
+DTEND;TZID=Australia/Melbourne:20260509T220500
+DESCRIPTION:TV: Fox Footy
+LOCATION:MCG
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 11 (Sir Doug Nicholls Indigenous Round): Geelong Cats vs. Sy
+ dney Swans (GMHBA Stadium)
+DTSTART;TZID=Australia/Melbourne:20260523T161500
+DTEND;TZID=Australia/Melbourne:20260523T184500
+DESCRIPTION:TV: Fox Footy
+LOCATION:GMHBA Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 12: Carlton vs. Geelong Cats (MCG)
+DTSTART;TZID=Australia/Melbourne:20260529T194000
+DTEND;TZID=Australia/Melbourne:20260529T221000
+DESCRIPTION:TV: Seven/Fox
+LOCATION:MCG
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 13: Adelaide Crows vs. Geelong Cats (Adelaide Oval)
+DTSTART;TZID=Australia/Melbourne:20260604T193000
+DTEND;TZID=Australia/Melbourne:20260604T220000
+DESCRIPTION:TV: Seven/Fox
+LOCATION:Adelaide Oval
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 14: Geelong Cats vs. Gold Coast Suns (GMHBA Stadium)
+DTSTART;TZID=Australia/Melbourne:20260612T194000
+DTEND;TZID=Australia/Melbourne:20260612T221000
+DESCRIPTION:TV: Seven/Fox
+LOCATION:GMHBA Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 15: Fremantle vs. Geelong Cats (Optus Stadium)
+DTSTART;TZID=Australia/Melbourne:20260618T201000
+DTEND;TZID=Australia/Melbourne:20260618T224000
+DESCRIPTION:TV: Seven/Fox
+LOCATION:Optus Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 17: Geelong Cats vs. Brisbane Lions (GMHBA Stadium)
+DTSTART;VALUE=DATE:20260702
+DTEND;VALUE=DATE:20260706
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:GMHBA Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 18: GWS Giants vs. Geelong Cats (ENGIE Stadium)
+DTSTART;VALUE=DATE:20260709
+DTEND;VALUE=DATE:20260713
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:ENGIE Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 19: Geelong Cats vs. St Kilda (GMHBA Stadium)
+DTSTART;VALUE=DATE:20260716
+DTEND;VALUE=DATE:20260720
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:GMHBA Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 20: Melbourne vs. Geelong Cats (MCG)
+DTSTART;VALUE=DATE:20260723
+DTEND;VALUE=DATE:20260727
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:MCG
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 21: Collingwood vs. Geelong Cats (MCG)
+DTSTART;VALUE=DATE:20260730
+DTEND;VALUE=DATE:20260803
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:MCG
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 22: Geelong Cats vs. Essendon (GMHBA Stadium)
+DTSTART;VALUE=DATE:20260806
+DTEND;VALUE=DATE:20260810
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:GMHBA Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 23: North Melbourne vs. Geelong Cats (Marvel Stadium)
+DTSTART;VALUE=DATE:20260813
+DTEND;VALUE=DATE:20260817
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:Marvel Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 24: Geelong Cats vs. Richmond (GMHBA Stadium)
+DTSTART;VALUE=DATE:20260820
+DTEND;VALUE=DATE:20260824
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:GMHBA Stadium
+END:VEVENT
+END:VCALENDAR

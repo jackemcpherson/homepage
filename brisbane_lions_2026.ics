@@ -1,0 +1,163 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Brisbane Lions 2026 AFL Calendar//EN
+X-WR-CALNAME:Brisbane Lions 2026
+X-WR-TIMEZONE:Australia/Melbourne
+BEGIN:VEVENT
+SUMMARY:Opening Round: Brisbane Lions vs. Western Bulldogs (Gabba)
+DTSTART;TZID=Australia/Melbourne:20260307T193500
+DTEND;TZID=Australia/Melbourne:20260307T220500
+DESCRIPTION:TV: Fox Footy
+LOCATION:Gabba
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 1: Sydney Swans vs. Brisbane Lions (SCG)
+DTSTART;TZID=Australia/Melbourne:20260314T191000
+DTEND;TZID=Australia/Melbourne:20260314T214000
+DESCRIPTION:TV: Fox Footy
+LOCATION:SCG
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 3: St Kilda vs. Brisbane Lions (Marvel Stadium)
+DTSTART;TZID=Australia/Melbourne:20260328T123500
+DTEND;TZID=Australia/Melbourne:20260328T150500
+DESCRIPTION:TV: Fox Footy
+LOCATION:Marvel Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 4: Brisbane Lions vs. Collingwood (Gabba)
+DTSTART;TZID=Australia/Melbourne:20260402T193000
+DTEND;TZID=Australia/Melbourne:20260402T220000
+DESCRIPTION:TV: Seven/Fox
+LOCATION:Gabba
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 5 (Gather Round): North Melbourne vs. Brisbane Lions (Baross
+ a Park)
+DTSTART;TZID=Australia/Melbourne:20260411T123500
+DTEND;TZID=Australia/Melbourne:20260411T150500
+DESCRIPTION:TV: Fox Footy
+LOCATION:Barossa Park
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 6: Melbourne vs. Brisbane Lions (MCG)
+DTSTART;TZID=Australia/Melbourne:20260419T151500
+DTEND;TZID=Australia/Melbourne:20260419T174500
+DESCRIPTION:TV: Seven/Fox
+LOCATION:MCG
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 7 (Anzac Round): Brisbane Lions vs. Adelaide Crows (Gabba)
+DTSTART;TZID=Australia/Melbourne:20260426T151500
+DTEND;TZID=Australia/Melbourne:20260426T174500
+DESCRIPTION:TV: Seven/Fox
+LOCATION:Gabba
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 8: Essendon vs. Brisbane Lions (Marvel Stadium)
+DTSTART;TZID=Australia/Melbourne:20260502T123500
+DTEND;TZID=Australia/Melbourne:20260502T150500
+DESCRIPTION:TV: Fox Footy
+LOCATION:Marvel Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 9: Brisbane Lions vs. Carlton (Gabba)
+DTSTART;TZID=Australia/Melbourne:20260508T193000
+DTEND;TZID=Australia/Melbourne:20260508T220000
+DESCRIPTION:TV: Seven/Fox
+LOCATION:Gabba
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 11 (Sir Doug Nicholls Indigenous Round): GWS Giants vs. Bris
+ bane Lions (ENGIE Stadium)
+DTSTART;TZID=Australia/Melbourne:20260524T123000
+DTEND;TZID=Australia/Melbourne:20260524T150000
+DESCRIPTION:TV: Fox Footy
+LOCATION:ENGIE Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 12: Brisbane Lions vs. Fremantle (Gabba)
+DTSTART;TZID=Australia/Melbourne:20260530T161500
+DTEND;TZID=Australia/Melbourne:20260530T184500
+DESCRIPTION:TV: Fox Footy
+LOCATION:Gabba
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 13: Gold Coast Suns vs. Brisbane Lions (People First Stadium
+ )
+DTSTART;TZID=Australia/Melbourne:20260606T171500
+DTEND;TZID=Australia/Melbourne:20260606T194500
+DESCRIPTION:TV: Fox Footy
+LOCATION:People First Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 14: Richmond vs. Brisbane Lions (Ninja Stadium)
+DTSTART;TZID=Australia/Melbourne:20260614T131000
+DTEND;TZID=Australia/Melbourne:20260614T154000
+DESCRIPTION:TV: Fox Footy
+LOCATION:Ninja Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 16: Brisbane Lions vs. Sydney Swans (Gabba)
+DTSTART;VALUE=DATE:20260625
+DTEND;VALUE=DATE:20260629
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:Gabba
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 17: Geelong Cats vs. Brisbane Lions (GMHBA Stadium)
+DTSTART;VALUE=DATE:20260702
+DTEND;VALUE=DATE:20260706
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:GMHBA Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 18: Brisbane Lions vs. Essendon (Gabba)
+DTSTART;VALUE=DATE:20260709
+DTEND;VALUE=DATE:20260713
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:Gabba
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 19: West Coast Eagles vs. Brisbane Lions (Optus Stadium)
+DTSTART;VALUE=DATE:20260716
+DTEND;VALUE=DATE:20260720
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:Optus Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 20: Brisbane Lions vs. Port Adelaide (Gabba)
+DTSTART;VALUE=DATE:20260723
+DTEND;VALUE=DATE:20260727
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:Gabba
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 21: Carlton vs. Brisbane Lions (Marvel Stadium)
+DTSTART;VALUE=DATE:20260730
+DTEND;VALUE=DATE:20260803
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:Marvel Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 22: Brisbane Lions vs. Hawthorn (Gabba)
+DTSTART;VALUE=DATE:20260806
+DTEND;VALUE=DATE:20260810
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:Gabba
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 23: Brisbane Lions vs. Gold Coast Suns (Gabba)
+DTSTART;VALUE=DATE:20260813
+DTEND;VALUE=DATE:20260817
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:Gabba
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 24: Collingwood vs. Brisbane Lions (MCG)
+DTSTART;VALUE=DATE:20260820
+DTEND;VALUE=DATE:20260824
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:MCG
+END:VEVENT
+END:VCALENDAR

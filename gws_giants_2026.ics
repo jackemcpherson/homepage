@@ -1,0 +1,169 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//GWS Giants 2026 AFL Calendar//EN
+X-WR-CALNAME:GWS Giants 2026
+X-WR-TIMEZONE:Australia/Melbourne
+BEGIN:VEVENT
+SUMMARY:Opening Round: GWS Giants vs. Hawthorn (ENGIE Stadium)
+DTSTART;TZID=Australia/Melbourne:20260307T161500
+DTEND;TZID=Australia/Melbourne:20260307T184500
+DESCRIPTION:TV: Fox Footy
+LOCATION:ENGIE Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 1: Western Bulldogs vs. GWS Giants (Marvel Stadium)
+DTSTART;TZID=Australia/Melbourne:20260314T131500
+DTEND;TZID=Australia/Melbourne:20260314T154500
+DESCRIPTION:TV: Fox Footy
+LOCATION:Marvel Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 2: GWS Giants vs. St Kilda (ENGIE Stadium)
+DTSTART;TZID=Australia/Melbourne:20260321T161500
+DTEND;TZID=Australia/Melbourne:20260321T184500
+DESCRIPTION:TV: Fox Footy
+LOCATION:ENGIE Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 3: Collingwood vs. GWS Giants (Marvel Stadium)
+DTSTART;TZID=Australia/Melbourne:20260327T194000
+DTEND;TZID=Australia/Melbourne:20260327T221000
+DESCRIPTION:TV: Seven/Fox
+LOCATION:Marvel Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 5 (Gather Round): GWS Giants vs. Richmond (Barossa Park)
+DTSTART;TZID=Australia/Melbourne:20260412T151500
+DTEND;TZID=Australia/Melbourne:20260412T174500
+DESCRIPTION:TV: Seven/Fox
+LOCATION:Barossa Park
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 6: Sydney Swans vs. GWS Giants (SCG)
+DTSTART;TZID=Australia/Melbourne:20260417T195000
+DTEND;TZID=Australia/Melbourne:20260417T222000
+DESCRIPTION:TV: Fox Footy
+LOCATION:SCG
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 7 (Anzac Round): GWS Giants vs. North Melbourne (Manuka Oval
+ )
+DTSTART;TZID=Australia/Melbourne:20260426T164000
+DTEND;TZID=Australia/Melbourne:20260426T191000
+DESCRIPTION:TV: Fox Footy
+LOCATION:Manuka Oval
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 8: Gold Coast Suns vs. GWS Giants (People First Stadium)
+DTSTART;TZID=Australia/Melbourne:20260503T192000
+DTEND;TZID=Australia/Melbourne:20260503T215000
+DESCRIPTION:TV: Fox Footy
+LOCATION:People First Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 9: GWS Giants vs. Essendon (ENGIE Stadium)
+DTSTART;TZID=Australia/Melbourne:20260509T161500
+DTEND;TZID=Australia/Melbourne:20260509T184500
+DESCRIPTION:TV: Fox Footy
+LOCATION:ENGIE Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 10: West Coast Eagles vs. GWS Giants (Optus Stadium)
+DTSTART;TZID=Australia/Melbourne:20260517T181500
+DTEND;TZID=Australia/Melbourne:20260517T204500
+DESCRIPTION:TV: Fox Footy
+LOCATION:Optus Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 11 (Sir Doug Nicholls Indigenous Round): GWS Giants vs. Bris
+ bane Lions (ENGIE Stadium)
+DTSTART;TZID=Australia/Melbourne:20260524T123000
+DTEND;TZID=Australia/Melbourne:20260524T150000
+DESCRIPTION:TV: Fox Footy
+LOCATION:ENGIE Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 12: Melbourne vs. GWS Giants (TIO Traeger Park)
+DTSTART;TZID=Australia/Melbourne:20260531T151500
+DTEND;TZID=Australia/Melbourne:20260531T174500
+DESCRIPTION:TV: Seven/Fox
+LOCATION:TIO Traeger Park
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 14: St Kilda vs. GWS Giants (Marvel Stadium)
+DTSTART;TZID=Australia/Melbourne:20260614T151500
+DTEND;TZID=Australia/Melbourne:20260614T174500
+DESCRIPTION:TV: Seven/Fox
+LOCATION:Marvel Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 15: GWS Giants vs. Carlton (ENGIE Stadium)
+DTSTART;TZID=Australia/Melbourne:20260620T161500
+DTEND;TZID=Australia/Melbourne:20260620T184500
+DESCRIPTION:TV: Fox Footy
+LOCATION:ENGIE Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 16: Hawthorn vs. GWS Giants (MCG)
+DTSTART;VALUE=DATE:20260625
+DTEND;VALUE=DATE:20260629
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:MCG
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 17: GWS Giants vs. Fremantle (Manuka Oval)
+DTSTART;VALUE=DATE:20260702
+DTEND;VALUE=DATE:20260706
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:Manuka Oval
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 18: GWS Giants vs. Geelong Cats (ENGIE Stadium)
+DTSTART;VALUE=DATE:20260709
+DTEND;VALUE=DATE:20260713
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:ENGIE Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 19: Essendon vs. GWS Giants (Marvel Stadium)
+DTSTART;VALUE=DATE:20260716
+DTEND;VALUE=DATE:20260720
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:Marvel Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 20: GWS Giants vs. Sydney Swans (ENGIE Stadium)
+DTSTART;VALUE=DATE:20260723
+DTEND;VALUE=DATE:20260727
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:ENGIE Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 21: Port Adelaide vs. GWS Giants (Adelaide Oval)
+DTSTART;VALUE=DATE:20260730
+DTEND;VALUE=DATE:20260803
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:Adelaide Oval
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 22: GWS Giants vs. Gold Coast Suns (Manuka Oval)
+DTSTART;VALUE=DATE:20260806
+DTEND;VALUE=DATE:20260810
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:Manuka Oval
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 23: GWS Giants vs. West Coast Eagles (ENGIE Stadium)
+DTSTART;VALUE=DATE:20260813
+DTEND;VALUE=DATE:20260817
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:ENGIE Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 24: Adelaide Crows vs. GWS Giants (Adelaide Oval)
+DTSTART;VALUE=DATE:20260820
+DTEND;VALUE=DATE:20260824
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:Adelaide Oval
+END:VEVENT
+END:VCALENDAR

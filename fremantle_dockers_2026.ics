@@ -1,0 +1,168 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Fremantle Dockers 2026 AFL Calendar//EN
+X-WR-CALNAME:Fremantle Dockers 2026
+X-WR-TIMEZONE:Australia/Melbourne
+BEGIN:VEVENT
+SUMMARY:Round 1: Geelong Cats vs. Fremantle (GMHBA Stadium)
+DTSTART;TZID=Australia/Melbourne:20260314T161500
+DTEND;TZID=Australia/Melbourne:20260314T184500
+DESCRIPTION:TV: Fox Footy
+LOCATION:GMHBA Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 2: Fremantle vs. Melbourne (Optus Stadium)
+DTSTART;TZID=Australia/Melbourne:20260321T193500
+DTEND;TZID=Australia/Melbourne:20260321T220500
+DESCRIPTION:TV: Fox Footy
+LOCATION:Optus Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 3: Fremantle vs. Richmond (Optus Stadium)
+DTSTART;TZID=Australia/Melbourne:20260328T161500
+DTEND;TZID=Australia/Melbourne:20260328T184500
+DESCRIPTION:TV: Fox Footy
+LOCATION:Optus Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 4: Adelaide Crows vs. Fremantle (Adelaide Oval)
+DTSTART;TZID=Australia/Melbourne:20260403T191500
+DTEND;TZID=Australia/Melbourne:20260403T214500
+DESCRIPTION:TV: Seven/Fox
+LOCATION:Adelaide Oval
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 5 (Gather Round): Collingwood vs. Fremantle (Adelaide Oval)
+DTSTART;TZID=Australia/Melbourne:20260410T194000
+DTEND;TZID=Australia/Melbourne:20260410T221000
+DESCRIPTION:TV: Seven/Fox
+LOCATION:Adelaide Oval
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 6: West Coast Eagles vs. Fremantle (Optus Stadium)
+DTSTART;TZID=Australia/Melbourne:20260419T171000
+DTEND;TZID=Australia/Melbourne:20260419T194000
+DESCRIPTION:TV: Fox Footy
+LOCATION:Optus Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 7 (Anzac Round): Fremantle vs. Carlton (Optus Stadium)
+DTSTART;TZID=Australia/Melbourne:20260425T201500
+DTEND;TZID=Australia/Melbourne:20260425T224500
+DESCRIPTION:TV: Fox Footy
+LOCATION:Optus Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 8: Western Bulldogs vs. Fremantle (Marvel Stadium)
+DTSTART;TZID=Australia/Melbourne:20260501T193000
+DTEND;TZID=Australia/Melbourne:20260501T220000
+DESCRIPTION:TV: Seven/Fox
+LOCATION:Marvel Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 9: Fremantle vs. Hawthorn (Optus Stadium)
+DTSTART;TZID=Australia/Melbourne:20260507T201000
+DTEND;TZID=Australia/Melbourne:20260507T224000
+DESCRIPTION:TV: Seven/Fox
+LOCATION:Optus Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 10: Essendon vs. Fremantle (MCG)
+DTSTART;TZID=Australia/Melbourne:20260517T131000
+DTEND;TZID=Australia/Melbourne:20260517T154000
+DESCRIPTION:TV: Fox Footy
+LOCATION:MCG
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 11 (Sir Doug Nicholls Indigenous Round): Fremantle vs. St Ki
+ lda (Optus Stadium)
+DTSTART;TZID=Australia/Melbourne:20260522T203000
+DTEND;TZID=Australia/Melbourne:20260522T230000
+DESCRIPTION:TV: Fox Footy
+LOCATION:Optus Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 12: Brisbane Lions vs. Fremantle (Gabba)
+DTSTART;TZID=Australia/Melbourne:20260530T161500
+DTEND;TZID=Australia/Melbourne:20260530T184500
+DESCRIPTION:TV: Fox Footy
+LOCATION:Gabba
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 13: North Melbourne vs. Fremantle (Hands Oval\, Bunbury)
+DTSTART;TZID=Australia/Melbourne:20260606T141500
+DTEND;TZID=Australia/Melbourne:20260606T164500
+DESCRIPTION:TV: Fox Footy
+LOCATION:Hands Oval\, Bunbury
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 15: Fremantle vs. Geelong Cats (Optus Stadium)
+DTSTART;TZID=Australia/Melbourne:20260618T201000
+DTEND;TZID=Australia/Melbourne:20260618T224000
+DESCRIPTION:TV: Seven/Fox
+LOCATION:Optus Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 16: Fremantle vs. Gold Coast Suns (Optus Stadium)
+DTSTART;VALUE=DATE:20260625
+DTEND;VALUE=DATE:20260629
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:Optus Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 17: GWS Giants vs. Fremantle (Manuka Oval)
+DTSTART;VALUE=DATE:20260702
+DTEND;VALUE=DATE:20260706
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:Manuka Oval
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 18: Fremantle vs. Sydney Swans (Optus Stadium)
+DTSTART;VALUE=DATE:20260709
+DTEND;VALUE=DATE:20260713
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:Optus Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 19: Port Adelaide vs. Fremantle (Adelaide Oval)
+DTSTART;VALUE=DATE:20260716
+DTEND;VALUE=DATE:20260720
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:Adelaide Oval
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 20: Fremantle vs. West Coast Eagles (Adelaide Oval)
+DTSTART;VALUE=DATE:20260723
+DTEND;VALUE=DATE:20260727
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:Adelaide Oval
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 21: Fremantle vs. Western Bulldogs (Optus Stadium)
+DTSTART;VALUE=DATE:20260730
+DTEND;VALUE=DATE:20260803
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:Optus Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 22: Melbourne vs. Fremantle (MCG)
+DTSTART;VALUE=DATE:20260806
+DTEND;VALUE=DATE:20260810
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:MCG
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 23: Fremantle vs. Adelaide Crows (Optus Stadium)
+DTSTART;VALUE=DATE:20260813
+DTEND;VALUE=DATE:20260817
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:Optus Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 24: Carlton vs. Fremantle (Marvel Stadium)
+DTSTART;VALUE=DATE:20260820
+DTEND;VALUE=DATE:20260824
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:Marvel Stadium
+END:VEVENT
+END:VCALENDAR

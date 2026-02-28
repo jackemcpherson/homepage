@@ -1,0 +1,170 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//North Melbourne Kangaroos 2026 AFL Calendar//EN
+X-WR-CALNAME:North Melbourne Kangaroos 2026
+X-WR-TIMEZONE:Australia/Melbourne
+BEGIN:VEVENT
+SUMMARY:Round 1: North Melbourne vs. Port Adelaide (Marvel Stadium)
+DTSTART;TZID=Australia/Melbourne:20260315T131000
+DTEND;TZID=Australia/Melbourne:20260315T154000
+DESCRIPTION:TV: Fox Footy
+LOCATION:Marvel Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 2: West Coast Eagles vs. North Melbourne (Optus Stadium)
+DTSTART;TZID=Australia/Melbourne:20260322T181000
+DTEND;TZID=Australia/Melbourne:20260322T204000
+DESCRIPTION:TV: Fox Footy
+LOCATION:Optus Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 3: Essendon vs. North Melbourne (Marvel Stadium)
+DTSTART;TZID=Australia/Melbourne:20260328T193500
+DTEND;TZID=Australia/Melbourne:20260328T220500
+DESCRIPTION:TV: Fox Footy
+LOCATION:Marvel Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 4: North Melbourne vs. Carlton (Marvel Stadium)
+DTSTART;TZID=Australia/Melbourne:20260403T151500
+DTEND;TZID=Australia/Melbourne:20260403T174500
+DESCRIPTION:TV: Seven/Fox
+LOCATION:Marvel Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 5 (Gather Round): North Melbourne vs. Brisbane Lions (Baross
+ a Park)
+DTSTART;TZID=Australia/Melbourne:20260411T123500
+DTEND;TZID=Australia/Melbourne:20260411T150500
+DESCRIPTION:TV: Fox Footy
+LOCATION:Barossa Park
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 6: North Melbourne vs. Richmond (Marvel Stadium)
+DTSTART;TZID=Australia/Melbourne:20260419T131000
+DTEND;TZID=Australia/Melbourne:20260419T154000
+DESCRIPTION:TV: Fox Footy
+LOCATION:Marvel Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 7 (Anzac Round): GWS Giants vs. North Melbourne (Manuka Oval
+ )
+DTSTART;TZID=Australia/Melbourne:20260426T164000
+DTEND;TZID=Australia/Melbourne:20260426T191000
+DESCRIPTION:TV: Fox Footy
+LOCATION:Manuka Oval
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 8: Geelong Cats vs. North Melbourne (GMHBA Stadium)
+DTSTART;TZID=Australia/Melbourne:20260502T163500
+DTEND;TZID=Australia/Melbourne:20260502T190500
+DESCRIPTION:TV: Fox Footy
+LOCATION:GMHBA Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 9: North Melbourne vs. Sydney Swans (Marvel Stadium)
+DTSTART;TZID=Australia/Melbourne:20260509T123500
+DTEND;TZID=Australia/Melbourne:20260509T150500
+DESCRIPTION:TV: Fox Footy
+LOCATION:Marvel Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 10: Adelaide Crows vs. North Melbourne (Adelaide Oval)
+DTSTART;TZID=Australia/Melbourne:20260516T131500
+DTEND;TZID=Australia/Melbourne:20260516T154500
+DESCRIPTION:TV: Fox Footy
+LOCATION:Adelaide Oval
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 11 (Sir Doug Nicholls Indigenous Round): North Melbourne vs.
+  Gold Coast Suns (Marvel Stadium)
+DTSTART;TZID=Australia/Melbourne:20260523T131500
+DTEND;TZID=Australia/Melbourne:20260523T154500
+DESCRIPTION:TV: Fox Footy
+LOCATION:Marvel Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 13: North Melbourne vs. Fremantle (Hands Oval\, Bunbury)
+DTSTART;TZID=Australia/Melbourne:20260606T141500
+DTEND;TZID=Australia/Melbourne:20260606T164500
+DESCRIPTION:TV: Fox Footy
+LOCATION:Hands Oval\, Bunbury
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 14: North Melbourne vs. West Coast Eagles (Optus Stadium)
+DTSTART;TZID=Australia/Melbourne:20260613T161500
+DTEND;TZID=Australia/Melbourne:20260613T184500
+DESCRIPTION:TV: Fox Footy
+LOCATION:Optus Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 15: Richmond vs. North Melbourne (MCG)
+DTSTART;TZID=Australia/Melbourne:20260621T131000
+DTEND;TZID=Australia/Melbourne:20260621T154000
+DESCRIPTION:TV: Fox Footy
+LOCATION:MCG
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 16: North Melbourne vs. Essendon (Marvel Stadium)
+DTSTART;VALUE=DATE:20260625
+DTEND;VALUE=DATE:20260629
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:Marvel Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 17: Port Adelaide vs. North Melbourne (Adelaide Oval)
+DTSTART;VALUE=DATE:20260702
+DTEND;VALUE=DATE:20260706
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:Adelaide Oval
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 18: Collingwood vs. North Melbourne (Marvel Stadium)
+DTSTART;VALUE=DATE:20260709
+DTEND;VALUE=DATE:20260713
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:Marvel Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 19: North Melbourne vs. Melbourne (Marvel Stadium)
+DTSTART;VALUE=DATE:20260716
+DTEND;VALUE=DATE:20260720
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:Marvel Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 20: North Melbourne vs. St Kilda (Marvel Stadium)
+DTSTART;VALUE=DATE:20260723
+DTEND;VALUE=DATE:20260727
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:Marvel Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 21: Hawthorn vs. North Melbourne (UTAS Stadium)
+DTSTART;VALUE=DATE:20260730
+DTEND;VALUE=DATE:20260803
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:UTAS Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 22: Western Bulldogs vs. North Melbourne (Marvel Stadium)
+DTSTART;VALUE=DATE:20260806
+DTEND;VALUE=DATE:20260810
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:Marvel Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 23: North Melbourne vs. Geelong Cats (Marvel Stadium)
+DTSTART;VALUE=DATE:20260813
+DTEND;VALUE=DATE:20260817
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:Marvel Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 24: Sydney Swans vs. North Melbourne (SCG)
+DTSTART;VALUE=DATE:20260820
+DTEND;VALUE=DATE:20260824
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:SCG
+END:VEVENT
+END:VCALENDAR

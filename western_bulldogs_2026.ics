@@ -1,0 +1,171 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Western Bulldogs 2026 AFL Calendar//EN
+X-WR-CALNAME:Western Bulldogs 2026
+X-WR-TIMEZONE:Australia/Melbourne
+BEGIN:VEVENT
+SUMMARY:Opening Round: Brisbane Lions vs. Western Bulldogs (Gabba)
+DTSTART;TZID=Australia/Melbourne:20260307T193500
+DTEND;TZID=Australia/Melbourne:20260307T220500
+DESCRIPTION:TV: Fox Footy
+LOCATION:Gabba
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 1: Western Bulldogs vs. GWS Giants (Marvel Stadium)
+DTSTART;TZID=Australia/Melbourne:20260314T131500
+DTEND;TZID=Australia/Melbourne:20260314T154500
+DESCRIPTION:TV: Fox Footy
+LOCATION:Marvel Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 2: Adelaide Crows vs. Western Bulldogs (Adelaide Oval)
+DTSTART;TZID=Australia/Melbourne:20260320T194000
+DTEND;TZID=Australia/Melbourne:20260320T221000
+DESCRIPTION:TV: Seven/Fox
+LOCATION:Adelaide Oval
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 4: Western Bulldogs vs. Essendon (Marvel Stadium)
+DTSTART;TZID=Australia/Melbourne:20260405T192000
+DTEND;TZID=Australia/Melbourne:20260405T215000
+DESCRIPTION:TV: Seven/Fox
+LOCATION:Marvel Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 5 (Gather Round): Hawthorn vs. Western Bulldogs (Adelaide Ov
+ al)
+DTSTART;TZID=Australia/Melbourne:20260411T193500
+DTEND;TZID=Australia/Melbourne:20260411T220500
+DESCRIPTION:TV: Fox Footy
+LOCATION:Adelaide Oval
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 6: Geelong Cats vs. Western Bulldogs (GMHBA Stadium)
+DTSTART;TZID=Australia/Melbourne:20260417T192000
+DTEND;TZID=Australia/Melbourne:20260417T215000
+DESCRIPTION:TV: Seven/Fox
+LOCATION:GMHBA Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 7 (Anzac Round): Western Bulldogs vs. Sydney Swans (Marvel S
+ tadium)
+DTSTART;TZID=Australia/Melbourne:20260423T193000
+DTEND;TZID=Australia/Melbourne:20260423T220000
+DESCRIPTION:TV: Seven/Fox
+LOCATION:Marvel Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 8: Western Bulldogs vs. Fremantle (Marvel Stadium)
+DTSTART;TZID=Australia/Melbourne:20260501T193000
+DTEND;TZID=Australia/Melbourne:20260501T220000
+DESCRIPTION:TV: Seven/Fox
+LOCATION:Marvel Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 9: Port Adelaide vs. Western Bulldogs (Adelaide Oval)
+DTSTART;TZID=Australia/Melbourne:20260508T201000
+DTEND;TZID=Australia/Melbourne:20260508T224000
+DESCRIPTION:TV: Fox Footy
+LOCATION:Adelaide Oval
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 10: Carlton vs. Western Bulldogs (Marvel Stadium)
+DTSTART;TZID=Australia/Melbourne:20260516T193500
+DTEND;TZID=Australia/Melbourne:20260516T220500
+DESCRIPTION:TV: Fox Footy
+LOCATION:Marvel Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 11 (Sir Doug Nicholls Indigenous Round): Western Bulldogs vs
+ . Melbourne (Marvel Stadium)
+DTSTART;TZID=Australia/Melbourne:20260524T152000
+DTEND;TZID=Australia/Melbourne:20260524T175000
+DESCRIPTION:TV: Seven/Fox
+LOCATION:Marvel Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 12: Western Bulldogs vs. Collingwood (Marvel Stadium)
+DTSTART;TZID=Australia/Melbourne:20260530T193500
+DTEND;TZID=Australia/Melbourne:20260530T220500
+DESCRIPTION:TV: Fox Footy
+LOCATION:Marvel Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 13: Hawthorn vs. Western Bulldogs (MCG)
+DTSTART;TZID=Australia/Melbourne:20260605T194000
+DTEND;TZID=Australia/Melbourne:20260605T221000
+DESCRIPTION:TV: Seven/Fox
+LOCATION:MCG
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 14: Western Bulldogs vs. Adelaide Crows (Marvel Stadium)
+DTSTART;TZID=Australia/Melbourne:20260611T193000
+DTEND;TZID=Australia/Melbourne:20260611T220000
+DESCRIPTION:TV: Seven/Fox
+LOCATION:Marvel Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 15: St Kilda vs. Western Bulldogs (Marvel Stadium)
+DTSTART;TZID=Australia/Melbourne:20260621T151500
+DTEND;TZID=Australia/Melbourne:20260621T174500
+DESCRIPTION:TV: Seven/Fox
+LOCATION:Marvel Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 17: Sydney Swans vs. Western Bulldogs (SCG)
+DTSTART;VALUE=DATE:20260702
+DTEND;VALUE=DATE:20260706
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:SCG
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 18: Western Bulldogs vs. West Coast Eagles (Marvel Stadium)
+DTSTART;VALUE=DATE:20260709
+DTEND;VALUE=DATE:20260713
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:Marvel Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 19: Gold Coast Suns vs. Western Bulldogs (People First Stadi
+ um)
+DTSTART;VALUE=DATE:20260716
+DTEND;VALUE=DATE:20260720
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:People First Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 20: Western Bulldogs vs. Richmond (Marvel Stadium)
+DTSTART;VALUE=DATE:20260723
+DTEND;VALUE=DATE:20260727
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:Marvel Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 21: Fremantle vs. Western Bulldogs (Optus Stadium)
+DTSTART;VALUE=DATE:20260730
+DTEND;VALUE=DATE:20260803
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:Optus Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 22: Western Bulldogs vs. North Melbourne (Marvel Stadium)
+DTSTART;VALUE=DATE:20260806
+DTEND;VALUE=DATE:20260810
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:Marvel Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 23: Western Bulldogs vs. Carlton (Marvel Stadium)
+DTSTART;VALUE=DATE:20260813
+DTEND;VALUE=DATE:20260817
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:Marvel Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 24: Melbourne vs. Western Bulldogs (MCG)
+DTSTART;VALUE=DATE:20260820
+DTEND;VALUE=DATE:20260824
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:MCG
+END:VEVENT
+END:VCALENDAR

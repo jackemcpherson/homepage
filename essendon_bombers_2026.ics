@@ -1,0 +1,168 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Essendon Bombers 2026 AFL Calendar//EN
+X-WR-CALNAME:Essendon Bombers 2026
+X-WR-TIMEZONE:Australia/Melbourne
+BEGIN:VEVENT
+SUMMARY:Round 1: Essendon vs. Hawthorn (MCG)
+DTSTART;TZID=Australia/Melbourne:20260313T194000
+DTEND;TZID=Australia/Melbourne:20260313T221000
+DESCRIPTION:TV: Seven/Fox
+LOCATION:MCG
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 2: Port Adelaide vs. Essendon (Adelaide Oval)
+DTSTART;TZID=Australia/Melbourne:20260322T151500
+DTEND;TZID=Australia/Melbourne:20260322T174500
+DESCRIPTION:TV: Seven/Fox
+LOCATION:Adelaide Oval
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 3: Essendon vs. North Melbourne (Marvel Stadium)
+DTSTART;TZID=Australia/Melbourne:20260328T193500
+DTEND;TZID=Australia/Melbourne:20260328T220500
+DESCRIPTION:TV: Fox Footy
+LOCATION:Marvel Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 4: Western Bulldogs vs. Essendon (Marvel Stadium)
+DTSTART;TZID=Australia/Melbourne:20260405T192000
+DTEND;TZID=Australia/Melbourne:20260405T215000
+DESCRIPTION:TV: Seven/Fox
+LOCATION:Marvel Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 5 (Gather Round): Essendon vs. Melbourne (Adelaide Oval)
+DTSTART;TZID=Australia/Melbourne:20260411T131500
+DTEND;TZID=Australia/Melbourne:20260411T154500
+DESCRIPTION:TV: Fox Footy
+LOCATION:Adelaide Oval
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 6: Gold Coast Suns vs. Essendon (People First Stadium)
+DTSTART;TZID=Australia/Melbourne:20260418T131500
+DTEND;TZID=Australia/Melbourne:20260418T154500
+DESCRIPTION:TV: Fox Footy
+LOCATION:People First Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 7 (Anzac Round): Essendon vs. Collingwood (MCG)
+DTSTART;TZID=Australia/Melbourne:20260425T151500
+DTEND;TZID=Australia/Melbourne:20260425T174500
+DESCRIPTION:TV: Seven/Fox
+LOCATION:MCG
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 8: Essendon vs. Brisbane Lions (Marvel Stadium)
+DTSTART;TZID=Australia/Melbourne:20260502T123500
+DTEND;TZID=Australia/Melbourne:20260502T150500
+DESCRIPTION:TV: Fox Footy
+LOCATION:Marvel Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 9: GWS Giants vs. Essendon (ENGIE Stadium)
+DTSTART;TZID=Australia/Melbourne:20260509T161500
+DTEND;TZID=Australia/Melbourne:20260509T184500
+DESCRIPTION:TV: Fox Footy
+LOCATION:ENGIE Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 10: Essendon vs. Fremantle (MCG)
+DTSTART;TZID=Australia/Melbourne:20260517T131000
+DTEND;TZID=Australia/Melbourne:20260517T154000
+DESCRIPTION:TV: Fox Footy
+LOCATION:MCG
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 11 (Sir Doug Nicholls Indigenous Round): Richmond vs. Essend
+ on (MCG)
+DTSTART;TZID=Australia/Melbourne:20260522T194000
+DTEND;TZID=Australia/Melbourne:20260522T221000
+DESCRIPTION:TV: Seven/Fox
+LOCATION:MCG
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 12: West Coast Eagles vs. Essendon (Optus Stadium)
+DTSTART;TZID=Australia/Melbourne:20260531T192000
+DTEND;TZID=Australia/Melbourne:20260531T215000
+DESCRIPTION:TV: Seven/Fox
+LOCATION:Optus Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 13: Essendon vs. Carlton (MCG)
+DTSTART;TZID=Australia/Melbourne:20260607T192000
+DTEND;TZID=Australia/Melbourne:20260607T215000
+DESCRIPTION:TV: Seven/Fox
+LOCATION:MCG
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 14: Melbourne vs. Essendon (MCG)
+DTSTART;TZID=Australia/Melbourne:20260613T131500
+DTEND;TZID=Australia/Melbourne:20260613T154500
+DESCRIPTION:TV: Fox Footy
+LOCATION:MCG
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 16: North Melbourne vs. Essendon (Marvel Stadium)
+DTSTART;VALUE=DATE:20260625
+DTEND;VALUE=DATE:20260629
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:Marvel Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 17: Essendon vs. St Kilda (Marvel Stadium)
+DTSTART;VALUE=DATE:20260702
+DTEND;VALUE=DATE:20260706
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:Marvel Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 18: Brisbane Lions vs. Essendon (Gabba)
+DTSTART;VALUE=DATE:20260709
+DTEND;VALUE=DATE:20260713
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:Gabba
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 19: Essendon vs. GWS Giants (Marvel Stadium)
+DTSTART;VALUE=DATE:20260716
+DTEND;VALUE=DATE:20260720
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:Marvel Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 20: Hawthorn vs. Essendon (MCG)
+DTSTART;VALUE=DATE:20260723
+DTEND;VALUE=DATE:20260727
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:MCG
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 21: Essendon vs. Adelaide Crows (Marvel Stadium)
+DTSTART;VALUE=DATE:20260730
+DTEND;VALUE=DATE:20260803
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:Marvel Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 22: Geelong Cats vs. Essendon (GMHBA Stadium)
+DTSTART;VALUE=DATE:20260806
+DTEND;VALUE=DATE:20260810
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:GMHBA Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 23: Essendon vs. Sydney Swans (MCG)
+DTSTART;VALUE=DATE:20260813
+DTEND;VALUE=DATE:20260817
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:MCG
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 24: Essendon vs. Port Adelaide (Marvel Stadium)
+DTSTART;VALUE=DATE:20260820
+DTEND;VALUE=DATE:20260824
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:Marvel Stadium
+END:VEVENT
+END:VCALENDAR

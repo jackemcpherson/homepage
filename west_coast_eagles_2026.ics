@@ -1,0 +1,171 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//West Coast Eagles 2026 AFL Calendar//EN
+X-WR-CALNAME:West Coast Eagles 2026
+X-WR-TIMEZONE:Australia/Melbourne
+BEGIN:VEVENT
+SUMMARY:Round 1: Gold Coast Suns vs. West Coast Eagles (People First Stadi
+ um)
+DTSTART;TZID=Australia/Melbourne:20260315T181000
+DTEND;TZID=Australia/Melbourne:20260315T204000
+DESCRIPTION:TV: Fox Footy
+LOCATION:People First Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 2: West Coast Eagles vs. North Melbourne (Optus Stadium)
+DTSTART;TZID=Australia/Melbourne:20260322T181000
+DTEND;TZID=Australia/Melbourne:20260322T204000
+DESCRIPTION:TV: Fox Footy
+LOCATION:Optus Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 3: Port Adelaide vs. West Coast Eagles (Adelaide Oval)
+DTSTART;TZID=Australia/Melbourne:20260329T123000
+DTEND;TZID=Australia/Melbourne:20260329T150000
+DESCRIPTION:TV: Fox Footy
+LOCATION:Adelaide Oval
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 4: West Coast Eagles vs. Sydney Swans (Optus Stadium)
+DTSTART;TZID=Australia/Melbourne:20260404T193500
+DTEND;TZID=Australia/Melbourne:20260404T220500
+DESCRIPTION:TV: Fox Footy
+LOCATION:Optus Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 5 (Gather Round): Geelong Cats vs. West Coast Eagles (Norwoo
+ d Oval)
+DTSTART;TZID=Australia/Melbourne:20260412T123000
+DTEND;TZID=Australia/Melbourne:20260412T150000
+DESCRIPTION:TV: Fox Footy
+LOCATION:Norwood Oval
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 6: West Coast Eagles vs. Fremantle (Optus Stadium)
+DTSTART;TZID=Australia/Melbourne:20260419T171000
+DTEND;TZID=Australia/Melbourne:20260419T194000
+DESCRIPTION:TV: Fox Footy
+LOCATION:Optus Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 7 (Anzac Round): St Kilda vs. West Coast Eagles (Marvel Stad
+ ium)
+DTSTART;TZID=Australia/Melbourne:20260426T131000
+DTEND;TZID=Australia/Melbourne:20260426T154000
+DESCRIPTION:TV: Fox Footy
+LOCATION:Marvel Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 8: West Coast Eagles vs. Richmond (Optus Stadium)
+DTSTART;TZID=Australia/Melbourne:20260502T161500
+DTEND;TZID=Australia/Melbourne:20260502T184500
+DESCRIPTION:TV: Fox Footy
+LOCATION:Optus Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 9: Melbourne vs. West Coast Eagles (MCG)
+DTSTART;TZID=Australia/Melbourne:20260510T131000
+DTEND;TZID=Australia/Melbourne:20260510T154000
+DESCRIPTION:TV: Fox Footy
+LOCATION:MCG
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 10: West Coast Eagles vs. GWS Giants (Optus Stadium)
+DTSTART;TZID=Australia/Melbourne:20260517T181500
+DTEND;TZID=Australia/Melbourne:20260517T204500
+DESCRIPTION:TV: Fox Footy
+LOCATION:Optus Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 11 (Sir Doug Nicholls Indigenous Round): Collingwood vs. Wes
+ t Coast Eagles (MCG)
+DTSTART;TZID=Australia/Melbourne:20260523T163500
+DTEND;TZID=Australia/Melbourne:20260523T190500
+DESCRIPTION:TV: Fox Footy
+LOCATION:MCG
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 12: West Coast Eagles vs. Essendon (Optus Stadium)
+DTSTART;TZID=Australia/Melbourne:20260531T192000
+DTEND;TZID=Australia/Melbourne:20260531T215000
+DESCRIPTION:TV: Seven/Fox
+LOCATION:Optus Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 13: West Coast Eagles vs. Port Adelaide (Optus Stadium)
+DTSTART;TZID=Australia/Melbourne:20260606T201500
+DTEND;TZID=Australia/Melbourne:20260606T224500
+DESCRIPTION:TV: Fox Footy
+LOCATION:Optus Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 14: North Melbourne vs. West Coast Eagles (Optus Stadium)
+DTSTART;TZID=Australia/Melbourne:20260613T161500
+DTEND;TZID=Australia/Melbourne:20260613T184500
+DESCRIPTION:TV: Fox Footy
+LOCATION:Optus Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 16: Carlton vs. West Coast Eagles (Marvel Stadium)
+DTSTART;VALUE=DATE:20260625
+DTEND;VALUE=DATE:20260629
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:Marvel Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 17: West Coast Eagles vs. Adelaide Crows (Optus Stadium)
+DTSTART;VALUE=DATE:20260702
+DTEND;VALUE=DATE:20260706
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:Optus Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 18: Western Bulldogs vs. West Coast Eagles (Marvel Stadium)
+DTSTART;VALUE=DATE:20260709
+DTEND;VALUE=DATE:20260713
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:Marvel Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 19: West Coast Eagles vs. Brisbane Lions (Optus Stadium)
+DTSTART;VALUE=DATE:20260716
+DTEND;VALUE=DATE:20260720
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:Optus Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 20: Fremantle vs. West Coast Eagles (Adelaide Oval)
+DTSTART;VALUE=DATE:20260723
+DTEND;VALUE=DATE:20260727
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:Adelaide Oval
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 21: Richmond vs. West Coast Eagles (MCG)
+DTSTART;VALUE=DATE:20260730
+DTEND;VALUE=DATE:20260803
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:MCG
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 22: West Coast Eagles vs. Collingwood (Optus Stadium)
+DTSTART;VALUE=DATE:20260806
+DTEND;VALUE=DATE:20260810
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:Optus Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 23: GWS Giants vs. West Coast Eagles (ENGIE Stadium)
+DTSTART;VALUE=DATE:20260813
+DTEND;VALUE=DATE:20260817
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:ENGIE Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 24: West Coast Eagles vs. Hawthorn (Optus Stadium)
+DTSTART;VALUE=DATE:20260820
+DTEND;VALUE=DATE:20260824
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:Optus Stadium
+END:VEVENT
+END:VCALENDAR
