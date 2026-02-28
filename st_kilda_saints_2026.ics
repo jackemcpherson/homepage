@@ -1,0 +1,169 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//St Kilda Saints 2026 AFL Calendar//EN
+X-WR-CALNAME:St Kilda Saints 2026
+X-WR-TIMEZONE:Australia/Melbourne
+BEGIN:VEVENT
+SUMMARY:Opening Round: St Kilda vs. Collingwood (MCG)
+DTSTART;TZID=Australia/Melbourne:20260308T192000
+DTEND;TZID=Australia/Melbourne:20260308T215000
+DESCRIPTION:TV: Seven/Fox
+LOCATION:MCG
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 1: Melbourne vs. St Kilda (MCG)
+DTSTART;TZID=Australia/Melbourne:20260315T151500
+DTEND;TZID=Australia/Melbourne:20260315T174500
+DESCRIPTION:TV: Seven/Fox
+LOCATION:MCG
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 2: GWS Giants vs. St Kilda (ENGIE Stadium)
+DTSTART;TZID=Australia/Melbourne:20260321T161500
+DTEND;TZID=Australia/Melbourne:20260321T184500
+DESCRIPTION:TV: Fox Footy
+LOCATION:ENGIE Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 3: St Kilda vs. Brisbane Lions (Marvel Stadium)
+DTSTART;TZID=Australia/Melbourne:20260328T123500
+DTEND;TZID=Australia/Melbourne:20260328T150500
+DESCRIPTION:TV: Fox Footy
+LOCATION:Marvel Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 5 (Gather Round): Port Adelaide vs. St Kilda (Adelaide Oval)
+DTSTART;TZID=Australia/Melbourne:20260412T191500
+DTEND;TZID=Australia/Melbourne:20260412T214500
+DESCRIPTION:TV: Seven/Fox
+LOCATION:Adelaide Oval
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 6: Adelaide Crows vs. St Kilda (Adelaide Oval)
+DTSTART;TZID=Australia/Melbourne:20260418T193500
+DTEND;TZID=Australia/Melbourne:20260418T220500
+DESCRIPTION:TV: Fox Footy
+LOCATION:Adelaide Oval
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 7 (Anzac Round): St Kilda vs. West Coast Eagles (Marvel Stad
+ ium)
+DTSTART;TZID=Australia/Melbourne:20260426T131000
+DTEND;TZID=Australia/Melbourne:20260426T154000
+DESCRIPTION:TV: Fox Footy
+LOCATION:Marvel Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 8: Carlton vs. St Kilda (Marvel Stadium)
+DTSTART;TZID=Australia/Melbourne:20260502T193500
+DTEND;TZID=Australia/Melbourne:20260502T220500
+DESCRIPTION:TV: Fox Footy
+LOCATION:Marvel Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 9: Gold Coast Suns vs. St Kilda (TIO Stadium)
+DTSTART;TZID=Australia/Melbourne:20260509T191000
+DTEND;TZID=Australia/Melbourne:20260509T214000
+DESCRIPTION:TV: Fox Footy
+LOCATION:TIO Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 10: St Kilda vs. Richmond (Marvel Stadium)
+DTSTART;TZID=Australia/Melbourne:20260517T151500
+DTEND;TZID=Australia/Melbourne:20260517T174500
+DESCRIPTION:TV: Seven/Fox
+LOCATION:Marvel Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 11 (Sir Doug Nicholls Indigenous Round): Fremantle vs. St Ki
+ lda (Optus Stadium)
+DTSTART;TZID=Australia/Melbourne:20260522T203000
+DTEND;TZID=Australia/Melbourne:20260522T230000
+DESCRIPTION:TV: Fox Footy
+LOCATION:Optus Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 12: St Kilda vs. Hawthorn (Marvel Stadium)
+DTSTART;TZID=Australia/Melbourne:20260528T193000
+DTEND;TZID=Australia/Melbourne:20260528T220000
+DESCRIPTION:TV: Seven/Fox
+LOCATION:Marvel Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 13: Sydney Swans vs. St Kilda (SCG)
+DTSTART;TZID=Australia/Melbourne:20260607T151500
+DTEND;TZID=Australia/Melbourne:20260607T174500
+DESCRIPTION:TV: Seven/Fox
+LOCATION:SCG
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 14: St Kilda vs. GWS Giants (Marvel Stadium)
+DTSTART;TZID=Australia/Melbourne:20260614T151500
+DTEND;TZID=Australia/Melbourne:20260614T174500
+DESCRIPTION:TV: Seven/Fox
+LOCATION:Marvel Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 15: St Kilda vs. Western Bulldogs (Marvel Stadium)
+DTSTART;TZID=Australia/Melbourne:20260621T151500
+DTEND;TZID=Australia/Melbourne:20260621T174500
+DESCRIPTION:TV: Seven/Fox
+LOCATION:Marvel Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 17: Essendon vs. St Kilda (Marvel Stadium)
+DTSTART;VALUE=DATE:20260702
+DTEND;VALUE=DATE:20260706
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:Marvel Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 18: St Kilda vs. Port Adelaide (Marvel Stadium)
+DTSTART;VALUE=DATE:20260709
+DTEND;VALUE=DATE:20260713
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:Marvel Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 19: Geelong Cats vs. St Kilda (GMHBA Stadium)
+DTSTART;VALUE=DATE:20260716
+DTEND;VALUE=DATE:20260720
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:GMHBA Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 20: North Melbourne vs. St Kilda (Marvel Stadium)
+DTSTART;VALUE=DATE:20260723
+DTEND;VALUE=DATE:20260727
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:Marvel Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 21: St Kilda vs. Sydney Swans (Marvel Stadium)
+DTSTART;VALUE=DATE:20260730
+DTEND;VALUE=DATE:20260803
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:Marvel Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 22: St Kilda vs. Carlton (Marvel Stadium)
+DTSTART;VALUE=DATE:20260806
+DTEND;VALUE=DATE:20260810
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:Marvel Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 23: Richmond vs. St Kilda (MCG)
+DTSTART;VALUE=DATE:20260813
+DTEND;VALUE=DATE:20260817
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:MCG
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 24: St Kilda vs. Gold Coast Suns (Marvel Stadium)
+DTSTART;VALUE=DATE:20260820
+DTEND;VALUE=DATE:20260824
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:Marvel Stadium
+END:VEVENT
+END:VCALENDAR

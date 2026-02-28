@@ -1,0 +1,170 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Sydney Swans 2026 AFL Calendar//EN
+X-WR-CALNAME:Sydney Swans 2026
+X-WR-TIMEZONE:Australia/Melbourne
+BEGIN:VEVENT
+SUMMARY:Opening Round: Sydney Swans vs. Carlton (SCG)
+DTSTART;TZID=Australia/Melbourne:20260305T193000
+DTEND;TZID=Australia/Melbourne:20260305T220000
+DESCRIPTION:TV: Seven/Fox
+LOCATION:SCG
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 1: Sydney Swans vs. Brisbane Lions (SCG)
+DTSTART;TZID=Australia/Melbourne:20260314T191000
+DTEND;TZID=Australia/Melbourne:20260314T214000
+DESCRIPTION:TV: Fox Footy
+LOCATION:SCG
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 2: Hawthorn vs. Sydney Swans (MCG)
+DTSTART;TZID=Australia/Melbourne:20260319T193000
+DTEND;TZID=Australia/Melbourne:20260319T220000
+DESCRIPTION:TV: Seven/Fox
+LOCATION:MCG
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 4: West Coast Eagles vs. Sydney Swans (Optus Stadium)
+DTSTART;TZID=Australia/Melbourne:20260404T193500
+DTEND;TZID=Australia/Melbourne:20260404T220500
+DESCRIPTION:TV: Fox Footy
+LOCATION:Optus Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 5 (Gather Round): Sydney Swans vs. Gold Coast Suns (Norwood 
+ Oval)
+DTSTART;TZID=Australia/Melbourne:20260411T161500
+DTEND;TZID=Australia/Melbourne:20260411T184500
+DESCRIPTION:TV: Fox Footy
+LOCATION:Norwood Oval
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 6: Sydney Swans vs. GWS Giants (SCG)
+DTSTART;TZID=Australia/Melbourne:20260417T195000
+DTEND;TZID=Australia/Melbourne:20260417T222000
+DESCRIPTION:TV: Fox Footy
+LOCATION:SCG
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 7 (Anzac Round): Western Bulldogs vs. Sydney Swans (Marvel S
+ tadium)
+DTSTART;TZID=Australia/Melbourne:20260423T193000
+DTEND;TZID=Australia/Melbourne:20260423T220000
+DESCRIPTION:TV: Seven/Fox
+LOCATION:Marvel Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 8: Sydney Swans vs. Melbourne (SCG)
+DTSTART;TZID=Australia/Melbourne:20260503T151500
+DTEND;TZID=Australia/Melbourne:20260503T174500
+DESCRIPTION:TV: Seven/Fox
+LOCATION:SCG
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 9: North Melbourne vs. Sydney Swans (Marvel Stadium)
+DTSTART;TZID=Australia/Melbourne:20260509T123500
+DTEND;TZID=Australia/Melbourne:20260509T150500
+DESCRIPTION:TV: Fox Footy
+LOCATION:Marvel Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 10: Sydney Swans vs. Collingwood (SCG)
+DTSTART;TZID=Australia/Melbourne:20260515T193000
+DTEND;TZID=Australia/Melbourne:20260515T220000
+DESCRIPTION:TV: Seven/Fox
+LOCATION:SCG
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 11 (Sir Doug Nicholls Indigenous Round): Geelong Cats vs. Sy
+ dney Swans (GMHBA Stadium)
+DTSTART;TZID=Australia/Melbourne:20260523T161500
+DTEND;TZID=Australia/Melbourne:20260523T184500
+DESCRIPTION:TV: Fox Footy
+LOCATION:GMHBA Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 12: Sydney Swans vs. Richmond (SCG)
+DTSTART;TZID=Australia/Melbourne:20260530T131500
+DTEND;TZID=Australia/Melbourne:20260530T154500
+DESCRIPTION:TV: Fox Footy
+LOCATION:SCG
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 13: Sydney Swans vs. St Kilda (SCG)
+DTSTART;TZID=Australia/Melbourne:20260607T151500
+DTEND;TZID=Australia/Melbourne:20260607T174500
+DESCRIPTION:TV: Seven/Fox
+LOCATION:SCG
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 14: Port Adelaide vs. Sydney Swans (Adelaide Oval)
+DTSTART;TZID=Australia/Melbourne:20260613T193500
+DTEND;TZID=Australia/Melbourne:20260613T220500
+DESCRIPTION:TV: Fox Footy
+LOCATION:Adelaide Oval
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 16: Brisbane Lions vs. Sydney Swans (Gabba)
+DTSTART;VALUE=DATE:20260625
+DTEND;VALUE=DATE:20260629
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:Gabba
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 17: Sydney Swans vs. Western Bulldogs (SCG)
+DTSTART;VALUE=DATE:20260702
+DTEND;VALUE=DATE:20260706
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:SCG
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 18: Fremantle vs. Sydney Swans (Optus Stadium)
+DTSTART;VALUE=DATE:20260709
+DTEND;VALUE=DATE:20260713
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:Optus Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 19: Sydney Swans vs. Adelaide Crows (SCG)
+DTSTART;VALUE=DATE:20260716
+DTEND;VALUE=DATE:20260720
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:SCG
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 20: GWS Giants vs. Sydney Swans (ENGIE Stadium)
+DTSTART;VALUE=DATE:20260723
+DTEND;VALUE=DATE:20260727
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:ENGIE Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 21: St Kilda vs. Sydney Swans (Marvel Stadium)
+DTSTART;VALUE=DATE:20260730
+DTEND;VALUE=DATE:20260803
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:Marvel Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 22: Sydney Swans vs. Port Adelaide (SCG)
+DTSTART;VALUE=DATE:20260806
+DTEND;VALUE=DATE:20260810
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:SCG
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 23: Essendon vs. Sydney Swans (MCG)
+DTSTART;VALUE=DATE:20260813
+DTEND;VALUE=DATE:20260817
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:MCG
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 24: Sydney Swans vs. North Melbourne (SCG)
+DTSTART;VALUE=DATE:20260820
+DTEND;VALUE=DATE:20260824
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:SCG
+END:VEVENT
+END:VCALENDAR
