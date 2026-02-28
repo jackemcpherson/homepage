@@ -1,0 +1,168 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Carlton Blues 2026 AFL Calendar//EN
+X-WR-CALNAME:Carlton Blues 2026
+X-WR-TIMEZONE:Australia/Melbourne
+BEGIN:VEVENT
+SUMMARY:Opening Round: Sydney Swans vs. Carlton (SCG)
+DTSTART;TZID=Australia/Melbourne:20260305T193000
+DTEND;TZID=Australia/Melbourne:20260305T220000
+DESCRIPTION:TV: Seven/Fox
+LOCATION:SCG
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 1: Carlton vs. Richmond (MCG)
+DTSTART;TZID=Australia/Melbourne:20260312T193000
+DTEND;TZID=Australia/Melbourne:20260312T220000
+DESCRIPTION:TV: Seven/Fox
+LOCATION:MCG
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 3: Carlton vs. Melbourne (MCG)
+DTSTART;TZID=Australia/Melbourne:20260329T151500
+DTEND;TZID=Australia/Melbourne:20260329T174500
+DESCRIPTION:TV: Seven/Fox
+LOCATION:MCG
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 4: North Melbourne vs. Carlton (Marvel Stadium)
+DTSTART;TZID=Australia/Melbourne:20260403T151500
+DTEND;TZID=Australia/Melbourne:20260403T174500
+DESCRIPTION:TV: Seven/Fox
+LOCATION:Marvel Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 5 (Gather Round): Adelaide Crows vs. Carlton (Adelaide Oval)
+DTSTART;TZID=Australia/Melbourne:20260409T194000
+DTEND;TZID=Australia/Melbourne:20260409T221000
+DESCRIPTION:TV: Seven/Fox
+LOCATION:Adelaide Oval
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 6: Carlton vs. Collingwood (MCG)
+DTSTART;TZID=Australia/Melbourne:20260416T193000
+DTEND;TZID=Australia/Melbourne:20260416T220000
+DESCRIPTION:TV: Seven/Fox
+LOCATION:MCG
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 7 (Anzac Round): Fremantle vs. Carlton (Optus Stadium)
+DTSTART;TZID=Australia/Melbourne:20260425T201500
+DTEND;TZID=Australia/Melbourne:20260425T224500
+DESCRIPTION:TV: Fox Footy
+LOCATION:Optus Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 8: Carlton vs. St Kilda (Marvel Stadium)
+DTSTART;TZID=Australia/Melbourne:20260502T193500
+DTEND;TZID=Australia/Melbourne:20260502T220500
+DESCRIPTION:TV: Fox Footy
+LOCATION:Marvel Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 9: Brisbane Lions vs. Carlton (Gabba)
+DTSTART;TZID=Australia/Melbourne:20260508T193000
+DTEND;TZID=Australia/Melbourne:20260508T220000
+DESCRIPTION:TV: Seven/Fox
+LOCATION:Gabba
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 10: Carlton vs. Western Bulldogs (Marvel Stadium)
+DTSTART;TZID=Australia/Melbourne:20260516T193500
+DTEND;TZID=Australia/Melbourne:20260516T220500
+DESCRIPTION:TV: Fox Footy
+LOCATION:Marvel Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 11 (Sir Doug Nicholls Indigenous Round): Port Adelaide vs. C
+ arlton (Adelaide Oval)
+DTSTART;TZID=Australia/Melbourne:20260523T193500
+DTEND;TZID=Australia/Melbourne:20260523T220500
+DESCRIPTION:TV: Fox Footy
+LOCATION:Adelaide Oval
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 12: Carlton vs. Geelong Cats (MCG)
+DTSTART;TZID=Australia/Melbourne:20260529T194000
+DTEND;TZID=Australia/Melbourne:20260529T221000
+DESCRIPTION:TV: Seven/Fox
+LOCATION:MCG
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 13: Essendon vs. Carlton (MCG)
+DTSTART;TZID=Australia/Melbourne:20260607T192000
+DTEND;TZID=Australia/Melbourne:20260607T215000
+DESCRIPTION:TV: Seven/Fox
+LOCATION:MCG
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 15: GWS Giants vs. Carlton (ENGIE Stadium)
+DTSTART;TZID=Australia/Melbourne:20260620T161500
+DTEND;TZID=Australia/Melbourne:20260620T184500
+DESCRIPTION:TV: Fox Footy
+LOCATION:ENGIE Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 16: Carlton vs. West Coast Eagles (Marvel Stadium)
+DTSTART;VALUE=DATE:20260625
+DTEND;VALUE=DATE:20260629
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:Marvel Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 17: Richmond vs. Carlton (MCG)
+DTSTART;VALUE=DATE:20260702
+DTEND;VALUE=DATE:20260706
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:MCG
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 18: Carlton vs. Hawthorn (MCG)
+DTSTART;VALUE=DATE:20260709
+DTEND;VALUE=DATE:20260713
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:MCG
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 19: Collingwood vs. Carlton (MCG)
+DTSTART;VALUE=DATE:20260716
+DTEND;VALUE=DATE:20260720
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:MCG
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 20: Carlton vs. Gold Coast Suns (Marvel Stadium)
+DTSTART;VALUE=DATE:20260723
+DTEND;VALUE=DATE:20260727
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:Marvel Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 21: Carlton vs. Brisbane Lions (Marvel Stadium)
+DTSTART;VALUE=DATE:20260730
+DTEND;VALUE=DATE:20260803
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:Marvel Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 22: St Kilda vs. Carlton (Marvel Stadium)
+DTSTART;VALUE=DATE:20260806
+DTEND;VALUE=DATE:20260810
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:Marvel Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 23: Western Bulldogs vs. Carlton (Marvel Stadium)
+DTSTART;VALUE=DATE:20260813
+DTEND;VALUE=DATE:20260817
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:Marvel Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 24: Carlton vs. Fremantle (Marvel Stadium)
+DTSTART;VALUE=DATE:20260820
+DTEND;VALUE=DATE:20260824
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:Marvel Stadium
+END:VEVENT
+END:VCALENDAR
