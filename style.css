@@ -237,6 +237,15 @@ body {
     font-size: 0.95rem;
   }
 
+  .software-list li {
+    grid-template-columns: 2rem 1fr;
+  }
+
+  .software-name,
+  .software-desc {
+    font-size: 0.95rem;
+  }
+
   .post-index a {
     font-size: 1.05rem;
   }
@@ -406,6 +415,101 @@ body {
   margin-top: 0.15rem;
 }
 
+/* ── Software List (Top 25) ─────────────────────────── */
+
+.software-list {
+  list-style: none;
+  counter-reset: rank;
+  margin-bottom: var(--space-xl);
+}
+
+.software-list li {
+  counter-increment: rank;
+  display: grid;
+  grid-template-columns: 2.5rem 1fr;
+  grid-template-rows: auto auto;
+  align-content: center;
+  column-gap: 0.75rem;
+  padding: 0.9rem 0;
+  border-bottom: 1px solid var(--color-rule);
+  animation: item-enter 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.software-list li:first-child {
+  border-top: 1px solid var(--color-rule);
+}
+
+.software-list li::before {
+  content: counter(rank);
+  font-family: var(--font-sans);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--color-accent);
+  grid-row: 1 / -1;
+  align-self: center;
+}
+
+.software-name {
+  font-family: var(--font-serif);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--color-fg);
+  line-height: 1.3;
+}
+
+.software-desc {
+  font-family: var(--font-serif);
+  font-size: 1.05rem;
+  font-style: italic;
+  font-weight: 400;
+  color: var(--color-fg);
+}
+
+.software-name::after {
+  content: ' — ';
+  font-weight: 400;
+}
+
+.software-list .label {
+  display: block;
+  grid-column: 2;
+  font-family: var(--font-sans);
+  font-size: 0.7rem;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+  margin-top: 0.15rem;
+}
+
+/* Staggered entrance */
+.software-list li:nth-child(1)  { animation-delay: 0.35s; }
+.software-list li:nth-child(2)  { animation-delay: 0.38s; }
+.software-list li:nth-child(3)  { animation-delay: 0.41s; }
+.software-list li:nth-child(4)  { animation-delay: 0.44s; }
+.software-list li:nth-child(5)  { animation-delay: 0.47s; }
+.software-list li:nth-child(6)  { animation-delay: 0.50s; }
+.software-list li:nth-child(7)  { animation-delay: 0.53s; }
+.software-list li:nth-child(8)  { animation-delay: 0.56s; }
+.software-list li:nth-child(9)  { animation-delay: 0.59s; }
+.software-list li:nth-child(10) { animation-delay: 0.62s; }
+.software-list li:nth-child(11) { animation-delay: 0.65s; }
+.software-list li:nth-child(12) { animation-delay: 0.68s; }
+.software-list li:nth-child(13) { animation-delay: 0.71s; }
+.software-list li:nth-child(14) { animation-delay: 0.74s; }
+.software-list li:nth-child(15) { animation-delay: 0.77s; }
+.software-list li:nth-child(16) { animation-delay: 0.80s; }
+.software-list li:nth-child(17) { animation-delay: 0.83s; }
+.software-list li:nth-child(18) { animation-delay: 0.86s; }
+.software-list li:nth-child(19) { animation-delay: 0.89s; }
+.software-list li:nth-child(20) { animation-delay: 0.92s; }
+.software-list li:nth-child(21) { animation-delay: 0.95s; }
+.software-list li:nth-child(22) { animation-delay: 0.98s; }
+.software-list li:nth-child(23) { animation-delay: 1.01s; }
+.software-list li:nth-child(24) { animation-delay: 1.04s; }
+.software-list li:nth-child(25) { animation-delay: 1.07s; }
+
 /* ── Honorable Mentions ──────────────────────────────── */
 
 .mentions {
@@ -536,6 +640,11 @@ body {
   }
 
   .mentions {
+    animation: none;
+    opacity: 1;
+  }
+
+  .software-list li {
     animation: none;
     opacity: 1;
   }
