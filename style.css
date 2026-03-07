@@ -623,6 +623,15 @@ body {
   font-weight: 700;
 }
 
+.mention-icon {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  opacity: 0.35;
+  vertical-align: -3px;
+  margin-right: 0.35rem;
+}
+
 .mention-note {
   font-style: italic;
   color: var(--color-muted);
@@ -755,7 +764,8 @@ body {
     display: none;
   }
 
-  .software-icon {
+  .software-icon,
+  .mention-icon {
     display: none;
   }
 
