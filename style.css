@@ -238,7 +238,12 @@ body {
   }
 
   .software-list li {
-    grid-template-columns: 2rem 1fr;
+    grid-template-columns: 2rem 24px 1fr;
+  }
+
+  .software-icon {
+    width: 24px;
+    height: 24px;
   }
 
   .software-name,
@@ -426,7 +431,7 @@ body {
 .software-list li {
   counter-increment: rank;
   display: grid;
-  grid-template-columns: 2.5rem 1fr;
+  grid-template-columns: 2.5rem 28px 1fr;
   grid-template-rows: auto auto;
   align-content: center;
   column-gap: 0.75rem;
@@ -448,6 +453,15 @@ body {
   color: var(--color-accent);
   grid-row: 1 / -1;
   align-self: center;
+}
+
+.software-icon {
+  grid-row: 1 / -1;
+  align-self: center;
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  opacity: 0.7;
 }
 
 .software-name {
@@ -473,7 +487,7 @@ body {
 
 .software-list .label {
   display: block;
-  grid-column: 2;
+  grid-column: 3;
   font-family: var(--font-sans);
   font-size: 0.7rem;
   font-weight: 400;
@@ -647,6 +661,15 @@ body {
   .software-list li {
     animation: none;
     opacity: 1;
+    grid-template-columns: 2.5rem 1fr;
+  }
+
+  .software-icon {
+    display: none;
+  }
+
+  .software-list .label {
+    grid-column: 2;
   }
 
   .back-link {
