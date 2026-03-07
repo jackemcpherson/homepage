@@ -110,6 +110,29 @@ body {
   margin: var(--space-md) auto;
 }
 
+/* ── Post Lede ───────────────────────────────────────── */
+
+.post-lede {
+  font-family: var(--font-serif);
+  font-size: 1.1rem;
+  font-style: italic;
+  line-height: 1.5;
+  color: var(--color-muted);
+  margin-top: var(--space-sm);
+}
+
+.post-lede a {
+  color: var(--color-muted);
+  text-decoration-color: var(--color-rule);
+  text-underline-offset: 2px;
+  transition: color 0.2s ease, text-decoration-color 0.2s ease;
+}
+
+.post-lede a:hover {
+  color: var(--color-fg);
+  text-decoration-color: var(--color-accent);
+}
+
 /* ── Social Links ─────────────────────────────────────── */
 
 .social {
@@ -477,13 +500,14 @@ body {
   height: 32px;
   object-fit: contain;
   padding: 4px;
-  opacity: 0.4;
+  opacity: 0.55;
   transition: opacity 0.3s ease;
 }
 
 .software-list li:hover .software-icon {
-  opacity: 0.75;
+  opacity: 0.85;
 }
+
 
 /* ── Content (right column) ── */
 
