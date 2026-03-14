@@ -1,43 +1,79 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Carlton ELO by Coaching Era — Jack McPherson</title>
-  <meta name="description" content="Three decades of Carlton's ELO rating by coaching era, 1990–2026.">
-  <meta name="theme-color" content="#C0392B">
-  <link rel="icon" href="../favicon.svg" type="image/svg+xml">
-  <meta property="og:title" content="Carlton ELO by Coaching Era">
-  <meta property="og:description" content="Three decades of Carlton's ELO rating by coaching era, 1990–2026.">
-  <meta property="og:type" content="article">
-  <meta property="og:url" content="https://jackemcpherson.com/posts/carlton-elo-coaching-eras.html">
-  <meta name="twitter:card" content="summary">
-  <meta name="twitter:site" content="@JDogggg">
-  <meta name="twitter:title" content="Carlton ELO by Coaching Era">
-  <meta name="twitter:description" content="Three decades of Carlton's ELO rating by coaching era, 1990–2026.">
-  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/charter-webfont@4/charter.min.css" media="print" onload="this.media='all'">
-  <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/charter-webfont@4/charter.min.css"></noscript>
-  <link rel="stylesheet" href="../style.css?v=7">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;0,9..144,800;0,9..144,900;1,9..144,400&family=Libre+Franklin:wght@300;400;500;600&display=swap" rel="stylesheet">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Carlton ELO by Coaching Era — Jack McPherson</title>
+<meta name="description" content="Three decades of Carlton's ELO rating by coaching era, 1990–2026.">
+<meta name="theme-color" content="#C0392B">
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<meta property="og:title" content="Carlton ELO by Coaching Era">
+<meta property="og:description" content="Three decades of Carlton's ELO rating by coaching era, 1990–2026.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://jackemcpherson.com/posts/carlton-elo-coaching-eras.html">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:site" content="@JDogggg">
+<meta name="twitter:title" content="Carlton ELO by Coaching Era">
+<meta name="twitter:description" content="Three decades of Carlton's ELO rating by coaching era, 1990–2026.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;0,9..144,800;0,9..144,900;1,9..144,400&family=Libre+Franklin:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
-/* ── Chart-specific styles (scoped to .elo-chart) ── */
-.elo-chart {
-  font-family: 'Libre Franklin', sans-serif;
-  color: #1a1a18;
-  margin-top: var(--space-md);
+*{margin:0;padding:0;box-sizing:border-box}
 
-  /* Break out of the narrow .post column */
-  width: 90vw;
-  max-width: 1060px;
-  margin-left: 50%;
-  transform: translateX(-50%);
+body {
+  font-family: 'Libre Franklin', sans-serif;
+  background: #f4f1eb;
+  color: #1a1a18;
+  min-height: 100vh;
 }
 
-.elo-chart .kicker {
+/* Newspaper texture */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.2' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.018'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+}
+
+.back-home {
+  display: inline-block;
   font-family: 'Libre Franklin', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: #8c1515;
+  margin-bottom: 20px;
+  transition: opacity 0.2s;
+}
+.back-home:hover { opacity: 0.6; }
+
+.page {
+  max-width: 1060px;
+  margin: 0 auto;
+  padding: 40px 40px 80px;
+  position: relative;
+  z-index: 1;
+}
+
+/* Masthead rule */
+.rule-top {
+  height: 4px;
+  background: #1a1a18;
+  margin-bottom: 4px;
+}
+.rule-top-thin {
+  height: 1px;
+  background: #1a1a18;
+  margin-bottom: 28px;
+}
+
+/* Header */
+.kicker {
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 2.5px;
@@ -46,9 +82,9 @@
   margin-bottom: 10px;
 }
 
-.elo-chart .chart-title {
+h1 {
   font-family: 'Fraunces', serif;
-  font-size: 42px;
+  font-size: 48px;
   font-weight: 900;
   font-optical-sizing: auto;
   letter-spacing: -1px;
@@ -58,9 +94,8 @@
   max-width: 700px;
 }
 
-.elo-chart .deck {
-  font-family: 'Libre Franklin', sans-serif;
-  font-size: 17px;
+.deck {
+  font-size: 18px;
   font-weight: 300;
   line-height: 1.5;
   color: #4a4a44;
@@ -68,30 +103,32 @@
   margin-bottom: 6px;
 }
 
-.elo-chart .methodology {
-  font-family: 'Libre Franklin', sans-serif;
+.methodology {
   font-size: 11px;
   color: #9a9a90;
   letter-spacing: 0.3px;
-  margin-bottom: 28px;
+  margin-bottom: 32px;
 }
 
-.elo-chart .rule-mid {
+/* Separator */
+.rule-mid {
   height: 1px;
   background: #d0cdc4;
   margin-bottom: 28px;
 }
 
-.elo-chart .chart-wrap {
+/* Chart area — the hero */
+.chart-wrap {
   position: relative;
   width: 100%;
   height: 560px;
   margin-bottom: 24px;
 }
 
-.elo-chart canvas { display: block; }
+canvas { display: block; }
 
-.elo-chart .legend {
+/* Inline legend */
+.legend {
   display: flex;
   gap: 24px;
   font-size: 12px;
@@ -99,38 +136,39 @@
   margin-bottom: 4px;
   flex-wrap: wrap;
 }
-.elo-chart .legend-item {
+.legend-item {
   display: flex;
   align-items: center;
   gap: 6px;
 }
-.elo-chart .swatch {
+.swatch {
   display: inline-block;
   width: 16px;
   height: 3px;
   border-radius: 1px;
 }
-.elo-chart .swatch-band {
+.swatch-band {
   width: 20px;
   height: 12px;
   border-radius: 2px;
   display: flex;
   gap: 1px;
 }
-.elo-chart .swatch-band::before,
-.elo-chart .swatch-band::after {
+.swatch-band::before,
+.swatch-band::after {
   content: '';
   flex: 1;
   border-radius: 1px;
 }
-.elo-chart .swatch-band::before { background: rgba(30,58,95,0.12); }
-.elo-chart .swatch-band::after { background: rgba(140,21,21,0.09); }
-.elo-chart .swatch-dash {
+.swatch-band::before { background: rgba(30,58,95,0.12); }
+.swatch-band::after { background: rgba(140,21,21,0.09); }
+.swatch-dash {
   width: 16px;
   border-top: 1.5px dashed #b0ada4;
 }
 
-.elo-chart .source {
+/* Source line */
+.source {
   font-size: 10px;
   color: #aaa89e;
   border-top: 1px solid #d0cdc4;
@@ -138,7 +176,8 @@
   margin-top: 8px;
 }
 
-.elo-chart .tt {
+/* Tooltip */
+.tt {
   position: absolute;
   pointer-events: none;
   opacity: 0;
@@ -146,11 +185,11 @@
   transform: translateY(3px);
   z-index: 50;
 }
-.elo-chart .tt.show {
+.tt.show {
   opacity: 1;
   transform: translateY(0);
 }
-.elo-chart .tt-inner {
+.tt-inner {
   background: #fffef9;
   border: 1px solid #d0cdc4;
   border-radius: 6px;
@@ -158,12 +197,12 @@
   box-shadow: 0 4px 16px rgba(0,0,0,0.08);
   min-width: 150px;
 }
-.elo-chart .tt-date {
+.tt-date {
   font-size: 11px;
   color: #9a9a90;
   margin-bottom: 3px;
 }
-.elo-chart .tt-elo {
+.tt-elo {
   font-family: 'Fraunces', serif;
   font-size: 28px;
   font-weight: 800;
@@ -171,44 +210,38 @@
   line-height: 1.1;
   margin-bottom: 2px;
 }
-.elo-chart .tt-coach {
+.tt-coach {
   font-size: 12px;
   font-weight: 500;
   color: #8c1515;
 }
-.elo-chart .tt-vs {
+.tt-vs {
   font-size: 11px;
   color: #9a9a90;
   margin-top: 3px;
 }
 
 @media (max-width: 768px) {
-  .elo-chart .chart-title { font-size: 28px; }
-  .elo-chart .deck { font-size: 15px; }
-  .elo-chart .chart-wrap { height: 380px; }
+  .page { padding: 28px 18px 48px; }
+  h1 { font-size: 30px; }
+  .deck { font-size: 15px; }
+  .chart-wrap { height: 380px; }
 }
 </style>
 </head>
-<body class="post-page">
+<body>
 
-  <div class="accent-rule" aria-hidden="true"></div>
+<div class="page">
+  <a href="../" class="back-home">&larr; Home</a>
+  <div class="rule-top"></div>
+  <div class="rule-top-thin"></div>
 
-  <main>
-  <article class="post">
-    <a href="../" class="back-link">&larr; Home</a>
+  <p class="kicker">Carlton Football Club &middot; Performance Data</p>
+  <h1>The Rise, Fall and Long Road Back</h1>
+  <p class="deck">Three decades of Carlton's ELO rating trace a dramatic arc: from the Parkin-era dynasty peaks of the mid-nineties to the darkest years under Pagan and Bolton, and the slow rebuild under Voss.</p>
+  <p class="methodology">ELO model: K=40 &middot; Home advantage 35pts &middot; Margin-weighted &middot; 15% season reversion to mean</p>
 
-    <header class="post-header">
-      <h1 class="post-title">Carlton ELO by Coaching Era</h1>
-      <hr class="divider" aria-hidden="true">
-    </header>
-
-    <div class="elo-chart">
-      <p class="kicker">Carlton Football Club &middot; Performance Data</p>
-      <p class="chart-title">The Rise, Fall and Long Road Back</p>
-      <p class="deck">Three decades of Carlton's ELO rating trace a dramatic arc: from the Parkin-era dynasty peaks of the mid-nineties to the darkest years under Pagan and Bolton, and the slow rebuild under Voss.</p>
-      <p class="methodology">ELO model: K=40 &middot; Home advantage 35pts &middot; Margin-weighted &middot; 15% season reversion to mean</p>
-
-      <div class="rule-mid"></div>
+  <div class="rule-mid"></div>
 
   <div class="legend">
     <div class="legend-item"><span class="swatch" style="background:#1E3A5F"></span>Carlton ELO</div>
@@ -228,10 +261,8 @@
     </div>
   </div>
 
-      <p class="source">Source: AFL match results 1990–2026. ELO ratings calculated with custom model.</p>
-    </div><!-- /.elo-chart -->
-  </article>
-  </main>
+  <p class="source">Source: AFL match results 1990–2026. ELO ratings calculated with custom model. Chart by Jack McPherson.</p>
+</div>
 
 <script>
 // ─── Data ───
@@ -475,7 +506,7 @@ function draw() {
     // Dot
     ctx.beginPath();
     ctx.arc(hx, hy, 4.5, 0, Math.PI * 2);
-    ctx.fillStyle = '#FAFAFA';
+    ctx.fillStyle = '#f4f1eb';
     ctx.fill();
     ctx.lineWidth = 2.5;
     ctx.strokeStyle = '#1E3A5F';
