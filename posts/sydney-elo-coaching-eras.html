@@ -243,7 +243,7 @@ canvas { display: block; }
   <div class="rule-mid"></div>
 
   <div class="legend">
-    <div class="legend-item"><span class="swatch" style="background:#C41E24"></span>Sydney ELO</div>
+    <div class="legend-item"><span class="swatch" style="background:#A81D22"></span>Sydney ELO</div>
     <div class="legend-item"><span class="swatch-band"></span>Coaching eras</div>
     <div class="legend-item"><span class="swatch-dash"></span>1500 baseline</div>
   </div>
@@ -450,9 +450,9 @@ function draw() {
   // ── Area fill ──
   ctx.save();
   const grad = ctx.createLinearGradient(0, pT, 0, pB);
-  grad.addColorStop(0, 'rgba(196,30,36,0.12)');
-  grad.addColorStop(0.6, 'rgba(196,30,36,0.03)');
-  grad.addColorStop(1, 'rgba(196,30,36,0)');
+  grad.addColorStop(0, 'rgba(168,29,34,0.10)');
+  grad.addColorStop(0.6, 'rgba(168,29,34,0.02)');
+  grad.addColorStop(1, 'rgba(168,29,34,0)');
   ctx.fillStyle = grad;
   ctx.beginPath();
   ctx.moveTo(xOf(0), pB);
@@ -464,7 +464,7 @@ function draw() {
 
   // ── Main line ──
   ctx.save();
-  ctx.strokeStyle = '#C41E24';
+  ctx.strokeStyle = '#A81D22';
   ctx.lineWidth = 2.2;
   ctx.lineJoin = 'round';
   ctx.lineCap = 'round';
@@ -491,7 +491,7 @@ function draw() {
 
     // Vertical scanline
     ctx.save();
-    ctx.strokeStyle = 'rgba(196,30,36,0.2)';
+    ctx.strokeStyle = 'rgba(168,29,34,0.2)';
     ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.moveTo(hx, pT);
@@ -505,7 +505,7 @@ function draw() {
     ctx.fillStyle = '#f4f1eb';
     ctx.fill();
     ctx.lineWidth = 2.5;
-    ctx.strokeStyle = '#C41E24';
+    ctx.strokeStyle = '#A81D22';
     ctx.stroke();
   }
 }
@@ -517,13 +517,13 @@ function annotate(idx, label, placement) {
   // Dot
   ctx.beginPath();
   ctx.arc(x, y, 3, 0, Math.PI * 2);
-  ctx.fillStyle = '#8c1515';
+  ctx.fillStyle = '#A81D22';
   ctx.fill();
 
   ctx.save();
   if (placement === 'above') {
     ctx.font = "600 11px 'Libre Franklin', sans-serif";
-    ctx.fillStyle = '#8c1515';
+    ctx.fillStyle = '#A81D22';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'bottom';
     ctx.fillText(label, x, y - 10);
@@ -532,7 +532,7 @@ function annotate(idx, label, placement) {
     ctx.fillText(yr, x, y - 23);
   } else if (placement === 'left') {
     ctx.font = "600 11px 'Libre Franklin', sans-serif";
-    ctx.fillStyle = '#8c1515';
+    ctx.fillStyle = '#A81D22';
     ctx.textAlign = 'right';
     ctx.textBaseline = 'middle';
     ctx.fillText(label, x - 10, y);
