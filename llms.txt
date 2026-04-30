@@ -1,0 +1,385 @@
+# AFL Data Ecosystem
+
+> A suite of TypeScript tools for working with Australian Football League data,
+> built by Jack McPherson. Includes a data access library (fitzroy), a database
+> with match and player statistics from 1990 to present (AFL-MCP), an RDS file
+> parser (rds-js), and a prediction engine (tipper). All projects use strict
+> TypeScript, Bun, Biome, and Cloudflare Workers.
+
+## Ecosystem Overview
+
+Four projects form the AFL data stack. They share a TypeScript style guide,
+tooling conventions, and a Cloudflare D1 database.
+
+```
+AFL API / FootyWire / AFL Tables / Squiggle / Fryzigg RDS
+                        |
+                    fitzroy (npm library)
+                        |
+                   AFL-MCP (Cloudflare Worker)
+                    /         \
+            MCP endpoint    Cloudflare D1 (afl-stats)
+          (LLM tools)            \
+                                tipper (prediction CLI)
+
+rds-js (npm) -- used by fitzroy for parsing R data files
+```
+
+| Project | npm package | Type | GitHub |
+|---------|-------------|------|--------|
+| fitzroy | `fitzroy` | Library + CLI | jackemcpherson/fitzRoy-ts |
+| AFL-MCP | private | Cloudflare Worker | jackemcpherson/AFL-MCP |
+| rds-js | `@jackemcpherson/rds-js` | Library | jackemcpherson/rds-js |
+| tipper | `@jackemcpherson/tipper` | CLI + Worker | jackemcpherson/tipper |
+
+## Data Access — Start Here
+
+For a new AFL data project, choose one of three approaches:
+
+### 1. fitzroy library (recommended default)
+
+Best for: scripts, CLIs, one-off analysis, any runtime (Node.js, Bun, Deno,
+browsers, Cloudflare Workers).
+
+```bash
+bun add fitzroy
+```
+
+```typescript
+import { fetchMatchResults, fetchPlayerStats } from "fitzroy";
+
+// Current season results from AFL API
+const results = await fetchMatchResults({ season: 2026 });
+
+// Player stats for a specific round
+const stats = await fetchPlayerStats({
+  season: 2026,
+  roundNumber: 10,
+  source: "afl-api",
+});
+```
+
+Data comes fresh from upstream sources each time. No database or credentials
+needed. Supports AFL API, FootyWire, AFL Tables, Squiggle, and Fryzigg.
+
+### 2. D1 database (pre-computed historical data)
+
+Best for: Cloudflare Workers projects that need 35+ years of historical data,
+pre-computed PAV ratings, team lineups, or low-latency queries.
+
+The `afl-stats` D1 database is populated by AFL-MCP's cron sync and contains
+match results, player statistics (85+ columns), PAV ratings, and lineups from
+1990 to present. Tipper reads from this same database.
+
+To query D1 from a Cloudflare Worker, bind to the database in wrangler.toml:
+
+```toml
+[[d1_databases]]
+binding = "DB"
+database_name = "afl-stats"
+database_id = "fe1c1a89-805f-481d-9ba0-b9f8dee04a36"
+```
+
+### 3. MCP endpoint (LLM-powered tools)
+
+Best for: AI agents and LLM-powered applications that need to query AFL data
+dynamically.
+
+The AFL-MCP server exposes 3 tools via the Model Context Protocol at
+`https://afl.jackemcpherson.com/mcp`:
+
+| Tool | Purpose |
+|------|---------|
+| `schema` | Database structure, column details, join patterns |
+| `tools` | Sandbox capabilities and constraints |
+| `code` | Execute TypeScript against D1 in an isolated sandbox |
+
+The `code` tool runs user-submitted TypeScript in a Dynamic Worker isolate with
+read-only database access via a `db.query(sql, ...params)` bridge.
+
+## fitzroy Library Reference
+
+### Available Functions
+
+| Function | Returns | Description |
+|----------|---------|-------------|
+| `fetchMatchResults` | `MatchResult[]` | Scores, quarters, venue, weather, attendance |
+| `fetchPlayerStats` | `PlayerStats[]` | 40+ per-match statistics per player |
+| `fetchFixture` | `Fixture` | Upcoming matches with dates and venues |
+| `fetchLadder` | `Ladder` | Standings with wins, losses, percentage |
+| `fetchLineup` | `Lineup` | Named squads for a round |
+| `fetchSquad` | `Squad` | Full squad list for a team |
+| `fetchTeams` | `Team[]` | All teams in a competition |
+| `fetchTeamStats` | `TeamStatsEntry[]` | Aggregated team-level statistics |
+| `fetchPlayerDetails` | `PlayerDetails` | Player biography and career info |
+| `fetchAwards` | `Award[]` | Brownlow votes, All-Australian, Rising Star |
+| `fetchCoachesVotes` | `CoachesVote[]` | AFLCA coaches award votes |
+
+### Common Parameters
+
+All fetch functions accept an options object. Common parameters:
+
+- `season` (number) — e.g., 2026
+- `roundNumber` (number, optional) — specific round
+- `source` (DataSource, optional) — `"afl-api"`, `"footywire"`, `"afl-tables"`, `"squiggle"`, `"fryzigg"`
+- `competition` (CompetitionCode, optional) — `"AFLM"` or `"AFLW"`
+- `team` (string, optional) — team name (fuzzy-matched)
+
+### Data Sources
+
+| Source | Coverage | Best for |
+|--------|----------|----------|
+| `afl-api` | Current season, real-time | Live scores, official data |
+| `footywire` | 2012-present | SuperCoach scores, advanced stats |
+| `afl-tables` | 1897-present | Historical records |
+| `squiggle` | 2000-present | Prediction data, third-party analysis |
+| `fryzigg` | 1990-present | Advanced player statistics (RDS format) |
+
+### Key Types
+
+```typescript
+interface MatchResult {
+  matchId: string;
+  season: number;
+  roundNumber: number;
+  roundType: "HomeAndAway" | "Finals";
+  date: Date;
+  venue: string;
+  homeTeam: string;
+  awayTeam: string;
+  homePoints: number;
+  awayPoints: number;
+  margin: number;
+  attendance: number | null;
+  weatherTempCelsius: number | null;
+  q1Home: QuarterScore | null;
+  // ... quarter scores for all 4 quarters, both teams
+  status: "Upcoming" | "Live" | "Complete" | "Postponed" | "Cancelled";
+  source: DataSource;
+  competition: CompetitionCode;
+}
+
+interface PlayerStats {
+  playerId: string;
+  playerName: string;
+  team: string;
+  kicks: number | null;
+  handballs: number | null;
+  disposals: number | null;
+  marks: number | null;
+  goals: number | null;
+  tackles: number | null;
+  contestedPossessions: number | null;
+  clearances: number | null;
+  // ... 40+ statistical fields
+}
+```
+
+### Error Handling
+
+fitzroy uses a `Result<T, E>` pattern for expected failures:
+
+```typescript
+import { fetchMatchResults } from "fitzroy";
+import type { Result } from "fitzroy";
+
+const result = await fetchMatchResults({ season: 2026 });
+// Returns MatchResult[] directly — throws on unexpected errors
+// Use try/catch for network failures, validation errors
+```
+
+All external data passes through Zod validation. Invalid API responses throw
+`ValidationError` with the original Zod error details.
+
+## D1 Database Schema
+
+The `afl-stats` database contains 8 tables covering AFL Men's data from 1990
+to present, automatically synced from the AFL API.
+
+### Core Tables
+
+**matches** — One row per match. Key columns: `season_id`, `round`,
+`round_number`, `round_type`, `date`, `local_time`, `venue_id`,
+`home_team_id`, `away_team_id`, `home_points`, `away_points`, `margin`,
+`attendance`, `weather_temp_c`, quarter-by-quarter scores (home_q1_goals
+through away_q4_behinds).
+
+**player_match_stats** — One row per player per match. 85+ columns covering
+disposals, marks, goals, tackles, contested possessions, clearances, pressure
+acts, metres gained, hitouts, fantasy scores, Brownlow votes, and efficiency
+metrics. Join to `matches` on `match_id`, to `players` on `player_id`.
+
+**player_season_pav** — Player Approximate Value per season. Columns:
+`off_pav`, `mid_pav`, `def_pav`, `total_pav`. One row per player per season
+per team. PAV is a composite metric weighting offensive, midfield, and
+defensive contributions using the HPN formula.
+
+**match_lineups** — Announced team selections (2015+). Includes `is_emergency`
+and `is_substitute` flags.
+
+### Reference Tables
+
+**teams** — 18 AFL Men's teams. Join key for matches and stats.
+**venues** — Normalised venue names.
+**players** — Player master data with external IDs for cross-referencing.
+**seasons** — Season/year mapping, linked to competition.
+
+### Common Query Patterns
+
+```sql
+-- Season results with team names
+SELECT m.*, ht.name AS home_team, at.name AS away_team
+FROM matches m
+JOIN teams ht ON m.home_team_id = ht.id
+JOIN teams at ON m.away_team_id = at.id
+JOIN seasons s ON m.season_id = s.id
+WHERE s.year = 2026
+ORDER BY m.date;
+
+-- Top disposals for a round
+SELECT p.first_name || ' ' || p.surname AS player, t.name AS team,
+       pms.disposals, pms.kicks, pms.handballs
+FROM player_match_stats pms
+JOIN players p ON pms.player_id = p.id
+JOIN teams t ON pms.team_id = t.id
+JOIN matches m ON pms.match_id = m.id
+JOIN seasons s ON m.season_id = s.id
+WHERE s.year = 2026 AND m.round_number = 10
+ORDER BY pms.disposals DESC
+LIMIT 20;
+
+-- Player season PAV leaders
+SELECT p.first_name || ' ' || p.surname AS player, t.name AS team,
+       pav.total_pav, pav.off_pav, pav.mid_pav, pav.def_pav
+FROM player_season_pav pav
+JOIN players p ON pav.player_id = p.id
+JOIN teams t ON pav.team_id = t.id
+JOIN seasons s ON pav.season_id = s.id
+WHERE s.year = 2026
+ORDER BY pav.total_pav DESC
+LIMIT 20;
+```
+
+### Data Freshness
+
+AFL-MCP syncs on three cron schedules:
+- Every 5 minutes during match windows (Thursday 6pm - Monday 1am AEST)
+- Hourly full sync (current season matches + player stats)
+- Daily 3am AEST PAV recalculation
+
+## AFL Domain Essentials
+
+18 teams compete in the AFL Men's competition (AFLM). The AFL Women's
+competition (AFLW) has expanded to 18 teams but the D1 database currently
+covers AFLM only.
+
+An AFL season runs March to September: Opening Round (before Round 1, stored
+as `round_number = 0`), 23 home-and-away rounds, then a Finals series
+(Qualifying/Elimination Finals, Semi-Finals, Preliminary Finals, Grand Final).
+
+Goals score 6 points, behinds score 1. Total = goals * 6 + behinds. A typical
+match score is 80-120 points per team.
+
+All match times are in Melbourne local time: AEST (UTC+10) during winter,
+AEDT (UTC+11) during daylight saving (October to April). fitzroy's `parseDate`
+and `toAestString` utilities handle this correctly.
+
+Some teams have historical aliases. fitzroy provides `normaliseTeamName()`
+which maps common variations (e.g., "Bulldogs" to "Western Bulldogs", "GWS"
+to "GWS Giants", "Footscray" to "Western Bulldogs").
+
+## TypeScript Conventions
+
+All AFL data projects follow a shared style guide. Key rules:
+
+**Tooling:** Bun (package manager + runner), Biome (lint + format), Vitest
+(tests), tsc (type checking). All scripts via `bun run <name>`.
+
+**TypeScript config:** `strict: true`, `noUncheckedIndexedAccess: true`,
+`exactOptionalPropertyTypes: true`, `noUnusedLocals: true`,
+`noUnusedParameters: true`. Target ES2022 with bundler module resolution.
+
+**Biome rules:** `noExplicitAny: error` (use `unknown` and narrow with Zod),
+`noDefaultExport: error` (exception: Worker entry points and *.config.ts),
+`useConst: error`, 2-space indent, 100-char line width, organised imports.
+
+**Patterns:** Validate external data with Zod at boundaries, trust types
+internally. Use `Result<T, E>` for expected failures. Prefer functional
+transforms (`.filter().map().sort()`) over mutation. Use `Promise.all` for
+concurrent fetches. Types first — define domain types before implementation.
+
+**No `enum`** — use union types: `type RoundType = "HomeAndAway" | "Finals"`.
+**No `any`** — use `unknown` and narrow.
+**Web Standard APIs only** in library code (fetch, Request, Response, URL,
+crypto). No Bun-specific or Node.js-specific APIs.
+
+**Naming:** camelCase for variables/functions, PascalCase for types/interfaces,
+SCREAMING_SNAKE for true constants, kebab-case for file names. Abbreviations as
+words: `AflApi` not `AFLApi`.
+
+Full conventions: https://jackemcpherson.com/typescript-style-guide.md
+
+## Starting a New Project
+
+```bash
+# Scaffold
+mkdir my-afl-project && cd my-afl-project
+bun init -y
+bun add fitzroy zod
+bun add -d @biomejs/biome typescript vitest
+
+# Initialise tooling
+bunx @biomejs/biome init
+```
+
+Set up `tsconfig.json`:
+
+```jsonc
+{
+  "compilerOptions": {
+    "strict": true,
+    "target": "ES2022",
+    "module": "ES2022",
+    "moduleResolution": "bundler",
+    "noUncheckedIndexedAccess": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "exactOptionalPropertyTypes": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true
+  }
+}
+```
+
+Add scripts to `package.json`:
+
+```json
+{
+  "scripts": {
+    "dev": "bun run src/index.ts",
+    "test": "vitest",
+    "check": "biome check .",
+    "format": "biome format --write .",
+    "typecheck": "tsc --noEmit"
+  }
+}
+```
+
+Recommended project structure:
+
+```
+src/
+  types.ts        # Domain types — define first
+  index.ts        # Entry point
+  lib/            # Shared utilities
+  transforms/     # Pure data transformations
+test/
+  fixtures/       # Snapshot data for tests
+biome.json
+tsconfig.json
+package.json
+```
+
+For Cloudflare Workers projects, add `hono` (web framework), `drizzle-orm`
+(database ORM), and `wrangler` (dev server + deploy CLI). See the full style
+guide for Hono routing, Drizzle schema, and Workers deployment patterns.
