@@ -1,5 +1,16 @@
+# OS
 .DS_Store
+
+# Editor
 *.swp
 *.swo
+
+# Screenshots and session artifacts
+*.png
+
+# Python
+__pycache__/
+
+# Claude Code
+.claude/
 .playwright-mcp/
-verify-*.png
