@@ -317,7 +317,7 @@ crypto). No Bun-specific or Node.js-specific APIs.
 SCREAMING_SNAKE for true constants, kebab-case for file names. Abbreviations as
 words: `AflApi` not `AFLApi`.
 
-Full conventions: https://jackemcpherson.com/typescript-style-guide.md
+Full conventions: https://jackemcpherson.com/docs/typescript-style-guide.md
 
 ## Starting a New Project
 
