@@ -94,6 +94,74 @@ dev = [
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
+# --- Tool configuration ---
+
+[tool.pyright]
+include = ["src", "tests"]
+typeCheckingMode = "strict"
+pythonVersion = "3.13"
+reportMissingTypeStubs = "warning"
+reportUnknownMemberType = "warning"   # noisy on third-party libs without stubs
+reportUnknownArgumentType = "warning"
+reportImplicitOverride = "error"       # require explicit @override
+reportMissingImports = "error"
+reportUnusedImport = "error"
+reportUnusedVariable = "error"
+
+[tool.ruff]
+target-version = "py313"
+line-length = 100
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = [
+    "E", "W",       # pycodestyle
+    "F",            # pyflakes
+    "I",            # isort
+    "N",            # pep8-naming
+    "UP",           # pyupgrade
+    "B",            # flake8-bugbear
+    "A",            # flake8-builtins
+    "C4",           # flake8-comprehensions
+    "DTZ",          # flake8-datetimez (timezone-aware datetimes)
+    "RET",          # flake8-return
+    "SIM",          # flake8-simplify
+    "TCH",          # flake8-type-checking
+    "PTH",          # flake8-use-pathlib (no os.path)
+    "PL",           # pylint subset
+    "RUF",          # ruff-specific
+    "D",            # pydocstyle (Google convention)
+    "ANN",          # flake8-annotations (require type hints)
+]
+ignore = [
+    "D203",         # one-blank-line-before-class (conflicts with D211)
+    "D213",         # multi-line-summary-second-line (conflicts with D212)
+    "PLR0913",      # too-many-arguments (let pyright catch real issues)
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["D", "ANN", "PLR2004"]   # tests don't need docstrings or magic-number checks
+"**/__init__.py" = ["D104", "F401"]    # package __init__ files
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+
+[tool.coverage.run]
+source = ["src/myapp"]
+branch = true
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "if TYPE_CHECKING:",
+    "raise NotImplementedError",
+    "\\.\\.\\.",                # ellipsis in Protocol bodies
+]
 ```
 
 ### Project Setup
@@ -138,22 +206,8 @@ uv run pyright
 
 ## Pyright Configuration
 
-Always use strict mode. No exceptions.
-
-```toml
-# pyproject.toml
-[tool.pyright]
-include = ["src", "tests"]
-typeCheckingMode = "strict"
-pythonVersion = "3.13"
-reportMissingTypeStubs = "warning"
-reportUnknownMemberType = "warning"   # noisy on third-party libs without stubs
-reportUnknownArgumentType = "warning"
-reportImplicitOverride = "error"       # require explicit @override
-reportMissingImports = "error"
-reportUnusedImport = "error"
-reportUnusedVariable = "error"
-```
+Always use strict mode. No exceptions. All settings live in `pyproject.toml`
+(see Package Configuration above).
 
 ### Key Settings
 
@@ -169,46 +223,10 @@ code.
 
 ## Ruff Configuration
 
-```toml
-# pyproject.toml
-[tool.ruff]
-target-version = "py313"
-line-length = 100
-src = ["src", "tests"]
-
-[tool.ruff.lint]
-select = [
-    "E", "W",       # pycodestyle
-    "F",            # pyflakes
-    "I",            # isort
-    "N",            # pep8-naming
-    "UP",           # pyupgrade
-    "B",            # flake8-bugbear
-    "A",            # flake8-builtins
-    "C4",           # flake8-comprehensions
-    "DTZ",          # flake8-datetimez (timezone-aware datetimes)
-    "RET",          # flake8-return
-    "SIM",          # flake8-simplify
-    "TCH",          # flake8-type-checking
-    "PTH",          # flake8-use-pathlib (no os.path)
-    "PL",           # pylint subset
-    "RUF",          # ruff-specific
-    "D",            # pydocstyle (Google convention)
-    "ANN",          # flake8-annotations (require type hints)
-]
-ignore = [
-    "D203",         # one-blank-line-before-class (conflicts with D211)
-    "D213",         # multi-line-summary-second-line (conflicts with D212)
-    "PLR0913",      # too-many-arguments (let pyright catch real issues)
-]
-
-[tool.ruff.lint.pydocstyle]
-convention = "google"
-
-[tool.ruff.lint.per-file-ignores]
-"tests/**" = ["D", "ANN", "PLR2004"]   # tests don't need docstrings or magic-number checks
-"**/__init__.py" = ["D104", "F401"]    # package __init__ files
-```
+All ruff settings live in `pyproject.toml` (see Package Configuration above).
+Google-style docstrings are enforced via `[tool.ruff.lint.pydocstyle] convention = "google"`,
+and the `"D"` rule set ensures docstring presence and formatting. Tests are
+exempted from docstring and annotation requirements via per-file ignores.
 
 ---
 
@@ -1340,13 +1358,9 @@ async def test_list_orders_returns_404_for_quiet_customer() -> None:
     assert response.status_code == 404
 ```
 
-Configure `pytest-asyncio` in `pyproject.toml`:
-
-```toml
-[tool.pytest.ini_options]
-asyncio_mode = "auto"
-testpaths = ["tests"]
-```
+`pytest-asyncio` is configured in `pyproject.toml` (see Package Configuration)
+with `asyncio_mode = "auto"` so async tests don't need the `@pytest.mark.asyncio`
+decorator.
 
 ### Property-Based Tests with Hypothesis
 
@@ -1388,21 +1402,9 @@ uv run coverage report --show-missing --fail-under=85
 uv run coverage html   # browse htmlcov/index.html
 ```
 
-Configure in `pyproject.toml`:
-
-```toml
-[tool.coverage.run]
-source = ["src/myapp"]
-branch = true
-
-[tool.coverage.report]
-exclude_lines = [
-    "pragma: no cover",
-    "if TYPE_CHECKING:",
-    "raise NotImplementedError",
-    "\\.\\.\\.",                # ellipsis in Protocol bodies
-]
-```
+Coverage is configured in `pyproject.toml` (see Package Configuration) with
+branch coverage enabled and sensible exclusions for `TYPE_CHECKING` blocks,
+`NotImplementedError`, and `Protocol` ellipsis bodies.
 
 ---
 
