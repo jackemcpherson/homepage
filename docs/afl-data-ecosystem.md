@@ -1,9 +1,10 @@
 # AFL Data Ecosystem
 
-> A suite of TypeScript tools for working with Australian Football League data,
-> built by Jack McPherson. Includes a data access library (fitzroy), a database
-> with match and player statistics from 1990 to present (AFL-MCP), an RDS file
-> parser (rds-js), and a prediction engine (tipper). All projects use strict
+> A suite of TypeScript tools for working with Australian football data,
+> built by Jack McPherson. Includes a data access library (fitzroy), a
+> multi-competition database covering AFL Men's (1990+), AFL Women's
+> (2017+), VFL (2021+) and VFLW (2021+) (AFL-MCP), an RDS file parser
+> (rds-js), and a prediction engine (tipper). All projects use strict
 > TypeScript, Bun, Biome, and Cloudflare Workers.
 
 ## Ecosystem Overview
@@ -46,30 +47,38 @@ bun add fitzroy
 ```
 
 ```typescript
-import { fetchMatchResults, fetchPlayerStats } from "fitzroy";
+import { fetchMatches, fetchPlayerStats } from "fitzroy";
 
-// Current season results from AFL API
-const results = await fetchMatchResults({ season: 2026 });
+// Current season completed matches from AFL API
+const results = await fetchMatches({
+  source: "afl-api",
+  season: 2026,
+  status: "Complete",
+});
 
 // Player stats for a specific round
 const stats = await fetchPlayerStats({
-  season: 2026,
-  roundNumber: 10,
   source: "afl-api",
+  season: 2026,
+  round: 10,
 });
 ```
 
 Data comes fresh from upstream sources each time. No database or credentials
 needed. Supports AFL API, FootyWire, AFL Tables, Squiggle, and Fryzigg.
+Pass `competition: "AFLM" | "AFLW" | "VFL" | "VFLW"` to scope to a specific
+competition (defaults to AFLM for sources that support multiple).
 
 ### 2. D1 database (pre-computed historical data)
 
-Best for: Cloudflare Workers projects that need 35+ years of historical data,
-pre-computed PAV ratings, team lineups, or low-latency queries.
+Best for: Cloudflare Workers projects that need decades of historical data,
+pre-computed PAV ratings, team lineups, or low-latency queries across the
+full AFL ecosystem.
 
 The `afl-stats` D1 database is populated by AFL-MCP's cron sync and contains
-match results, player statistics (85+ columns), PAV ratings, and lineups from
-1990 to present. Tipper reads from this same database.
+match results, player statistics (~70 columns), PAV ratings, and lineups for
+**four competitions**: AFLM (1990+), AFLW (2017+), VFL (2021+), VFLW (2021+).
+Tipper reads from this same database.
 
 To query D1 from a Cloudflare Worker, bind to the database in wrangler.toml:
 
@@ -90,12 +99,14 @@ The AFL-MCP server exposes 3 tools via the Model Context Protocol at
 
 | Tool | Purpose |
 |------|---------|
-| `schema` | Database structure, column details, join patterns |
+| `schema` | Database structure, per-competition coverage, column details, join patterns |
 | `tools` | Sandbox capabilities and constraints |
-| `code` | Execute TypeScript against D1 in an isolated sandbox |
+| `code` | Execute TypeScript against D1 in an isolated sandbox; optional `competition` arg as a hint to the LLM |
 
-The `code` tool runs user-submitted TypeScript in a Dynamic Worker isolate with
-read-only database access via a `db.query(sql, ...params)` bridge.
+The `code` tool runs user-submitted TypeScript in a Dynamic Worker isolate
+with read-only database access via a `db.prepare(sql).bind(...).all()` bridge.
+Queries must filter by competition explicitly — the `competition` argument is
+documentation, not auto-injection.
 
 ## fitzroy Library Reference
 
@@ -103,65 +114,72 @@ read-only database access via a `db.query(sql, ...params)` bridge.
 
 | Function | Returns | Description |
 |----------|---------|-------------|
-| `fetchMatchResults` | `MatchResult[]` | Scores, quarters, venue, weather, attendance |
-| `fetchPlayerStats` | `PlayerStats[]` | 40+ per-match statistics per player |
-| `fetchFixture` | `Fixture` | Upcoming matches with dates and venues |
+| `fetchMatches` | `Match[]` | Match data with optional `status` filter (Upcoming, Live, Complete, Postponed, Cancelled). Replaces v1's separate `fetchMatchResults` + `fetchFixture`. |
+| `fetchPlayerStats` | `PlayerStats[]` | ~70 per-match statistics per player |
 | `fetchLadder` | `Ladder` | Standings with wins, losses, percentage |
 | `fetchLineup` | `Lineup` | Named squads for a round |
 | `fetchSquad` | `Squad` | Full squad list for a team |
 | `fetchTeams` | `Team[]` | All teams in a competition |
 | `fetchTeamStats` | `TeamStatsEntry[]` | Aggregated team-level statistics |
-| `fetchPlayerDetails` | `PlayerDetails` | Player biography and career info |
-| `fetchAwards` | `Award[]` | Brownlow votes, All-Australian, Rising Star |
-| `fetchCoachesVotes` | `CoachesVote[]` | AFLCA coaches award votes |
+| `fetchPlayerDetails` | `PlayerDetails[]` | Player biography and career info |
+| `fetchAwards` | `Award[]` | Brownlow, Coleman, All-Australian, Rising Star, coaches votes |
 
 ### Common Parameters
 
-All fetch functions accept an options object. Common parameters:
+All fetch functions accept a query object. Common parameters:
 
+- `source` (DataSource) — `"afl-api"`, `"footywire"`, `"afl-tables"`, `"squiggle"`, `"fryzigg"`
 - `season` (number) — e.g., 2026
-- `roundNumber` (number, optional) — specific round
-- `source` (DataSource, optional) — `"afl-api"`, `"footywire"`, `"afl-tables"`, `"squiggle"`, `"fryzigg"`
-- `competition` (CompetitionCode, optional) — `"AFLM"` or `"AFLW"`
+- `round` (number, optional) — specific round number
+- `competition` (CompetitionCode, optional) — `"AFLM" | "AFLW" | "VFL" | "VFLW"`
 - `team` (string, optional) — team name (fuzzy-matched)
 
 ### Data Sources
 
 | Source | Coverage | Best for |
 |--------|----------|----------|
-| `afl-api` | Current season, real-time | Live scores, official data |
-| `footywire` | 2012-present | SuperCoach scores, advanced stats |
-| `afl-tables` | 1897-present | Historical records |
-| `squiggle` | 2000-present | Prediction data, third-party analysis |
-| `fryzigg` | 1990-present | Advanced player statistics (RDS format) |
+| `afl-api` | AFLM 2012+, AFLW 2017+, VFL/VFLW 2021+ | Live scores, official data, multi-competition |
+| `footywire` | AFLM 2012-present | SuperCoach scores, advanced stats |
+| `afl-tables` | AFLM 1897-present | Historical records |
+| `squiggle` | AFLM 2000-present | Prediction data, third-party analysis |
+| `fryzigg` | AFLM 1990-present, AFLW | Advanced player statistics (RDS format) |
+
+`afl-api` is the only source that covers VFL/VFLW.
 
 ### Key Types
 
 ```typescript
-interface MatchResult {
+interface Match {
   matchId: string;
   season: number;
+  competition: CompetitionCode; // "AFLM" | "AFLW" | "VFL" | "VFLW"
   roundNumber: number;
   roundType: "HomeAndAway" | "Finals";
+  roundName: string | null;     // "Round 1", "Opening Round", "Grand Final"
+  roundCode: string | null;     // fitzroy's normalised short code
   date: Date;
   venue: string;
   homeTeam: string;
   awayTeam: string;
-  homePoints: number;
-  awayPoints: number;
-  margin: number;
+  homePoints: number | null;    // null for upcoming fixtures
+  awayPoints: number | null;
+  margin: number | null;
   attendance: number | null;
   weatherTempCelsius: number | null;
   q1Home: QuarterScore | null;
   // ... quarter scores for all 4 quarters, both teams
   status: "Upcoming" | "Live" | "Complete" | "Postponed" | "Cancelled";
   source: DataSource;
-  competition: CompetitionCode;
 }
 
 interface PlayerStats {
+  matchId: string;
+  season: number;
+  competition: CompetitionCode;
   playerId: string;
-  playerName: string;
+  givenName: string;
+  surname: string;
+  displayName: string;
   team: string;
   kicks: number | null;
   handballs: number | null;
@@ -170,123 +188,169 @@ interface PlayerStats {
   goals: number | null;
   tackles: number | null;
   contestedPossessions: number | null;
-  clearances: number | null;
-  // ... 40+ statistical fields
+  totalClearances: number | null;
+  // ... ~70 statistical fields
 }
 ```
 
+VFL and VFLW return `null` for `goalAssists`, `marksInside50`, and
+`onePercenters` — the AFL API doesn't track these for those competitions.
+
 ### Error Handling
 
-fitzroy uses a `Result<T, E>` pattern for expected failures:
+fitzroy returns a `Result<T, E>` for fetch operations:
 
 ```typescript
-import { fetchMatchResults } from "fitzroy";
-import type { Result } from "fitzroy";
+import { fetchMatches } from "fitzroy";
 
-const result = await fetchMatchResults({ season: 2026 });
-// Returns MatchResult[] directly — throws on unexpected errors
-// Use try/catch for network failures, validation errors
+const result = await fetchMatches({ source: "afl-api", season: 2026 });
+if (!result.success) {
+  console.error("fetch failed:", result.error.message);
+} else {
+  for (const match of result.data) {
+    // ...
+  }
+}
 ```
 
-All external data passes through Zod validation. Invalid API responses throw
-`ValidationError` with the original Zod error details.
+All external data passes through Zod validation. Invalid API responses are
+returned as a failure `Result` with the original Zod error details.
 
 ## D1 Database Schema
 
-The `afl-stats` database contains 8 tables covering AFL Men's data from 1990
-to present, automatically synced from the AFL API.
+The `afl-stats` database has 10 tables and covers four competitions: AFL
+Men's, AFL Women's, VFL, and VFLW. **Always filter queries by competition**
+(join through `seasons → competitions`, then `WHERE c.code = ?`) — without
+the filter, results mix competitions silently because team rows with the same
+name (e.g. Carlton AFLM vs Carlton VFL) are distinct `team_id` values.
 
 ### Core Tables
 
-**matches** — One row per match. Key columns: `season_id`, `round`,
-`round_number`, `round_type`, `date`, `local_time`, `venue_id`,
-`home_team_id`, `away_team_id`, `home_points`, `away_points`, `margin`,
-`attendance`, `weather_temp_c`, quarter-by-quarter scores (home_q1_goals
-through away_q4_behinds).
+**matches** — One row per match. Key columns: `season_id`, `round` (long
+form like `Round 1`, `Grand Final`, `Wildcard`), `round_abbreviation` (AFL
+standard short codes: `Rd N`, `OR`, `WC`, `FW1`, `SF`, `PF`, `GF`, plus
+`EF`/`QF` for pre-2020 AFLM), `round_number`, `round_type` (`Regular` or
+`Finals`), `date`, `local_time`, `venue_id`, `home_team_id`, `away_team_id`,
+`home_points`, `away_points`, `margin`, `attendance`, `weather_temp_c`,
+quarter-by-quarter scores (`home_q1_goals` through `away_q4_behinds`).
 
-**player_match_stats** — One row per player per match. 85+ columns covering
+**player_match_stats** — One row per player per match. ~70 columns covering
 disposals, marks, goals, tackles, contested possessions, clearances, pressure
 acts, metres gained, hitouts, fantasy scores, Brownlow votes, and efficiency
-metrics. Join to `matches` on `match_id`, to `players` on `player_id`.
+metrics. VFL/VFLW have NULL for `goal_assists`, `marks_inside_fifty`, and
+`one_percenters`.
 
 **player_season_pav** — Player Approximate Value per season. Columns:
 `off_pav`, `mid_pav`, `def_pav`, `total_pav`. One row per player per season
 per team. PAV is a composite metric weighting offensive, midfield, and
-defensive contributions using the HPN formula.
+defensive contributions using the HPN formula. **Available for AFLM (1998+)
+and AFLW (2017+) only** — VFL/VFLW lack the upstream stat inputs the formula
+needs.
 
-**match_lineups** — Announced team selections (2015+). Includes `is_emergency`
-and `is_substitute` flags.
+**match_lineups** — Announced team selections. `is_emergency` and
+`is_substitute` flags. Coverage: AFLM 2015+, AFLW 2017+, VFL/VFLW best-effort.
 
 ### Reference Tables
 
-**teams** — 18 AFL Men's teams. Join key for matches and stats.
-**venues** — Normalised venue names.
-**players** — Player master data with external IDs for cross-referencing.
-**seasons** — Season/year mapping, linked to competition.
+- **competitions** — `AFLM`, `AFLW`, `VFL`, `VFLW`.
+- **teams** — `(name, competition_id)` UNIQUE; same team name across
+  competitions yields distinct rows.
+- **venues** — Normalised venue names; shared across competitions.
+- **players** — Player master data with external IDs for cross-referencing.
+- **seasons** — `(competition_id, year)` UNIQUE.
 
 ### Common Query Patterns
 
+All queries should join through `competitions` and filter by `c.code`:
+
 ```sql
--- Season results with team names
-SELECT m.*, ht.name AS home_team, at.name AS away_team
+-- AFLW season results with team names
+SELECT m.date, ht.name AS home_team, m.home_points,
+       at.name AS away_team, m.away_points, m.margin
 FROM matches m
+JOIN seasons s ON m.season_id = s.id
+JOIN competitions c ON s.competition_id = c.id
 JOIN teams ht ON m.home_team_id = ht.id
 JOIN teams at ON m.away_team_id = at.id
-JOIN seasons s ON m.season_id = s.id
-WHERE s.year = 2026
+WHERE c.code = 'AFLW' AND s.year = 2025
 ORDER BY m.date;
 
--- Top disposals for a round
+-- Top disposals for an AFLM round
 SELECT p.first_name || ' ' || p.surname AS player, t.name AS team,
        pms.disposals, pms.kicks, pms.handballs
 FROM player_match_stats pms
-JOIN players p ON pms.player_id = p.id
-JOIN teams t ON pms.team_id = t.id
 JOIN matches m ON pms.match_id = m.id
 JOIN seasons s ON m.season_id = s.id
-WHERE s.year = 2026 AND m.round_number = 10
+JOIN competitions c ON s.competition_id = c.id
+JOIN players p ON pms.player_id = p.id
+JOIN teams t ON pms.team_id = t.id
+WHERE c.code = 'AFLM' AND s.year = 2026 AND m.round_number = 10
 ORDER BY pms.disposals DESC
 LIMIT 20;
 
--- Player season PAV leaders
+-- Cross-competition Grand Finals (the round_abbreviation use case)
+SELECT c.code, s.year, ht.name AS home, m.home_points,
+       at.name AS away, m.away_points
+FROM matches m
+JOIN seasons s ON m.season_id = s.id
+JOIN competitions c ON s.competition_id = c.id
+JOIN teams ht ON m.home_team_id = ht.id
+JOIN teams at ON m.away_team_id = at.id
+WHERE m.round_abbreviation = 'GF'
+ORDER BY s.year DESC, c.code;
+
+-- AFLW season PAV leaders
 SELECT p.first_name || ' ' || p.surname AS player, t.name AS team,
        pav.total_pav, pav.off_pav, pav.mid_pav, pav.def_pav
 FROM player_season_pav pav
 JOIN players p ON pav.player_id = p.id
 JOIN teams t ON pav.team_id = t.id
 JOIN seasons s ON pav.season_id = s.id
-WHERE s.year = 2026
+JOIN competitions c ON s.competition_id = c.id
+WHERE c.code = 'AFLW' AND s.year = 2025
 ORDER BY pav.total_pav DESC
 LIMIT 20;
 ```
 
 ### Data Freshness
 
-AFL-MCP syncs on three cron schedules:
-- Every 5 minutes during match windows (Thursday 6pm - Monday 1am AEST)
-- Hourly full sync (current season matches + player stats)
-- Daily 3am AEST PAV recalculation
+AFL-MCP runs a single cron (`*/5 * * * *`) that dispatches all four
+competitions per tick, gated by a `shouldRunNow` predicate (always runs at
+the top of the hour; otherwise only when a match exists within ±3 days).
+PAV is recalculated from inside the same pipeline whenever new player stats
+land for AFLM or AFLW.
 
 ## AFL Domain Essentials
 
-18 teams compete in the AFL Men's competition (AFLM). The AFL Women's
-competition (AFLW) has expanded to 18 teams but the D1 database currently
-covers AFLM only.
+The four competitions covered:
 
-An AFL season runs March to September: Opening Round (before Round 1, stored
-as `round_number = 0`), 23 home-and-away rounds, then a Finals series
-(Qualifying/Elimination Finals, Semi-Finals, Preliminary Finals, Grand Final).
+- **AFL Men's (AFLM)** — 18 teams. Season runs March to September: Opening
+  Round (before Round 1, `round_number = 0`, 2024+ only), 23 home-and-away
+  rounds, Finals series. Pre-2020 used `Qualifying`/`Elimination` Final;
+  2020+ uses `Finals Week 1`.
+- **AFL Women's (AFLW)** — 18 teams. Season runs August to November.
+- **VFL** — second-tier men's competition with mix of AFLM-affiliated
+  reserves (Carlton, Collingwood, etc.) and standalone clubs (Box Hill
+  Hawks, Casey Demons, Werribee Tigers). Includes a `Wildcard` round before
+  finals.
+- **VFLW** — Victorian women's second-tier competition with AFLW affiliates
+  and standalone clubs (Darebin, etc.).
 
-Goals score 6 points, behinds score 1. Total = goals * 6 + behinds. A typical
-match score is 80-120 points per team.
+Goals score 6 points, behinds score 1. Total = goals × 6 + behinds.
 
 All match times are in Melbourne local time: AEST (UTC+10) during winter,
 AEDT (UTC+11) during daylight saving (October to April). fitzroy's `parseDate`
 and `toAestString` utilities handle this correctly.
 
-Some teams have historical aliases. fitzroy provides `normaliseTeamName()`
-which maps common variations (e.g., "Bulldogs" to "Western Bulldogs", "GWS"
-to "GWS Giants", "Footscray" to "Western Bulldogs").
+Round labels mirror the AFL API and the R fitzRoy package — no
+cross-competition normalisation. The `round` column is the long form
+(`Round 1`, `Wildcard`, `Grand Final`); `round_abbreviation` is the AFL's
+standard short code (`Rd 1`, `WC`, `GF`) and is consistent across all four
+competitions, so it's the right column for cross-competition queries.
+
+Some teams have historical aliases. AFL-MCP normalises legacy AFLM names
+during ingest (e.g. `Brisbane Bears` → `Brisbane Lions`, `Footscray` →
+`Western Bulldogs`).
 
 ## TypeScript Conventions
 
