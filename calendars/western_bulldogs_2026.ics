@@ -113,45 +113,45 @@ LOCATION:Marvel Stadium
 END:VEVENT
 BEGIN:VEVENT
 SUMMARY:Round 17: Sydney Swans vs. Western Bulldogs (SCG)
-DTSTART;VALUE=DATE:20260702
-DTEND;VALUE=DATE:20260706
-DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+DTSTART;TZID=Australia/Melbourne:20260703T194000
+DTEND;TZID=Australia/Melbourne:20260703T221000
+DESCRIPTION:TV: TBC
 LOCATION:SCG
 END:VEVENT
 BEGIN:VEVENT
 SUMMARY:Round 18: Western Bulldogs vs. West Coast Eagles (Marvel Stadium)
-DTSTART;VALUE=DATE:20260709
-DTEND;VALUE=DATE:20260713
-DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+DTSTART;TZID=Australia/Melbourne:20260712T131000
+DTEND;TZID=Australia/Melbourne:20260712T154000
+DESCRIPTION:TV: TBC
 LOCATION:Marvel Stadium
 END:VEVENT
 BEGIN:VEVENT
-SUMMARY:Round 19: Gold Coast Suns vs. Western Bulldogs (People First Stadi
- um)
-DTSTART;VALUE=DATE:20260716
-DTEND;VALUE=DATE:20260720
-DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+SUMMARY:Round 19: Gold Coast Suns vs. Western Bulldogs (People First Stad
+ ium)
+DTSTART;TZID=Australia/Melbourne:20260719T151500
+DTEND;TZID=Australia/Melbourne:20260719T174500
+DESCRIPTION:TV: TBC
 LOCATION:People First Stadium
 END:VEVENT
 BEGIN:VEVENT
 SUMMARY:Round 20: Western Bulldogs vs. Richmond (Marvel Stadium)
-DTSTART;VALUE=DATE:20260723
-DTEND;VALUE=DATE:20260727
-DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+DTSTART;TZID=Australia/Melbourne:20260725T194000
+DTEND;TZID=Australia/Melbourne:20260725T221000
+DESCRIPTION:TV: TBC
 LOCATION:Marvel Stadium
 END:VEVENT
 BEGIN:VEVENT
 SUMMARY:Round 21: Fremantle vs. Western Bulldogs (Optus Stadium)
-DTSTART;VALUE=DATE:20260730
-DTEND;VALUE=DATE:20260803
-DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+DTSTART;TZID=Australia/Melbourne:20260731T201000
+DTEND;TZID=Australia/Melbourne:20260731T224000
+DESCRIPTION:TV: TBC
 LOCATION:Optus Stadium
 END:VEVENT
 BEGIN:VEVENT
 SUMMARY:Round 22: Western Bulldogs vs. North Melbourne (Marvel Stadium)
-DTSTART;VALUE=DATE:20260806
-DTEND;VALUE=DATE:20260810
-DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+DTSTART;TZID=Australia/Melbourne:20260806T193000
+DTEND;TZID=Australia/Melbourne:20260806T220000
+DESCRIPTION:TV: TBC
 LOCATION:Marvel Stadium
 END:VEVENT
 BEGIN:VEVENT

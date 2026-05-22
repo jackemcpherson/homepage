@@ -921,431 +921,431 @@ LOCATION:Marvel Stadium
 END:VEVENT
 BEGIN:VEVENT
 SUMMARY:Round 16: Brisbane Lions vs. Sydney Swans (Gabba)
-DTSTART;VALUE=DATE:20260625
-DTEND;VALUE=DATE:20260629
-DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+DTSTART;TZID=Australia/Melbourne:20260625T193000
+DTEND;TZID=Australia/Melbourne:20260625T220000
+DESCRIPTION:TV: TBC
 LOCATION:Gabba
 END:VEVENT
 BEGIN:VEVENT
+SUMMARY:Round 16: Hawthorn vs. GWS Giants (MCG)
+DTSTART;TZID=Australia/Melbourne:20260626T194000
+DTEND;TZID=Australia/Melbourne:20260626T221000
+DESCRIPTION:TV: TBC
+LOCATION:MCG
+END:VEVENT
+BEGIN:VEVENT
 SUMMARY:Round 16: Carlton vs. West Coast Eagles (Marvel Stadium)
-DTSTART;VALUE=DATE:20260625
-DTEND;VALUE=DATE:20260629
-DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+DTSTART;TZID=Australia/Melbourne:20260627T131500
+DTEND;TZID=Australia/Melbourne:20260627T154500
+DESCRIPTION:TV: TBC
 LOCATION:Marvel Stadium
 END:VEVENT
 BEGIN:VEVENT
 SUMMARY:Round 16: Collingwood vs. Richmond (MCG)
-DTSTART;VALUE=DATE:20260625
-DTEND;VALUE=DATE:20260629
-DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+DTSTART;TZID=Australia/Melbourne:20260627T161500
+DTEND;TZID=Australia/Melbourne:20260627T184500
+DESCRIPTION:TV: TBC
 LOCATION:MCG
-END:VEVENT
-BEGIN:VEVENT
-SUMMARY:Round 16: Hawthorn vs. GWS Giants (MCG)
-DTSTART;VALUE=DATE:20260625
-DTEND;VALUE=DATE:20260629
-DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
-LOCATION:MCG
-END:VEVENT
-BEGIN:VEVENT
-SUMMARY:Round 16: North Melbourne vs. Essendon (Marvel Stadium)
-DTSTART;VALUE=DATE:20260625
-DTEND;VALUE=DATE:20260629
-DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
-LOCATION:Marvel Stadium
 END:VEVENT
 BEGIN:VEVENT
 SUMMARY:Round 16: Port Adelaide vs. Adelaide Crows (Adelaide Oval)
-DTSTART;VALUE=DATE:20260625
-DTEND;VALUE=DATE:20260629
-DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+DTSTART;TZID=Australia/Melbourne:20260627T193500
+DTEND;TZID=Australia/Melbourne:20260627T220500
+DESCRIPTION:TV: TBC
 LOCATION:Adelaide Oval
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 16: North Melbourne vs. Essendon (Marvel Stadium)
+DTSTART;TZID=Australia/Melbourne:20260628T151500
+DTEND;TZID=Australia/Melbourne:20260628T174500
+DESCRIPTION:TV: TBC
+LOCATION:Marvel Stadium
 END:VEVENT
 BEGIN:VEVENT
 SUMMARY:Round 16: Fremantle vs. Gold Coast Suns (Optus Stadium)
-DTSTART;VALUE=DATE:20260625
-DTEND;VALUE=DATE:20260629
-DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+DTSTART;TZID=Australia/Melbourne:20260628T171000
+DTEND;TZID=Australia/Melbourne:20260628T194000
+DESCRIPTION:TV: TBC
 LOCATION:Optus Stadium
-END:VEVENT
-BEGIN:VEVENT
-SUMMARY:Round 17: Essendon vs. St Kilda (Marvel Stadium)
-DTSTART;VALUE=DATE:20260702
-DTEND;VALUE=DATE:20260706
-DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
-LOCATION:Marvel Stadium
 END:VEVENT
 BEGIN:VEVENT
 SUMMARY:Round 17: Geelong Cats vs. Brisbane Lions (GMHBA Stadium)
-DTSTART;VALUE=DATE:20260702
-DTEND;VALUE=DATE:20260706
-DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+DTSTART;TZID=Australia/Melbourne:20260702T193000
+DTEND;TZID=Australia/Melbourne:20260702T220000
+DESCRIPTION:TV: TBC
 LOCATION:GMHBA Stadium
 END:VEVENT
 BEGIN:VEVENT
-SUMMARY:Round 17: Gold Coast Suns vs. Collingwood (People First Stadium)
-DTSTART;VALUE=DATE:20260702
-DTEND;VALUE=DATE:20260706
-DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
-LOCATION:People First Stadium
-END:VEVENT
-BEGIN:VEVENT
-SUMMARY:Round 17: GWS Giants vs. Fremantle (Manuka Oval)
-DTSTART;VALUE=DATE:20260702
-DTEND;VALUE=DATE:20260706
-DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
-LOCATION:Manuka Oval
-END:VEVENT
-BEGIN:VEVENT
-SUMMARY:Round 17: Hawthorn vs. Melbourne (UTAS Stadium)
-DTSTART;VALUE=DATE:20260702
-DTEND;VALUE=DATE:20260706
-DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
-LOCATION:UTAS Stadium
-END:VEVENT
-BEGIN:VEVENT
-SUMMARY:Round 17: Richmond vs. Carlton (MCG)
-DTSTART;VALUE=DATE:20260702
-DTEND;VALUE=DATE:20260706
-DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
-LOCATION:MCG
-END:VEVENT
-BEGIN:VEVENT
 SUMMARY:Round 17: Sydney Swans vs. Western Bulldogs (SCG)
-DTSTART;VALUE=DATE:20260702
-DTEND;VALUE=DATE:20260706
-DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+DTSTART;TZID=Australia/Melbourne:20260703T194000
+DTEND;TZID=Australia/Melbourne:20260703T221000
+DESCRIPTION:TV: TBC
 LOCATION:SCG
 END:VEVENT
 BEGIN:VEVENT
-SUMMARY:Round 17: Port Adelaide vs. North Melbourne (Adelaide Oval)
-DTSTART;VALUE=DATE:20260702
-DTEND;VALUE=DATE:20260706
-DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
-LOCATION:Adelaide Oval
-END:VEVENT
-BEGIN:VEVENT
 SUMMARY:Round 17: West Coast Eagles vs. Adelaide Crows (Optus Stadium)
-DTSTART;VALUE=DATE:20260702
-DTEND;VALUE=DATE:20260706
-DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+DTSTART;TZID=Australia/Melbourne:20260703T201000
+DTEND;TZID=Australia/Melbourne:20260703T224000
+DESCRIPTION:TV: TBC
 LOCATION:Optus Stadium
 END:VEVENT
 BEGIN:VEVENT
-SUMMARY:Round 18: Brisbane Lions vs. Essendon (Gabba)
-DTSTART;VALUE=DATE:20260709
-DTEND;VALUE=DATE:20260713
-DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
-LOCATION:Gabba
+SUMMARY:Round 17: Hawthorn vs. Melbourne (UTAS Stadium)
+DTSTART;TZID=Australia/Melbourne:20260704T131500
+DTEND;TZID=Australia/Melbourne:20260704T154500
+DESCRIPTION:TV: TBC
+LOCATION:UTAS Stadium
 END:VEVENT
 BEGIN:VEVENT
-SUMMARY:Round 18: Carlton vs. Hawthorn (MCG)
-DTSTART;VALUE=DATE:20260709
-DTEND;VALUE=DATE:20260713
-DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+SUMMARY:Round 17: GWS Giants vs. Fremantle (Manuka Oval)
+DTSTART;TZID=Australia/Melbourne:20260704T133500
+DTEND;TZID=Australia/Melbourne:20260704T160500
+DESCRIPTION:TV: TBC
+LOCATION:Manuka Oval
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 17: Gold Coast Suns vs. Collingwood (People First Stadium)
+DTSTART;TZID=Australia/Melbourne:20260704T161500
+DTEND;TZID=Australia/Melbourne:20260704T184500
+DESCRIPTION:TV: TBC
+LOCATION:People First Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 17: Richmond vs. Carlton (MCG)
+DTSTART;TZID=Australia/Melbourne:20260704T193500
+DTEND;TZID=Australia/Melbourne:20260704T220500
+DESCRIPTION:TV: TBC
 LOCATION:MCG
 END:VEVENT
 BEGIN:VEVENT
-SUMMARY:Round 18: Collingwood vs. North Melbourne (Marvel Stadium)
-DTSTART;VALUE=DATE:20260709
-DTEND;VALUE=DATE:20260713
-DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+SUMMARY:Round 17: Essendon vs. St Kilda (Marvel Stadium)
+DTSTART;TZID=Australia/Melbourne:20260705T151500
+DTEND;TZID=Australia/Melbourne:20260705T174500
+DESCRIPTION:TV: TBC
 LOCATION:Marvel Stadium
 END:VEVENT
 BEGIN:VEVENT
-SUMMARY:Round 18: GWS Giants vs. Geelong Cats (ENGIE Stadium)
-DTSTART;VALUE=DATE:20260709
-DTEND;VALUE=DATE:20260713
-DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
-LOCATION:ENGIE Stadium
-END:VEVENT
-BEGIN:VEVENT
-SUMMARY:Round 18: Melbourne vs. Richmond (MCG)
-DTSTART;VALUE=DATE:20260709
-DTEND;VALUE=DATE:20260713
-DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
-LOCATION:MCG
-END:VEVENT
-BEGIN:VEVENT
-SUMMARY:Round 18: St Kilda vs. Port Adelaide (Marvel Stadium)
-DTSTART;VALUE=DATE:20260709
-DTEND;VALUE=DATE:20260713
-DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
-LOCATION:Marvel Stadium
-END:VEVENT
-BEGIN:VEVENT
-SUMMARY:Round 18: Western Bulldogs vs. West Coast Eagles (Marvel Stadium)
-DTSTART;VALUE=DATE:20260709
-DTEND;VALUE=DATE:20260713
-DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
-LOCATION:Marvel Stadium
-END:VEVENT
-BEGIN:VEVENT
-SUMMARY:Round 18: Adelaide Crows vs. Gold Coast Suns (Adelaide Oval)
-DTSTART;VALUE=DATE:20260709
-DTEND;VALUE=DATE:20260713
-DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+SUMMARY:Round 17: Port Adelaide vs. North Melbourne (Adelaide Oval)
+DTSTART;TZID=Australia/Melbourne:20260705T164000
+DTEND;TZID=Australia/Melbourne:20260705T191000
+DESCRIPTION:TV: TBC
 LOCATION:Adelaide Oval
 END:VEVENT
 BEGIN:VEVENT
 SUMMARY:Round 18: Fremantle vs. Sydney Swans (Optus Stadium)
-DTSTART;VALUE=DATE:20260709
-DTEND;VALUE=DATE:20260713
-DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+DTSTART;TZID=Australia/Melbourne:20260709T201000
+DTEND;TZID=Australia/Melbourne:20260709T224000
+DESCRIPTION:TV: TBC
 LOCATION:Optus Stadium
 END:VEVENT
 BEGIN:VEVENT
-SUMMARY:Round 19: Collingwood vs. Carlton (MCG)
-DTSTART;VALUE=DATE:20260716
-DTEND;VALUE=DATE:20260720
-DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+SUMMARY:Round 18: Collingwood vs. North Melbourne (Marvel Stadium)
+DTSTART;TZID=Australia/Melbourne:20260710T194000
+DTEND;TZID=Australia/Melbourne:20260710T221000
+DESCRIPTION:TV: TBC
+LOCATION:Marvel Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 18: St Kilda vs. Port Adelaide (Marvel Stadium)
+DTSTART;TZID=Australia/Melbourne:20260711T131500
+DTEND;TZID=Australia/Melbourne:20260711T154500
+DESCRIPTION:TV: TBC
+LOCATION:Marvel Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 18: GWS Giants vs. Geelong Cats (ENGIE Stadium)
+DTSTART;TZID=Australia/Melbourne:20260711T161500
+DTEND;TZID=Australia/Melbourne:20260711T184500
+DESCRIPTION:TV: TBC
+LOCATION:ENGIE Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 18: Carlton vs. Hawthorn (MCG)
+DTSTART;TZID=Australia/Melbourne:20260711T193500
+DTEND;TZID=Australia/Melbourne:20260711T220500
+DESCRIPTION:TV: TBC
 LOCATION:MCG
 END:VEVENT
 BEGIN:VEVENT
-SUMMARY:Round 19: Essendon vs. GWS Giants (Marvel Stadium)
-DTSTART;VALUE=DATE:20260716
-DTEND;VALUE=DATE:20260720
-DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+SUMMARY:Round 18: Adelaide Crows vs. Gold Coast Suns (Adelaide Oval)
+DTSTART;TZID=Australia/Melbourne:20260711T201000
+DTEND;TZID=Australia/Melbourne:20260711T224000
+DESCRIPTION:TV: TBC
+LOCATION:Adelaide Oval
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 18: Western Bulldogs vs. West Coast Eagles (Marvel Stadium)
+DTSTART;TZID=Australia/Melbourne:20260712T131000
+DTEND;TZID=Australia/Melbourne:20260712T154000
+DESCRIPTION:TV: TBC
 LOCATION:Marvel Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 18: Melbourne vs. Richmond (MCG)
+DTSTART;TZID=Australia/Melbourne:20260712T151500
+DTEND;TZID=Australia/Melbourne:20260712T174500
+DESCRIPTION:TV: TBC
+LOCATION:MCG
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 18: Brisbane Lions vs. Essendon (Gabba)
+DTSTART;TZID=Australia/Melbourne:20260712T164000
+DTEND;TZID=Australia/Melbourne:20260712T191000
+DESCRIPTION:TV: TBC
+LOCATION:Gabba
 END:VEVENT
 BEGIN:VEVENT
 SUMMARY:Round 19: Geelong Cats vs. St Kilda (GMHBA Stadium)
-DTSTART;VALUE=DATE:20260716
-DTEND;VALUE=DATE:20260720
-DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+DTSTART;TZID=Australia/Melbourne:20260716T193000
+DTEND;TZID=Australia/Melbourne:20260716T220000
+DESCRIPTION:TV: TBC
 LOCATION:GMHBA Stadium
 END:VEVENT
 BEGIN:VEVENT
-SUMMARY:Round 19: Gold Coast Suns vs. Western Bulldogs (People First Stadi
- um)
-DTSTART;VALUE=DATE:20260716
-DTEND;VALUE=DATE:20260720
-DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
-LOCATION:People First Stadium
-END:VEVENT
-BEGIN:VEVENT
-SUMMARY:Round 19: North Melbourne vs. Melbourne (Marvel Stadium)
-DTSTART;VALUE=DATE:20260716
-DTEND;VALUE=DATE:20260720
-DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
-LOCATION:Marvel Stadium
-END:VEVENT
-BEGIN:VEVENT
-SUMMARY:Round 19: Richmond vs. Hawthorn (MCG)
-DTSTART;VALUE=DATE:20260716
-DTEND;VALUE=DATE:20260720
-DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
-LOCATION:MCG
-END:VEVENT
-BEGIN:VEVENT
 SUMMARY:Round 19: Sydney Swans vs. Adelaide Crows (SCG)
-DTSTART;VALUE=DATE:20260716
-DTEND;VALUE=DATE:20260720
-DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+DTSTART;TZID=Australia/Melbourne:20260717T194000
+DTEND;TZID=Australia/Melbourne:20260717T221000
+DESCRIPTION:TV: TBC
 LOCATION:SCG
 END:VEVENT
 BEGIN:VEVENT
 SUMMARY:Round 19: Port Adelaide vs. Fremantle (Adelaide Oval)
-DTSTART;VALUE=DATE:20260716
-DTEND;VALUE=DATE:20260720
-DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+DTSTART;TZID=Australia/Melbourne:20260718T131500
+DTEND;TZID=Australia/Melbourne:20260718T154500
+DESCRIPTION:TV: TBC
 LOCATION:Adelaide Oval
 END:VEVENT
 BEGIN:VEVENT
+SUMMARY:Round 19: North Melbourne vs. Melbourne (Marvel Stadium)
+DTSTART;TZID=Australia/Melbourne:20260718T161500
+DTEND;TZID=Australia/Melbourne:20260718T184500
+DESCRIPTION:TV: TBC
+LOCATION:Marvel Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 19: Collingwood vs. Carlton (MCG)
+DTSTART;TZID=Australia/Melbourne:20260718T193500
+DTEND;TZID=Australia/Melbourne:20260718T220500
+DESCRIPTION:TV: TBC
+LOCATION:MCG
+END:VEVENT
+BEGIN:VEVENT
 SUMMARY:Round 19: West Coast Eagles vs. Brisbane Lions (Optus Stadium)
-DTSTART;VALUE=DATE:20260716
-DTEND;VALUE=DATE:20260720
-DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+DTSTART;TZID=Australia/Melbourne:20260718T201000
+DTEND;TZID=Australia/Melbourne:20260718T224000
+DESCRIPTION:TV: TBC
 LOCATION:Optus Stadium
 END:VEVENT
 BEGIN:VEVENT
-SUMMARY:Round 20: Brisbane Lions vs. Port Adelaide (Gabba)
-DTSTART;VALUE=DATE:20260723
-DTEND;VALUE=DATE:20260727
-DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
-LOCATION:Gabba
-END:VEVENT
-BEGIN:VEVENT
-SUMMARY:Round 20: Carlton vs. Gold Coast Suns (Marvel Stadium)
-DTSTART;VALUE=DATE:20260723
-DTEND;VALUE=DATE:20260727
-DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
-LOCATION:Marvel Stadium
-END:VEVENT
-BEGIN:VEVENT
-SUMMARY:Round 20: GWS Giants vs. Sydney Swans (ENGIE Stadium)
-DTSTART;VALUE=DATE:20260723
-DTEND;VALUE=DATE:20260727
-DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
-LOCATION:ENGIE Stadium
-END:VEVENT
-BEGIN:VEVENT
-SUMMARY:Round 20: Hawthorn vs. Essendon (MCG)
-DTSTART;VALUE=DATE:20260723
-DTEND;VALUE=DATE:20260727
-DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+SUMMARY:Round 19: Richmond vs. Hawthorn (MCG)
+DTSTART;TZID=Australia/Melbourne:20260719T131000
+DTEND;TZID=Australia/Melbourne:20260719T154000
+DESCRIPTION:TV: TBC
 LOCATION:MCG
 END:VEVENT
 BEGIN:VEVENT
-SUMMARY:Round 20: North Melbourne vs. St Kilda (Marvel Stadium)
-DTSTART;VALUE=DATE:20260723
-DTEND;VALUE=DATE:20260727
-DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
-LOCATION:Marvel Stadium
+SUMMARY:Round 19: Gold Coast Suns vs. Western Bulldogs (People First Stad
+ ium)
+DTSTART;TZID=Australia/Melbourne:20260719T151500
+DTEND;TZID=Australia/Melbourne:20260719T174500
+DESCRIPTION:TV: TBC
+LOCATION:People First Stadium
 END:VEVENT
 BEGIN:VEVENT
-SUMMARY:Round 20: Melbourne vs. Geelong Cats (MCG)
-DTSTART;VALUE=DATE:20260723
-DTEND;VALUE=DATE:20260727
-DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
-LOCATION:MCG
-END:VEVENT
-BEGIN:VEVENT
-SUMMARY:Round 20: Western Bulldogs vs. Richmond (Marvel Stadium)
-DTSTART;VALUE=DATE:20260723
-DTEND;VALUE=DATE:20260727
-DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+SUMMARY:Round 19: Essendon vs. GWS Giants (Marvel Stadium)
+DTSTART;TZID=Australia/Melbourne:20260719T164000
+DTEND;TZID=Australia/Melbourne:20260719T191000
+DESCRIPTION:TV: TBC
 LOCATION:Marvel Stadium
 END:VEVENT
 BEGIN:VEVENT
 SUMMARY:Round 20: Adelaide Crows vs. Collingwood (Adelaide Oval)
-DTSTART;VALUE=DATE:20260723
-DTEND;VALUE=DATE:20260727
-DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+DTSTART;TZID=Australia/Melbourne:20260723T193000
+DTEND;TZID=Australia/Melbourne:20260723T220000
+DESCRIPTION:TV: TBC
 LOCATION:Adelaide Oval
 END:VEVENT
 BEGIN:VEVENT
-SUMMARY:Round 20: Fremantle vs. West Coast Eagles (Adelaide Oval)
-DTSTART;VALUE=DATE:20260723
-DTEND;VALUE=DATE:20260727
-DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
-LOCATION:Adelaide Oval
+SUMMARY:Round 20: Melbourne vs. Geelong Cats (MCG)
+DTSTART;TZID=Australia/Melbourne:20260724T194000
+DTEND;TZID=Australia/Melbourne:20260724T221000
+DESCRIPTION:TV: TBC
+LOCATION:MCG
 END:VEVENT
 BEGIN:VEVENT
-SUMMARY:Round 21: Carlton vs. Brisbane Lions (Marvel Stadium)
-DTSTART;VALUE=DATE:20260730
-DTEND;VALUE=DATE:20260803
-DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+SUMMARY:Round 20: Fremantle vs. West Coast Eagles (Optus Stadium)
+DTSTART;TZID=Australia/Melbourne:20260724T201000
+DTEND;TZID=Australia/Melbourne:20260724T224000
+DESCRIPTION:TV: TBC
+LOCATION:Optus Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 20: Carlton vs. Gold Coast Suns (Marvel Stadium)
+DTSTART;TZID=Australia/Melbourne:20260725T130500
+DTEND;TZID=Australia/Melbourne:20260725T153500
+DESCRIPTION:TV: TBC
+LOCATION:Marvel Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 20: Hawthorn vs. Essendon (MCG)
+DTSTART;TZID=Australia/Melbourne:20260725T161500
+DTEND;TZID=Australia/Melbourne:20260725T184500
+DESCRIPTION:TV: TBC
+LOCATION:MCG
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 20: GWS Giants vs. Sydney Swans (ENGIE Stadium)
+DTSTART;TZID=Australia/Melbourne:20260725T163500
+DTEND;TZID=Australia/Melbourne:20260725T190500
+DESCRIPTION:TV: TBC
+LOCATION:ENGIE Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 20: Western Bulldogs vs. Richmond (Marvel Stadium)
+DTSTART;TZID=Australia/Melbourne:20260725T194000
+DTEND;TZID=Australia/Melbourne:20260725T221000
+DESCRIPTION:TV: TBC
+LOCATION:Marvel Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 20: Brisbane Lions vs. Port Adelaide (Gabba)
+DTSTART;TZID=Australia/Melbourne:20260726T131000
+DTEND;TZID=Australia/Melbourne:20260726T154000
+DESCRIPTION:TV: TBC
+LOCATION:Gabba
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 20: North Melbourne vs. St Kilda (Marvel Stadium)
+DTSTART;TZID=Australia/Melbourne:20260726T151500
+DTEND;TZID=Australia/Melbourne:20260726T174500
+DESCRIPTION:TV: TBC
 LOCATION:Marvel Stadium
 END:VEVENT
 BEGIN:VEVENT
 SUMMARY:Round 21: Collingwood vs. Geelong Cats (MCG)
-DTSTART;VALUE=DATE:20260730
-DTEND;VALUE=DATE:20260803
-DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+DTSTART;TZID=Australia/Melbourne:20260730T193000
+DTEND;TZID=Australia/Melbourne:20260730T220000
+DESCRIPTION:TV: TBC
 LOCATION:MCG
-END:VEVENT
-BEGIN:VEVENT
-SUMMARY:Round 21: Essendon vs. Adelaide Crows (Marvel Stadium)
-DTSTART;VALUE=DATE:20260730
-DTEND;VALUE=DATE:20260803
-DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
-LOCATION:Marvel Stadium
-END:VEVENT
-BEGIN:VEVENT
-SUMMARY:Round 21: Gold Coast Suns vs. Melbourne (People First Stadium)
-DTSTART;VALUE=DATE:20260730
-DTEND;VALUE=DATE:20260803
-DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
-LOCATION:People First Stadium
-END:VEVENT
-BEGIN:VEVENT
-SUMMARY:Round 21: Hawthorn vs. North Melbourne (UTAS Stadium)
-DTSTART;VALUE=DATE:20260730
-DTEND;VALUE=DATE:20260803
-DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
-LOCATION:UTAS Stadium
-END:VEVENT
-BEGIN:VEVENT
-SUMMARY:Round 21: Richmond vs. West Coast Eagles (MCG)
-DTSTART;VALUE=DATE:20260730
-DTEND;VALUE=DATE:20260803
-DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
-LOCATION:MCG
-END:VEVENT
-BEGIN:VEVENT
-SUMMARY:Round 21: St Kilda vs. Sydney Swans (Marvel Stadium)
-DTSTART;VALUE=DATE:20260730
-DTEND;VALUE=DATE:20260803
-DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
-LOCATION:Marvel Stadium
-END:VEVENT
-BEGIN:VEVENT
-SUMMARY:Round 21: Port Adelaide vs. GWS Giants (Adelaide Oval)
-DTSTART;VALUE=DATE:20260730
-DTEND;VALUE=DATE:20260803
-DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
-LOCATION:Adelaide Oval
 END:VEVENT
 BEGIN:VEVENT
 SUMMARY:Round 21: Fremantle vs. Western Bulldogs (Optus Stadium)
-DTSTART;VALUE=DATE:20260730
-DTEND;VALUE=DATE:20260803
-DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+DTSTART;TZID=Australia/Melbourne:20260731T201000
+DTEND;TZID=Australia/Melbourne:20260731T224000
+DESCRIPTION:TV: TBC
 LOCATION:Optus Stadium
 END:VEVENT
 BEGIN:VEVENT
-SUMMARY:Round 22: Brisbane Lions vs. Hawthorn (Gabba)
-DTSTART;VALUE=DATE:20260806
-DTEND;VALUE=DATE:20260810
-DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
-LOCATION:Gabba
-END:VEVENT
-BEGIN:VEVENT
-SUMMARY:Round 22: Geelong Cats vs. Essendon (GMHBA Stadium)
-DTSTART;VALUE=DATE:20260806
-DTEND;VALUE=DATE:20260810
-DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
-LOCATION:GMHBA Stadium
-END:VEVENT
-BEGIN:VEVENT
-SUMMARY:Round 22: GWS Giants vs. Gold Coast Suns (Manuka Oval)
-DTSTART;VALUE=DATE:20260806
-DTEND;VALUE=DATE:20260810
-DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
-LOCATION:Manuka Oval
-END:VEVENT
-BEGIN:VEVENT
-SUMMARY:Round 22: Melbourne vs. Fremantle (MCG)
-DTSTART;VALUE=DATE:20260806
-DTEND;VALUE=DATE:20260810
-DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
-LOCATION:MCG
-END:VEVENT
-BEGIN:VEVENT
-SUMMARY:Round 22: St Kilda vs. Carlton (Marvel Stadium)
-DTSTART;VALUE=DATE:20260806
-DTEND;VALUE=DATE:20260810
-DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+SUMMARY:Round 21: St Kilda vs. Sydney Swans (Marvel Stadium)
+DTSTART;TZID=Australia/Melbourne:20260801T130500
+DTEND;TZID=Australia/Melbourne:20260801T153500
+DESCRIPTION:TV: TBC
 LOCATION:Marvel Stadium
 END:VEVENT
 BEGIN:VEVENT
-SUMMARY:Round 22: Sydney Swans vs. Port Adelaide (SCG)
-DTSTART;VALUE=DATE:20260806
-DTEND;VALUE=DATE:20260810
-DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
-LOCATION:SCG
+SUMMARY:Round 21: Hawthorn vs. North Melbourne (UTAS Stadium)
+DTSTART;TZID=Australia/Melbourne:20260801T133500
+DTEND;TZID=Australia/Melbourne:20260801T160500
+DESCRIPTION:TV: TBC
+LOCATION:UTAS Stadium
 END:VEVENT
 BEGIN:VEVENT
-SUMMARY:Round 22: Western Bulldogs vs. North Melbourne (Marvel Stadium)
-DTSTART;VALUE=DATE:20260806
-DTEND;VALUE=DATE:20260810
-DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
-LOCATION:Marvel Stadium
-END:VEVENT
-BEGIN:VEVENT
-SUMMARY:Round 22: Adelaide Crows vs. Richmond (Adelaide Oval)
-DTSTART;VALUE=DATE:20260806
-DTEND;VALUE=DATE:20260810
-DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+SUMMARY:Round 21: Port Adelaide vs. GWS Giants (Adelaide Oval)
+DTSTART;TZID=Australia/Melbourne:20260801T183500
+DTEND;TZID=Australia/Melbourne:20260801T210500
+DESCRIPTION:TV: TBC
 LOCATION:Adelaide Oval
 END:VEVENT
 BEGIN:VEVENT
+SUMMARY:Round 21: Carlton vs. Brisbane Lions (Marvel Stadium)
+DTSTART;TZID=Australia/Melbourne:20260801T194000
+DTEND;TZID=Australia/Melbourne:20260801T221000
+DESCRIPTION:TV: TBC
+LOCATION:Marvel Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 21: Richmond vs. West Coast Eagles (MCG)
+DTSTART;TZID=Australia/Melbourne:20260802T131000
+DTEND;TZID=Australia/Melbourne:20260802T154000
+DESCRIPTION:TV: TBC
+LOCATION:MCG
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 21: Gold Coast Suns vs. Melbourne (People First Stadium)
+DTSTART;TZID=Australia/Melbourne:20260802T151500
+DTEND;TZID=Australia/Melbourne:20260802T174500
+DESCRIPTION:TV: TBC
+LOCATION:People First Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 21: Essendon vs. Adelaide Crows (Marvel Stadium)
+DTSTART;TZID=Australia/Melbourne:20260802T164000
+DTEND;TZID=Australia/Melbourne:20260802T191000
+DESCRIPTION:TV: TBC
+LOCATION:Marvel Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 22: Western Bulldogs vs. North Melbourne (Marvel Stadium)
+DTSTART;TZID=Australia/Melbourne:20260806T193000
+DTEND;TZID=Australia/Melbourne:20260806T220000
+DESCRIPTION:TV: TBC
+LOCATION:Marvel Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 22: Brisbane Lions vs. Hawthorn (Gabba)
+DTSTART;TZID=Australia/Melbourne:20260807T194000
+DTEND;TZID=Australia/Melbourne:20260807T221000
+DESCRIPTION:TV: TBC
+LOCATION:Gabba
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 22: Melbourne vs. Fremantle (MCG)
+DTSTART;TZID=Australia/Melbourne:20260808T131500
+DTEND;TZID=Australia/Melbourne:20260808T154500
+DESCRIPTION:TV: TBC
+LOCATION:MCG
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 22: Sydney Swans vs. Port Adelaide (SCG)
+DTSTART;TZID=Australia/Melbourne:20260808T161500
+DTEND;TZID=Australia/Melbourne:20260808T184500
+DESCRIPTION:TV: TBC
+LOCATION:SCG
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 22: Geelong Cats vs. Essendon (GMHBA Stadium)
+DTSTART;TZID=Australia/Melbourne:20260808T163500
+DTEND;TZID=Australia/Melbourne:20260808T190500
+DESCRIPTION:TV: TBC
+LOCATION:GMHBA Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 22: Adelaide Crows vs. Richmond (Adelaide Oval)
+DTSTART;TZID=Australia/Melbourne:20260808T193500
+DTEND;TZID=Australia/Melbourne:20260808T220500
+DESCRIPTION:TV: TBC
+LOCATION:Adelaide Oval
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 22: GWS Giants vs. Gold Coast Suns (Manuka Oval)
+DTSTART;TZID=Australia/Melbourne:20260809T131000
+DTEND;TZID=Australia/Melbourne:20260809T154000
+DESCRIPTION:TV: TBC
+LOCATION:Manuka Oval
+END:VEVENT
+BEGIN:VEVENT
 SUMMARY:Round 22: West Coast Eagles vs. Collingwood (Optus Stadium)
-DTSTART;VALUE=DATE:20260806
-DTEND;VALUE=DATE:20260810
-DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+DTSTART;TZID=Australia/Melbourne:20260809T161000
+DTEND;TZID=Australia/Melbourne:20260809T184000
+DESCRIPTION:TV: TBC
 LOCATION:Optus Stadium
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Round 22: St Kilda vs. Carlton (Marvel Stadium)
+DTSTART;TZID=Australia/Melbourne:20260809T192000
+DTEND;TZID=Australia/Melbourne:20260809T215000
+DESCRIPTION:TV: TBC
+LOCATION:Marvel Stadium
 END:VEVENT
 BEGIN:VEVENT
 SUMMARY:Round 23: Brisbane Lions vs. Gold Coast Suns (Gabba)
