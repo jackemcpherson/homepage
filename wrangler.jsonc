@@ -7,6 +7,8 @@
   },
   "routes": [
     { "pattern": "jackemcpherson.com", "custom_domain": true },
-    { "pattern": "www.jackemcpherson.com", "custom_domain": true }
+    { "pattern": "www.jackemcpherson.com", "custom_domain": true },
+    { "pattern": "jack-mcpherson.com", "custom_domain": true },
+    { "pattern": "www.jack-mcpherson.com", "custom_domain": true }
   ]
 }
