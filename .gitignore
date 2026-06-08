@@ -14,3 +14,7 @@ __pycache__/
 # Claude Code
 .claude/
 .playwright-mcp/
+
+# Wrangler / Cloudflare local state
+.wrangler/
+.dev.vars
