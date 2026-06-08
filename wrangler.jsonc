@@ -4,5 +4,9 @@
   "compatibility_date": "2026-06-08",
   "assets": {
     "directory": "./public"
-  }
+  },
+  "routes": [
+    { "pattern": "jackemcpherson.com", "custom_domain": true },
+    { "pattern": "www.jackemcpherson.com", "custom_domain": true }
+  ]
 }
