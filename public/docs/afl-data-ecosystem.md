@@ -4,12 +4,13 @@
 > built by Jack McPherson. Includes a data access library (fitzroy), a
 > multi-competition database covering AFL Men's (1990+), AFL Women's
 > (2017+), VFL (2021+) and VFLW (2021+) (AFL-MCP), an RDS file parser
-> (rds-js), and a prediction engine (tipper). All projects use strict
-> TypeScript, Bun, Biome, and Cloudflare Workers.
+> (rds-js), a prediction engine (tipper), and a Discord bot that posts
+> live-match scoreboards and round wraps (footyBot). All projects use
+> strict TypeScript, Bun, Biome, and Cloudflare Workers.
 
 ## Ecosystem Overview
 
-Four projects form the AFL data stack. They share a TypeScript style guide,
+Five projects form the AFL data stack. They share a TypeScript style guide,
 tooling conventions, and a Cloudflare D1 database.
 
 ```
@@ -23,6 +24,10 @@ AFL API / FootyWire / AFL Tables / Squiggle / Fryzigg RDS
           (LLM tools)            \
                                 tipper (prediction CLI)
 
+Consumers:
+  tipper      -- D1
+  footyBot    -- fitzroy (live feed) + MCP endpoint (LLM tool-use)
+
 rds-js (npm) -- used by fitzroy for parsing R data files
 ```
 
@@ -32,6 +37,7 @@ rds-js (npm) -- used by fitzroy for parsing R data files
 | AFL-MCP | private | Cloudflare Worker | jackemcpherson/AFL-MCP |
 | rds-js | `@jackemcpherson/rds-js` | Library | jackemcpherson/rds-js |
 | tipper | `@jackemcpherson/tipper` | CLI + Worker | jackemcpherson/tipper |
+| footyBot | private | Cloudflare Worker (Discord bot) | jackemcpherson/footyBot |
 
 ## Data Access — Start Here
 
@@ -169,6 +175,7 @@ interface Match {
   q1Home: QuarterScore | null;
   // ... quarter scores for all 4 quarters, both teams
   status: "Upcoming" | "Live" | "Complete" | "Postponed" | "Cancelled";
+  livePeriodStatus: string | null; // afl-api score-level status: LIVE, QTR_TIME, HALF_TIME, 3QTR_TIME, FULL_TIME (raw upstream string)
   source: DataSource;
 }
 
@@ -216,9 +223,15 @@ if (!result.success) {
 All external data passes through Zod validation. Invalid API responses are
 returned as a failure `Result` with the original Zod error details.
 
+### Cloudflare Workers compatibility
+
+As of fitzroy 2.3.0, HTML scrapers use `parse5` + `cheerio/slim`, so the
+library entry no longer pulls in `node:stream`. fitzroy can be imported
+from a Worker without setting the `nodejs_compat` compatibility flag.
+
 ## D1 Database Schema
 
-The `afl-stats` database has 10 tables and covers four competitions: AFL
+The `afl-stats` database has 12 tables and covers four competitions: AFL
 Men's, AFL Women's, VFL, and VFLW. **Always filter queries by competition**
 (join through `seasons → competitions`, then `WHERE c.code = ?`) — without
 the filter, results mix competitions silently because team rows with the same
@@ -232,7 +245,11 @@ standard short codes: `Rd N`, `OR`, `WC`, `FW1`, `SF`, `PF`, `GF`, plus
 `EF`/`QF` for pre-2020 AFLM), `round_number`, `round_type` (`Regular` or
 `Finals`), `date`, `local_time`, `venue_id`, `home_team_id`, `away_team_id`,
 `home_points`, `away_points`, `margin`, `attendance`, `weather_temp_c`,
-quarter-by-quarter scores (`home_q1_goals` through `away_q4_behinds`).
+quarter-by-quarter scores (`home_q1_goals` through `away_q4_behinds`),
+`status` (lifecycle: `Upcoming` / `Live` / `Complete` / `Postponed` /
+`Cancelled`) and `live_period_status` (raw AFL API score-level status —
+`LIVE`, `QTR_TIME`, `HALF_TIME`, `3QTR_TIME`, `FULL_TIME` — for siren
+detection without inferring state from null scores).
 
 **player_match_stats** — One row per player per match. ~70 columns covering
 disposals, marks, goals, tackles, contested possessions, clearances, pressure
@@ -255,9 +272,14 @@ needs.
 - **competitions** — `AFLM`, `AFLW`, `VFL`, `VFLW`.
 - **teams** — `(name, competition_id)` UNIQUE; same team name across
   competitions yields distinct rows.
+- **team_names** — Alias lookups (nicknames, SDNR indigenous names, legacy
+  names) mapped to canonical `team_id` for ingest normalisation.
 - **venues** — Normalised venue names; shared across competitions.
+- **venue_names** — Alias lookups for venues, mapped to canonical `venue_id`.
 - **players** — Player master data with external IDs for cross-referencing.
 - **seasons** — `(competition_id, year)` UNIQUE.
+- **sync_logs** — Cron run history (timestamp, competition, source, outcome,
+  row counts) used for freshness checks and backfill audits.
 
 ### Common Query Patterns
 
@@ -319,6 +341,36 @@ competitions per tick, gated by a `shouldRunNow` predicate (always runs at
 the top of the hour; otherwise only when a match exists within ±3 days).
 PAV is recalculated from inside the same pipeline whenever new player stats
 land for AFLM or AFLW.
+
+Backfill is exposed at `POST /mcp/admin/backfill` (parameters:
+`competitions`, `fromYear`, `toYear`, `skipShouldRunNow`, `skipPav`).
+
+## footyBot — Discord Consumer
+
+footyBot is a Discord bot that runs entirely on Cloudflare Workers and
+consumes the rest of the ecosystem two ways:
+
+- **`/ask <question>`** — routes the question through the configured LLM
+  (Gemini 3 Flash by default via Google AI Studio's `v1beta` endpoint,
+  or Claude Sonnet 4.5 when `LLM_PROVIDER="anthropic"`) inside a manual
+  MCP tool-use loop against `https://afl.jackemcpherson.com/mcp`. All LLM
+  traffic is proxied through Cloudflare AI Gateway with Authenticated
+  Gateway enabled so Unified Billing covers it.
+- **Proactive posts** — two Workers cron triggers feed an announce
+  channel:
+  - `* * * * *` (every minute, gated by a KV-cached fixture window) pulls
+    live matches via fitzroy and posts QT / HT / 3QT / FT scoreboards
+    when `Match.livePeriodStatus` transitions. Per-match KV state
+    (`live:{matchId}`) makes the tick idempotent.
+  - `0 21 * * *` (~07:00 AEST / 08:00 AEDT) finds any
+    `(competition, season, round)` that completed in the trailing 36 h
+    and hasn't been summarised, then posts a deterministic results +
+    ladder template plus a 2–3 paragraph LLM storylines section. State
+    in `summary:{comp}:{season}:{round}`.
+
+State lives in a single `STATE` KV namespace. Hono handles the Discord
+interaction webhook; a queue consumer runs the tool-use loop so the
+interaction can ack within Discord's 3 s window.
 
 ## AFL Domain Essentials
 
