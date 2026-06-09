@@ -12,7 +12,9 @@ Open `index.html` in a browser. There is no build step, dev server, or test suit
 
 ## Deployment
 
-Hosted on Cloudflare Workers (Static Assets) with a custom domain (`jackemcpherson.com`). Pushing to `main` triggers Workers Builds, which runs `npx wrangler@4 deploy` and ships to production. Manual deploy: `npx wrangler@4 deploy` from the repo root.
+Hosted on Cloudflare Workers (Static Assets) with a custom domain (`jackemcpherson.com`). Pushing to `main` triggers Workers Builds (configured in the Cloudflare dashboard via the Cloudflare GitHub App), which runs `npx wrangler@4 deploy` and ships to production. Builds typically land within ~30–60s of push. Manual deploy: `npx wrangler@4 deploy` from the repo root.
+
+Workers Builds posts no GitHub commit statuses or check runs — `gh api repos/.../commits/<sha>/check-runs` will be empty even on successful builds. To verify a deploy, check `npx wrangler@4 deployments list` (look for a `Created:` timestamp newer than the push) or watch the Builds log in the Cloudflare dashboard.
 
 Layout:
 - `public/` — everything that gets served. Edit files here.
