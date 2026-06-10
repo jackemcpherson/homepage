@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Anatomy of an 8 GB Media Server — Jack McPherson</title>
+  <meta name="description" content="A full-stack review of a Mac Mini media server — virtualisation, memory ballooning, least privilege, and a hardlink bug that never logged an error.">
+  <meta name="theme-color" content="#C0392B">
+  <link rel="icon" href="../favicon.svg" type="image/svg+xml">
+  <meta property="og:title" content="Anatomy of an 8 GB Media Server">
+  <meta property="og:description" content="A full-stack review of a Mac Mini media server — virtualisation, memory ballooning, least privilege, and a hardlink bug that never logged an error.">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://jackemcpherson.com/docs/media-server-review.html">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:site" content="@JDogggg">
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="canonical" href="https://jackemcpherson.com/docs/media-server-review.html">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/charter-webfont@4/charter.min.css" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/charter-webfont@4/charter.min.css"></noscript>
+  <link rel="stylesheet" href="../style.css?v=8">
+  <style>
+    /* Scoped styles for this case study — uses site custom properties */
+    .review h2 {
+      font-family: var(--font-serif);
+      font-size: 1.35rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      color: var(--color-fg);
+      margin: var(--space-lg) 0 var(--space-sm);
+    }
+    .review p {
+      font-family: var(--font-serif);
+      font-size: 1.02rem;
+      line-height: 1.65;
+      color: var(--color-fg);
+      margin-bottom: var(--space-sm);
+    }
+    .review p a {
+      color: var(--color-fg);
+      text-decoration-color: var(--color-rule);
+      text-underline-offset: 2px;
+      transition: text-decoration-color 0.2s ease;
+    }
+    .review p a:hover { text-decoration-color: var(--color-accent); }
+    .review code {
+      font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+      font-size: 0.85em;
+      background: #F1EFEC;
+      border-radius: 3px;
+      padding: 0.08em 0.3em;
+    }
+    .review figure { margin: var(--space-md) 0 var(--space-lg); }
+    .review figure img { width: 100%; height: auto; display: block; }
+    .review figcaption {
+      font-family: var(--font-sans);
+      font-size: 0.68rem;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--color-muted);
+      margin-top: var(--space-xs);
+      text-align: center;
+    }
+    .review .pull {
+      border-left: 2px solid var(--color-accent);
+      padding: 0.2rem 0 0.2rem 1rem;
+      margin: var(--space-md) 0;
+      font-style: italic;
+      color: var(--color-muted);
+    }
+    .lessons { list-style: none; margin: var(--space-sm) 0 var(--space-lg); }
+    .lessons li {
+      font-family: var(--font-serif);
+      font-size: 0.98rem;
+      line-height: 1.55;
+      padding: 0.8rem 0;
+      border-bottom: 1px solid var(--color-rule);
+    }
+    .lessons li:first-child { border-top: 1px solid var(--color-rule); }
+    .lessons strong { font-weight: 700; }
+    .lessons .tag {
+      display: block;
+      font-family: var(--font-sans);
+      font-size: 0.6rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--color-accent);
+      margin-bottom: 0.25rem;
+    }
+    .review .footnote {
+      font-size: 0.85rem;
+      font-style: italic;
+      color: var(--color-muted);
+      margin-top: var(--space-lg);
+    }
+  </style>
+</head>
+<body class="post-page">
+
+  <div class="accent-rule" aria-hidden="true"></div>
+
+  <main>
+  <article class="post review">
+    <a href="./" class="back-link">&larr; Docs</a>
+
+    <header class="post-header">
+      <h1 class="post-title">Anatomy of an 8&nbsp;GB Media Server</h1>
+      <p class="post-lede">A full-stack review of a Mac Mini running nineteen containers and a native Plex install — and what a memory-starved box teaches about virtualisation, least privilege, and bugs that never log an error.</p>
+      <hr class="divider" aria-hidden="true">
+    </header>
+
+    <h2>The constraint</h2>
+    <p>The machine is a Mac Mini with 8&nbsp;GB of soldered, non-upgradable RAM. It runs a complete media-automation stack — reverse proxy, single sign-on, five <em>*arr</em> apps, two download clients, monitoring, dashboards, and a handful of operational sidecars — inside an OrbStack Linux VM capped at 3&nbsp;GiB, alongside a natively-installed Plex Media Server. Every design decision below is downstream of that 8&nbsp;GB figure.</p>
+    <p>The most consequential decision is the <strong>split-brain host</strong>. Docker on macOS means a Linux VM, and a Linux VM means no GPU passthrough: a containerised Plex would software-transcode and promptly exhaust the machine. Run natively, Plex gets VideoToolbox hardware transcoding — decode and encode — at near-zero RAM cost. Everything that doesn&rsquo;t need the GPU lives in the VM; the one thing that does, doesn&rsquo;t.</p>
+
+    <figure>
+      <img src="img/media-server-arch.svg" alt="Architecture diagram: Cloudflare edge connects via an outbound-only tunnel to cloudflared inside an OrbStack VM, which routes through Traefik and Authelia to the application containers; Plex runs natively on macOS with VideoToolbox, sharing an external 3.6 TB drive with the containers." width="1200" height="900">
+      <figcaption>One host, two worlds: containers in the VM, Plex on the metal</figcaption>
+    </figure>
+
+    <h2>Ingress without open ports</h2>
+    <p>Nothing listens on the WAN. A Cloudflare Tunnel makes an outbound-only connection from a <code>cloudflared</code> container to Cloudflare&rsquo;s edge, which terminates TLS; inside the Docker network, plain HTTP flows to Traefik, and every application route passes through an Authelia forward-auth middleware enforcing two-factor authentication (WebAuthn or TOTP) by default, with argon2id password hashing and aggressive brute-force lockouts behind it. Services with strong native authentication bypass the SSO layer deliberately — a standard pattern, applied sparingly.</p>
+
+    <figure>
+      <img src="img/media-server-auth.svg" alt="Sequence diagram of the forward-auth flow: browser to Cloudflare edge to Traefik, which consults Authelia; unauthenticated requests are redirected to the auth portal for two-factor login, authenticated ones are proxied to the service with identity headers." width="1200" height="800">
+      <figcaption>The forward-auth handshake on every request</figcaption>
+    </figure>
+
+    <h2>The bug that never logged an error</h2>
+    <p>The acquisition pipeline is conventional: a request portal feeds the <em>*arr</em> apps, an indexer hub feeds them releases, downloads land in a staging directory, and imports move files into the library, where Plex picks them up via filesystem events. The import step is supposed to use hardlinks — same physical file, two directory entries, zero copy cost — and the apps were correctly configured to do so. The downloads and the library even share one physical filesystem.</p>
+    <p>And yet an audit found <strong>zero hardlinked files</strong> in the entire library. The proof took one command inside a container:</p>
+    <p><code>ln /downloads/file&nbsp;/data/file&nbsp;&rarr;&nbsp;Cross-device link</code></p>
+    <p class="pull">The staging directory and the library were mounted as two separate bind mounts — and the virtualisation layer surfaces each bind mount as a distinct device. Linux refuses <code>link()</code> across devices, the apps silently fall back to copying, and nothing anywhere reports a problem.</p>
+    <p>Every import had been a full copy across a USB drive: double the write I/O, double the disk space while torrents seed. The fix is the layout the <a href="https://trash-guides.info/" rel="noopener">TRaSH guides</a> have always recommended — a <em>single</em> parent mount shared by download clients and library apps, so staging and library are one device again. The lesson generalises: <strong>a correct setting is not a working feature</strong>. Hardlink support survives every config review and dies quietly at the mount table; the only way to know is to test the actual operation.</p>
+
+    <figure>
+      <img src="img/media-server-pipeline.svg" alt="Pipeline diagram from request portal through the arr apps and download clients to the import step, which is highlighted: EXDEV cross-device link errors cause a silent fallback from hardlinking to full copies before files reach the library and Plex." width="1200" height="500">
+      <figcaption>The import step: configured to hardlink, silently copying</figcaption>
+    </figure>
+
+    <h2>Living inside 8 GB</h2>
+    <p>At steady state the box is fully committed: macOS and its ~50 ambient daemons hold roughly 2.7&nbsp;GB, the VM&rsquo;s host-side footprint runs about 1.9&nbsp;GB, and the memory compressor squeezes over 6&nbsp;GB of logical pages into under 3&nbsp;GB of physical RAM. It works — but there is no slack, so the engineering is about preventing spikes, not finding savings.</p>
+
+    <figure>
+      <img src="img/media-server-memory.svg" alt="Pie chart of the approximate steady-state RAM split across macOS daemons, the OrbStack VM, compressed memory, and Plex plus everything else." width="900" height="600">
+      <figcaption>Where 8 GB goes — proportions, not a precise ledger</figcaption>
+    </figure>
+
+    <p>Three findings from this corner of the review were the least intuitive:</p>
+    <ul class="lessons">
+      <li><span class="tag">Virtualisation</span><strong>Tightening the VM&rsquo;s memory cap made things worse.</strong> Apple&rsquo;s hypervisor reclaims guest memory by ballooning, and ballooning needs headroom: with a generous cap the VM&rsquo;s host footprint floated well <em>under</em> it, while an experiment with a tighter cap pinned the process near cap-plus-overhead and host usage went <em>up</em>. The cap governs guest-visible memory, not host cost. The real lever is what runs inside the VM.</li>
+      <li><span class="tag">Limits</span><strong>An application cache larger than its container&rsquo;s memory limit is a scheduled OOM-kill.</strong> One download client&rsquo;s article cache was configured ~25% above the container&rsquo;s <code>mem_limit</code> — invisible at idle, fatal mid-download. Per-container limits only protect you if every knob inside the container respects them.</li>
+      <li><span class="tag">Scheduling</span><strong>Every nightly job had independently chosen midnight.</strong> Image updates, profile syncs, a maintenance restart — all at 00:00, with the media server&rsquo;s own nightly tasks starting shortly after. On a box with no memory slack, the cron pile-up <em>was</em> the spike risk. Staggering them costs nothing.</li>
+    </ul>
+
+    <h2>Least privilege for the Docker socket</h2>
+    <p>Five containers needed the Docker API: the proxy reads routing labels, a dashboard reads container status, an auto-updater pulls and recreates, a healer and a scheduled restarter bounce containers. The naive pattern — mount <code>/var/run/docker.sock</code> everywhere, add <code>:ro</code>, move on — is a trap: read-only protects the socket <em>file</em>, while the API behind it remains root-equivalent for the whole VM.</p>
+    <p>The reviewed design landed on a tiered model: a read-only socket proxy with a GET-only allowlist for anything that merely observes, a second proxy instance that permits restarts and nothing else for the remediation sidecars, and a raw mount only for the one component whose job genuinely is creating and destroying containers.</p>
+
+    <figure>
+      <img src="img/media-server-sockets.svg" alt="Diagram of tiered Docker socket access: a read-only proxy serves Traefik and the dashboard, a restart-only proxy serves autoheal and the scheduled restarter, and only the updater gets a raw socket mount." width="1200" height="500">
+      <figcaption>Three tiers of socket access instead of five raw mounts</figcaption>
+    </figure>
+
+    <h2>Field notes</h2>
+    <ul class="lessons">
+      <li><span class="tag">Backups</span><strong>Application self-backups that live on the application&rsquo;s own disk are not backups.</strong> Every service in the stack dutifully snapshotted its database — into the same directory tree, on the same SSD, as the live data. They protect against app corruption and nothing else. State you can&rsquo;t rebuild (auth databases, library metadata, years of history) needs to leave the machine.</li>
+      <li><span class="tag">Updates</span><strong>Auto-updating from <code>:latest</code> is a posture, not a default.</strong> Daily unattended pulls of unpinned images kept the fleet impressively fresh — and meant any upstream breakage ships straight to production at midnight. The popular updater container is itself unmaintained: nobody updates the updater. Pinned major versions plus notify-only tooling is the boring, correct answer for a reference build.</li>
+      <li><span class="tag">Launch</span><strong>A login item is not a service manager.</strong> The native server app launched at login with no crash restart and no headless start after reboot — and because the platform&rsquo;s updater only applies updates on relaunch, an always-up server quietly never updated. <code>launchd</code> with <code>KeepAlive</code> solves all three.</li>
+      <li><span class="tag">Docs</span><strong>Documentation rots fastest right after a change.</strong> A service removed from the stack lived on in the README, the agent instructions, an entire setup guide, and the environment template — four documents, one ghost. Doc updates belong in the same commit as the removal.</li>
+      <li><span class="tag">Workarounds</span><strong>Record why a workaround exists, or someone will delete it.</strong> A weekly scheduled restart of one container looks like cargo cult until you know it papers over a connection-state leak. The setup&rsquo;s habit of writing down the <em>reason</em> next to the hack is what kept the review from &ldquo;fixing&rdquo; it backwards.</li>
+    </ul>
+
+    <p class="footnote">A point-in-time review (June 2026) of a personal setup, lightly genericised. Diagrams are pre-rendered Mermaid; no scripts were harmed in the serving of this page.</p>
+
+  </article>
+  </main>
+
+</body>
+</html>
