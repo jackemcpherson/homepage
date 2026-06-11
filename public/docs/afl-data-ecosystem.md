@@ -231,7 +231,7 @@ from a Worker without setting the `nodejs_compat` compatibility flag.
 
 ## D1 Database Schema
 
-The `afl-stats` database has 12 tables and covers four competitions: AFL
+The `afl-stats` database has 10 tables plus 5 integrity views and covers four competitions: AFL
 Men's, AFL Women's, VFL, and VFLW. **Always filter queries by competition**
 (join through `seasons → competitions`, then `WHERE c.code = ?`) — without
 the filter, results mix competitions silently because team rows with the same

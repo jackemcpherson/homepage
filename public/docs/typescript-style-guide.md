@@ -18,6 +18,19 @@ fast single-purpose tooling, and FastAPI patterns adapted for the TypeScript eco
 | **D1** | Database | Cloudflare's SQLite — co-located with Workers |
 | **Drizzle ORM** | Database ORM | Type-safe SQL, D1-native, schema as code |
 
+### The minimal-Worker exception
+
+Hono, Drizzle, and the rest of the Core stack are the default for new
+projects, not a hard mandate. A small Cloudflare Worker (roughly: a
+few routes, hand-countable SQL statements, single maintainer) may use
+hand-rolled routing and raw parameterised SQL instead — the framework
+overhead can exceed the code it replaces. Zod at external boundaries
+is **not** part of this exception; it applies everywhere.
+
+If you take the exception, say so in the project's CLAUDE.md and note
+the threshold for revisiting (e.g. "adopt Hono if routes outgrow one
+if/else chain"). AFL-MCP is the canonical example.
+
 ### Tooling
 
 | Tool | Role | Python equivalent |
@@ -456,6 +469,12 @@ class StaleDataError extends Error {
 
 For operations that can fail in expected ways (not exceptional errors),
 return a discriminated union instead of throwing.
+
+Scope: this mandate applies to **libraries** (published packages whose
+callers need to handle failures as values — fitzroy, rds-js). For
+application code (Workers, CLIs) it is recommended at fallible seams
+but not required end-to-end; a thrown domain error caught at the
+request/command boundary is acceptable there.
 
 ```typescript
 type Result<T, E = Error> =
