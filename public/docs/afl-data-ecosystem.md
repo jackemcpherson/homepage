@@ -61,13 +61,20 @@ const results = await fetchMatches({
   season: 2026,
   status: "Complete",
 });
+if (results.success) {
+  console.log(results.data.length, "matches");
+}
 
-// Player stats for a specific round
-const stats = await fetchPlayerStats({
+// Player stats for a specific round. v3 returns a partial-result
+// envelope: { stats, failedMatchIds }.
+const statsResult = await fetchPlayerStats({
   source: "afl-api",
   season: 2026,
   round: 10,
 });
+if (statsResult.success) {
+  const { stats, failedMatchIds } = statsResult.data;
+}
 ```
 
 Data comes fresh from upstream sources each time. No database or credentials
@@ -121,7 +128,7 @@ documentation, not auto-injection.
 | Function | Returns | Description |
 |----------|---------|-------------|
 | `fetchMatches` | `Match[]` | Match data with optional `status` filter (Upcoming, Live, Complete, Postponed, Cancelled). Replaces v1's separate `fetchMatchResults` + `fetchFixture`. |
-| `fetchPlayerStats` | `PlayerStats[]` | ~70 per-match statistics per player |
+| `fetchPlayerStats` | `SeasonPlayerStats` | ~70 per-match statistics per player, wrapped in a `{ stats, failedMatchIds }` envelope — season-wide scrapes surface per-match failures instead of silently dropping them (v3) |
 | `fetchLadder` | `Ladder` | Standings with wins, losses, percentage |
 | `fetchLineup` | `Lineup` | Named squads for a round |
 | `fetchSquad` | `Squad` | Full squad list for a team |
@@ -129,6 +136,10 @@ documentation, not auto-injection.
 | `fetchTeamStats` | `TeamStatsEntry[]` | Aggregated team-level statistics |
 | `fetchPlayerDetails` | `PlayerDetails[]` | Player biography and career info |
 | `fetchAwards` | `Award[]` | Brownlow, Coleman, All-Australian, Rising Star, coaches votes |
+
+As of v3 the package root exports only this supported surface. Raw AFL
+API / Squiggle wire schemas (Zod) moved to the `fitzroy/schemas` subpath
+export, so upstream drift no longer forces a major release.
 
 ### Common Parameters
 
@@ -174,6 +185,9 @@ interface Match {
   weatherTempCelsius: number | null;
   q1Home: QuarterScore | null;
   // ... quarter scores for all 4 quarters, both teams
+  // Pre-game upstream statuses (UNCONFIRMED_TEAMS, CONFIRMED_TEAMS,
+  // PLACEHOLDER) normalise to "Upcoming"; unknown raw statuses also
+  // default to "Upcoming" rather than "Complete" (fitzroy >= 3.0.1).
   status: "Upcoming" | "Live" | "Complete" | "Postponed" | "Cancelled";
   livePeriodStatus: string | null; // afl-api score-level status: LIVE, QTR_TIME, HALF_TIME, 3QTR_TIME, FULL_TIME (raw upstream string)
   source: DataSource;
