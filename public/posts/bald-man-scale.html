@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Bald Man Scale — Jack McPherson</title>
+<meta name="description" content="A two-axis taxonomy of bald celebrities (n = 24). Likeability against quality of output, assessed by a two-member household panel. Findings are final.">
+<meta name="theme-color" content="#C0392B">
+<link rel="canonical" href="https://jackemcpherson.com/posts/bald-man-scale">
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<meta property="og:title" content="The Bald Man Scale">
+<meta property="og:description" content="A two-axis taxonomy of bald celebrities (n = 24). Likeability against quality of output. Findings are final and not subject to appeal.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://jackemcpherson.com/posts/bald-man-scale.html">
+<meta property="og:image" content="https://jackemcpherson.com/posts/img/bald-man-scale-original.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@JDogggg">
+<meta name="twitter:title" content="The Bald Man Scale">
+<meta name="twitter:description" content="A two-axis taxonomy of bald celebrities (n = 24). Findings are final and not subject to appeal.">
+<meta name="twitter:image" content="https://jackemcpherson.com/posts/img/bald-man-scale-original.jpg">
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/charter-webfont@4/charter.min.css" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/charter-webfont@4/charter.min.css"></noscript>
+<style>
+:root {
+  --bg: #FAFAFA;
+  --ink: #111111;
+  --muted: #555555;
+  --rule: #D0D0D0;
+  --accent: #C0392B;
+  --serif: Charter, 'Bitstream Charter', 'Sitka Text', Cambria, serif;
+  --sans: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  font-family: var(--serif);
+  background: var(--bg);
+  color: var(--ink);
+  line-height: 1.6;
+  font-size: 1.0625rem;
+}
+.accent-rule { height: 3px; background: var(--accent); }
+
+.paper {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 2.5rem 1.5rem 5rem;
+}
+.prose { max-width: 680px; margin-left: auto; margin-right: auto; }
+
+.back-link {
+  font-family: var(--sans);
+  font-size: 0.8125rem;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  color: var(--muted);
+}
+.back-link:hover { color: var(--accent); }
+
+/* ── Masthead ── */
+.masthead { text-align: center; margin: 2.5rem auto 3rem; max-width: 720px; }
+.kicker {
+  font-family: var(--sans);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+h1 {
+  font-size: clamp(2rem, 6vw, 3.125rem);
+  font-weight: 700;
+  line-height: 1.1;
+  margin: 0.75rem 0 0.5rem;
+  letter-spacing: -0.01em;
+}
+.subtitle {
+  font-style: italic;
+  font-size: clamp(1rem, 3vw, 1.25rem);
+  color: var(--muted);
+}
+.authors {
+  margin-top: 1.5rem;
+  font-size: 0.9375rem;
+}
+.authors sup { font-size: 0.6em; }
+.affil {
+  font-family: var(--sans);
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin-top: 0.25rem;
+}
+.masthead hr {
+  border: 0;
+  border-top: 1px solid var(--rule);
+  margin: 2rem auto 0;
+  width: 120px;
+}
+
+/* ── Abstract ── */
+.abstract {
+  border-top: 2px solid var(--ink);
+  border-bottom: 1px solid var(--rule);
+  padding: 1.25rem 0 1.5rem;
+  margin-bottom: 3.5rem;
+}
+.abstract h2, .section h2 {
+  font-family: var(--sans);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  margin-bottom: 0.75rem;
+}
+.abstract p { font-size: 1rem; }
+.section { margin: 3.5rem auto; }
+.section p + p { margin-top: 1rem; }
+
+/* ── Figure 1: the chart ── */
+figure.fig { margin: 3rem 0; }
+.figwrap { padding: 0 0.5rem; }
+.plot-outer {
+  position: relative;
+  /* room for axis labels */
+  padding: 1.75rem 0.75rem 2.25rem 2.5rem;
+}
+.plot {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  border-left: 2px solid var(--ink);
+  border-bottom: 2px solid var(--ink);
+  background-image:
+    linear-gradient(to right, rgba(17,17,17,0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(17,17,17,0.05) 1px, transparent 1px);
+  background-size: 10% 10%;
+}
+.mid-v, .mid-h { position: absolute; background: none; border: 0; }
+.mid-v {
+  left: 50%; top: 0; bottom: 0;
+  border-left: 1px dashed #b5b5b5;
+}
+.mid-h {
+  top: 50%; left: 0; right: 0;
+  border-top: 1px dashed #b5b5b5;
+}
+.ax {
+  position: absolute;
+  font-family: var(--sans);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+.ax-x { bottom: 0.1rem; left: 50%; transform: translateX(-50%); }
+.ax-y {
+  left: 0.1rem; top: 50%;
+  transform: translate(-50%, -50%) rotate(180deg);
+  writing-mode: vertical-rl;
+}
+.tick {
+  position: absolute;
+  font-family: var(--sans);
+  font-size: 0.625rem;
+  color: var(--muted);
+}
+.tick-x0 { bottom: -1.4rem; left: 0; }
+.tick-x10 { bottom: -1.4rem; right: 0; }
+.tick-y0 { left: -1.4rem; bottom: -0.4rem; }
+.tick-y10 { left: -1.7rem; top: -0.4rem; }
+
+/* points */
+.pt {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: clamp(48px, 9%, 66px);
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  text-align: center;
+  z-index: 1;
+}
+.pt:hover, .pt:focus-within, .pt:focus { z-index: 30; }
+.pt img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  object-position: 50% 0%;
+  border-radius: 50%;
+  border: 1px solid var(--ink);
+  background: #FFFFFF;
+}
+.pt .nm {
+  display: block;
+  font-family: var(--sans);
+  font-size: clamp(0.5rem, 1.3vw, 0.6875rem);
+  font-weight: 500;
+  line-height: 1.15;
+  margin-top: 2px;
+  color: var(--ink);
+  background: rgba(250,250,250,0.82);
+  border-radius: 2px;
+}
+.pt .nm sup { color: var(--accent); font-weight: 700; }
+.pt:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+/* tooltip */
+.tip {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  width: 240px;
+  background: #FFFFFF;
+  border: 1px solid var(--ink);
+  box-shadow: 3px 3px 0 rgba(17,17,17,0.12);
+  padding: 0.6rem 0.7rem;
+  font-family: var(--serif);
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  text-align: left;
+  color: var(--ink);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+.tip .tn {
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: 0.75rem;
+  letter-spacing: 0.02em;
+  display: block;
+  margin-bottom: 0.15rem;
+}
+.tip .tc { color: var(--accent); font-style: normal; }
+.pt:hover .tip, .pt:focus .tip, .pt:focus-within .tip {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+.pt.flip .tip { bottom: auto; top: calc(100% + 10px); }
+.pt.el .tip { left: 0; transform: translateX(-6%) translateY(4px); }
+.pt.el:hover .tip, .pt.el:focus .tip { transform: translateX(-6%) translateY(0); }
+.pt.er .tip { left: auto; right: 0; transform: translateX(6%) translateY(4px); }
+.pt.er:hover .tip, .pt.er:focus .tip { transform: translateX(6%) translateY(0); }
+
+/* contested red pen circle */
+figcaption, .tabnote {
+  font-size: 0.875rem;
+  color: var(--muted);
+  margin-top: 1rem;
+  max-width: 680px;
+  margin-left: auto;
+  margin-right: auto;
+}
+figcaption strong, caption strong { color: var(--ink); }
+
+/* ── Table 1 ── */
+.tablewrap { overflow-x: auto; margin: 1.5rem 0 0.5rem; }
+table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 0.9375rem;
+}
+caption {
+  text-align: left;
+  font-size: 0.875rem;
+  color: var(--muted);
+  margin-bottom: 0.75rem;
+}
+th, td { padding: 0.5rem 0.75rem; text-align: left; vertical-align: top; }
+thead th {
+  font-family: var(--sans);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  border-top: 2px solid var(--ink);
+  border-bottom: 1px solid var(--ink);
+  white-space: nowrap;
+}
+td.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+tbody tr { border-bottom: 1px solid #E7E7E7; }
+tbody tr:last-child { border-bottom: 1px solid var(--ink); }
+tr.qhead td {
+  font-family: var(--sans);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  padding-top: 1.1rem;
+  color: var(--accent);
+  border-bottom: 1px solid var(--rule);
+}
+td .dag { color: var(--accent); font-weight: 700; }
+
+/* ── Figure 2 ── */
+.artifact img {
+  width: 100%;
+  height: auto;
+  display: block;
+  border: 1px solid var(--rule);
+}
+
+/* ── Appendix ── */
+.appendix p { font-size: 0.9375rem; color: var(--muted); }
+.credits {
+  margin-top: 0.75rem;
+  padding-left: 1.1rem;
+  font-size: 0.8125rem;
+  color: var(--muted);
+  line-height: 1.7;
+}
+.credits a { color: inherit; }
+.credits a:hover { color: var(--accent); }
+
+/* ── Citation footer ── */
+.cite {
+  margin-top: 4rem;
+  border-top: 1px solid var(--rule);
+  padding-top: 1.5rem;
+  font-size: 0.875rem;
+  color: var(--muted);
+}
+.cite em { font-style: italic; }
+
+@media (max-width: 600px) {
+  body { font-size: 1rem; }
+  .plot { aspect-ratio: 1 / 1; }
+  .pt { width: clamp(38px, 11%, 52px); }
+  .pt .nm { font-size: 0.5rem; }
+  .tip { width: 190px; font-size: 0.75rem; }
+  th, td { padding: 0.4rem 0.5rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tip { transition: none; }
+}
+@media print {
+  .tip { display: none; }
+  .back-link { display: none; }
+}
+</style>
+</head>
+<body>
+
+<div class="accent-rule" aria-hidden="true"></div>
+
+<main class="paper">
+  <a href="./" class="back-link">&larr; Posts</a>
+
+  <header class="masthead">
+    <p class="kicker">Household Research &middot; Original Investigation</p>
+    <h1>The Bald Man Scale</h1>
+    <p class="subtitle">A Two-Axis Taxonomy of Bald Celebrities (n&nbsp;=&nbsp;24)</p>
+    <p class="authors">McPherson,&nbsp;J.<sup>1</sup> &amp; Ryan,&nbsp;S.&nbsp;R.<sup>1</sup></p>
+    <p class="affil"><sup>1</sup> The Household. Received 2026; accepted 2026, over dinner.</p>
+    <hr aria-hidden="true">
+  </header>
+
+  <section class="abstract prose">
+    <h2>Abstract</h2>
+    <p>We present the first known attempt to place 24 bald male celebrities on a
+    two-axis plane measuring <em>likeability</em> against <em>quality of
+    output</em>. Assessment was performed by a two-member panel in a single
+    sitting. Results confirm Stanley Tucci as the ceiling of the discipline and
+    the bottom-left corner as the permanent residence of John Travolta. Three
+    placements remain formally contested (&dagger;). The original instrument is
+    reproduced in Fig.&nbsp;2. Findings are final and not subject to appeal.</p>
+  </section>
+
+  <figure class="fig" id="fig1">
+    <div class="figwrap">
+    <div class="plot-outer">
+      <span class="ax ax-y">Quality of Output &rarr;</span>
+      <span class="ax ax-x">Likeability &rarr;</span>
+      <div class="plot">
+        <span class="mid-v" aria-hidden="true"></span>
+        <span class="mid-h" aria-hidden="true"></span>
+        <span class="tick tick-y10" aria-hidden="true">10</span>
+        <span class="tick tick-y0" aria-hidden="true">0</span>
+        <span class="tick tick-x0" aria-hidden="true">0</span>
+        <span class="tick tick-x10" aria-hidden="true">10</span>
+
+        <!-- Points. left = likeability×10, top = (10 − quality)×10 -->
+
+        <button class="pt er" style="left:83%; top:2%" type="button">
+          <img src="img/hedcuts/stanley-tucci.svg" alt="" width="360" height="432">
+          <span class="nm">Stanley Tucci</span>
+          <span class="tip"><span class="tn">Stanley Tucci <span class="tc">(L&nbsp;8.3, Q&nbsp;9.8)</span></span>Control specimen. Makes a negroni on the internet; the discipline applauds.</span>
+        </button>
+
+        <button class="pt flip" style="left:34%; top:8%" type="button">
+          <img src="img/hedcuts/peter-garrett.svg" alt="" width="360" height="432">
+          <span class="nm">Peter Garrett</span>
+          <span class="tip"><span class="tn">Peter Garrett <span class="tc">(L&nbsp;3.4, Q&nbsp;9.2)</span></span>The output of Midnight Oil, docked a full axis for a decade in federal cabinet.</span>
+        </button>
+
+        <button class="pt flip" style="left:44.5%; top:7%" type="button">
+          <img src="img/hedcuts/john-malkovich.svg" alt="" width="360" height="432">
+          <span class="nm">John Malkovich</span>
+          <span class="tip"><span class="tn">John Malkovich <span class="tc">(L&nbsp;5.1, Q&nbsp;9.1)</span></span>So singular they made a film about occupying his head. The panel remains slightly afraid of him.</span>
+        </button>
+
+        <button class="pt flip" style="left:61%; top:6.5%" type="button">
+          <img src="img/hedcuts/ben-kingsley.svg" alt="" width="360" height="432">
+          <span class="nm">Ben Kingsley</span>
+          <span class="tip"><span class="tn">Ben Kingsley <span class="tc">(L&nbsp;5.9, Q&nbsp;9.1)</span></span>Gandhi buys a great deal of altitude. Insisting on &ldquo;Sir Ben&rdquo; spends some of it back.</span>
+        </button>
+
+        <button class="pt flip" style="left:69%; top:14%" type="button">
+          <img src="img/hedcuts/jk-simmons.svg" alt="" width="360" height="432">
+          <span class="nm">J.K. Simmons</span>
+          <span class="tip"><span class="tn">J.K. Simmons <span class="tc">(L&nbsp;6.5, Q&nbsp;8.5)</span></span>Whiplash justifies the altitude. The insurance advertisements keep him approachable.</span>
+        </button>
+
+        <button class="pt flip" style="left:51.5%; top:18%" type="button">
+          <img src="img/hedcuts/paul-giamatti.svg" alt="" width="360" height="432">
+          <span class="nm">Paul Giamatti</span>
+          <span class="tip"><span class="tn">Paul Giamatti <span class="tc">(L&nbsp;5.2, Q&nbsp;8.4)</span></span>Elite output, delivered by a man permanently four seconds from a full meltdown.</span>
+        </button>
+
+        <button class="pt flip" style="left:59.5%; top:20.5%" type="button">
+          <img src="img/hedcuts/paul-kelly.svg" alt="" width="360" height="432">
+          <span class="nm">Paul Kelly</span>
+          <span class="tip"><span class="tn">Paul Kelly <span class="tc">(L&nbsp;5.7, Q&nbsp;8.2)</span></span>Wrote &ldquo;How to Make Gravy&rdquo;. The instrument has no axis for that, so this will have to do.</span>
+        </button>
+
+        <button class="pt" style="left:34%; top:33%" type="button">
+          <img src="img/hedcuts/dean-norris.svg" alt="" width="360" height="432">
+          <span class="nm">Dean Norris</span>
+          <span class="tip"><span class="tn">Dean Norris <span class="tc">(L&nbsp;3.4, Q&nbsp;6.7)</span></span>They&rsquo;re minerals, Marie. A strong body of work; likeability suppressed by association with the DEA.</span>
+        </button>
+
+        <button class="pt" style="left:56.5%; top:36%" type="button">
+          <img src="img/hedcuts/keegan-michael-key.svg" alt="" width="360" height="432">
+          <span class="nm">Keegan-Michael Key</span>
+          <span class="tip"><span class="tn">Keegan-Michael Key <span class="tc">(L&nbsp;5.8, Q&nbsp;6.3)</span></span>Suspiciously well-adjusted. The panel found nothing to complain about, and has docked him for it.</span>
+        </button>
+
+        <button class="pt er" style="left:86%; top:38%" type="button">
+          <img src="img/hedcuts/the-rock.svg" alt="" width="360" height="432">
+          <span class="nm">The Rock<sup>&dagger;</sup></span>
+          <span class="tip"><span class="tn">The Rock <span class="tc">(L&nbsp;8.6, Q&nbsp;6.2)</span> &dagger;</span>Maximum charisma engineering. The filmography is one film released forty times. Placement heavily annotated on the original instrument.</span>
+        </button>
+
+        <button class="pt el" style="left:18%; top:42%" type="button">
+          <img src="img/hedcuts/jason-alexander.svg" alt="" width="360" height="432">
+          <span class="nm">Jason Alexander</span>
+          <span class="tip"><span class="tn">Jason Alexander <span class="tc">(L&nbsp;1.8, Q&nbsp;5.8)</span></span>Spent nine seasons perfecting an unlikeable man; the panel can no longer separate the two.</span>
+        </button>
+
+        <button class="pt" style="left:65.5%; top:49%" type="button">
+          <img src="img/hedcuts/patrick-stewart.svg" alt="" width="360" height="432">
+          <span class="nm">Patrick Stewart</span>
+          <span class="tip"><span class="tn">Patrick Stewart <span class="tc">(L&nbsp;6.4, Q&nbsp;5.2)</span></span>A knight of the realm, mid-table. Make it so-so.</span>
+        </button>
+
+        <button class="pt" style="left:50%; top:50%" type="button">
+          <img src="img/hedcuts/samuel-l-jackson.svg" alt="" width="360" height="432">
+          <span class="nm">Samuel L. Jackson</span>
+          <span class="tip"><span class="tn">Samuel L. Jackson <span class="tc">(L&nbsp;5.0, Q&nbsp;5.0)</span></span>Appears in everything, and therefore averages to the exact centre of everything.</span>
+        </button>
+
+        <button class="pt er" style="left:83%; top:51%" type="button">
+          <img src="img/hedcuts/danny-devito.svg" alt="" width="360" height="432">
+          <span class="nm">Danny DeVito<sup>&dagger;</sup></span>
+          <span class="tip"><span class="tn">Danny DeVito <span class="tc">(L&nbsp;8.3, Q&nbsp;4.9)</span> &dagger;</span>Trash-man energy approaching Tucci-grade likeability at a fraction of the altitude.</span>
+        </button>
+
+        <button class="pt" style="left:34%; top:53%" type="button">
+          <img src="img/hedcuts/jason-statham.svg" alt="" width="360" height="432">
+          <span class="nm">Jason Statham</span>
+          <span class="tip"><span class="tn">Jason Statham <span class="tc">(L&nbsp;3.4, Q&nbsp;4.7)</span></span>Every film is the same film. The panel respects the consistency and declines to call it range.</span>
+        </button>
+
+        <button class="pt el" style="left:7%; top:54%" type="button">
+          <img src="img/hedcuts/phil-collins.svg" alt="" width="360" height="432">
+          <span class="nm">Phil Collins</span>
+          <span class="tip"><span class="tn">Phil Collins <span class="tc">(L&nbsp;0.7, Q&nbsp;4.6)</span></span>&ldquo;In the Air Tonight&rdquo; holds the quality line. Four decades of inescapable radio play hold the other one.</span>
+        </button>
+
+        <button class="pt el" style="left:13%; top:57%" type="button">
+          <img src="img/hedcuts/sean-connery.svg" alt="" width="360" height="432">
+          <span class="nm">Sean Connery</span>
+          <span class="tip"><span class="tn">Sean Connery <span class="tc">(L&nbsp;1.3, Q&nbsp;4.3)</span></span>The definitive Bond. The interviews have aged like the opposite of whisky.</span>
+        </button>
+
+        <button class="pt" style="left:49%; top:65%" type="button">
+          <img src="img/hedcuts/bruce-willis.svg" alt="" width="360" height="432">
+          <span class="nm">Bruce Willis</span>
+          <span class="tip"><span class="tn">Bruce Willis <span class="tc">(L&nbsp;4.9, Q&nbsp;3.5)</span></span>Two decades of Die Hard credit, spent one direct-to-video film at a time.</span>
+        </button>
+
+        <button class="pt" style="left:69%; top:65%" type="button">
+          <img src="img/hedcuts/woody-harrelson.svg" alt="" width="360" height="432">
+          <span class="nm">Woody Harrelson<sup>&dagger;</sup></span>
+          <span class="tip"><span class="tn">Woody Harrelson <span class="tc">(L&nbsp;6.9, Q&nbsp;3.5)</span> &dagger;</span>Placement under active household dispute; the arrow on the original instrument records a tabled downward revision.</span>
+        </button>
+
+        <button class="pt er" style="left:87%; top:64%" type="button">
+          <img src="img/hedcuts/terry-crews.svg" alt="" width="360" height="432">
+          <span class="nm">Terry Crews</span>
+          <span class="tip"><span class="tn">Terry Crews <span class="tc">(L&nbsp;8.7, Q&nbsp;3.6)</span></span>Flexed individual pectorals on national television and was beloved for it. The quality axis remains unmoved.</span>
+        </button>
+
+        <button class="pt" style="left:29%; top:67%" type="button">
+          <img src="img/hedcuts/vin-diesel.svg" alt="" width="360" height="432">
+          <span class="nm">Vin Diesel</span>
+          <span class="tip"><span class="tn">Vin Diesel <span class="tc">(L&nbsp;2.9, Q&nbsp;3.3)</span></span>Has spoken of little but family across eleven films. The panel is not family.</span>
+        </button>
+
+        <button class="pt er" style="left:88%; top:82%" type="button">
+          <img src="img/hedcuts/pitbull.svg" alt="" width="360" height="432">
+          <span class="nm">Pitbull</span>
+          <span class="tip"><span class="tn">Pitbull <span class="tc">(L&nbsp;8.8, Q&nbsp;1.8)</span></span>Mr. Worldwide. Output quality is irrelevant to a man this pleased to be here. Dale.</span>
+        </button>
+
+        <button class="pt el" style="left:12%; top:84%" type="button">
+          <img src="img/hedcuts/john-travolta.svg" alt="" width="360" height="432">
+          <span class="nm">John Travolta</span>
+          <span class="tip"><span class="tn">John Travolta <span class="tc">(L&nbsp;1.2, Q&nbsp;1.6)</span></span>Gotti, Wild Hogs, and the public invention of &ldquo;Adele Dazeem&rdquo;. The corner is earned.</span>
+        </button>
+
+        <button class="pt" style="left:28%; top:85%" type="button">
+          <img src="img/hedcuts/billy-zane.svg" alt="" width="360" height="432">
+          <span class="nm">Billy Zane</span>
+          <span class="tip"><span class="tn">Billy Zane <span class="tc">(L&nbsp;2.8, Q&nbsp;1.5)</span></span>Titanic villain. Under examination conditions, the panel could not name a second credit.</span>
+        </button>
+
+      </div>
+    </div>
+    </div>
+    <figcaption><strong>Fig.&nbsp;1.</strong> Distribution of bald celebrities by
+    likeability and quality of output. Dashed lines indicate panel-defined
+    quadrant boundaries. Portraits are stipple derivatives of freely licensed
+    photographs (Appendix&nbsp;A). Hover or tap a subject for the panel&rsquo;s note.
+    &dagger;&nbsp;Placement contested at time of recording (see
+    Fig.&nbsp;2).</figcaption>
+  </figure>
+
+  <section class="section prose">
+    <h2>Method</h2>
+    <p>Subjects (n&nbsp;=&nbsp;24) were assessed by a two-member panel in a
+    single evening sitting, on two continuous axes: likeability and quality of
+    output. Baldness was the sole inclusion criterion, applied with moderate
+    rigour. No calibration was performed, and none is planned.</p>
+    <p>Inter-rater disagreements were resolved by circling the disputed subject
+    and drawing an arrow at it (Fig.&nbsp;2). Three placements remain formally
+    contested. The panel notes that Woody Harrelson&rsquo;s position is
+    <em>sub judice</em>.</p>
+  </section>
+
+  <section class="section">
+    <h2 style="max-width:680px;margin:0 auto 0.75rem">Findings</h2>
+    <div class="tablewrap">
+      <table>
+        <caption><strong>Table&nbsp;1.</strong> Full panel findings by quadrant. Scores on a 0&ndash;10 scale. &dagger;&nbsp;Contested.</caption>
+        <thead>
+          <tr><th scope="col">Subject</th><th scope="col">Likeability</th><th scope="col">Quality of output</th><th scope="col">Panel note</th></tr>
+        </thead>
+        <tbody>
+          <tr class="qhead"><td colspan="4">Quadrant I — High output, high likeability (the exemplars)</td></tr>
+          <tr><td>Stanley Tucci</td><td class="num">8.3</td><td class="num">9.8</td><td>Control specimen. Makes a negroni on the internet; the discipline applauds.</td></tr>
+          <tr><td>Ben Kingsley</td><td class="num">5.9</td><td class="num">9.1</td><td>Gandhi buys a great deal of altitude. Insisting on &ldquo;Sir Ben&rdquo; spends some of it back.</td></tr>
+          <tr><td>John Malkovich</td><td class="num">5.1</td><td class="num">9.1</td><td>So singular they made a film about occupying his head. The panel remains slightly afraid of him.</td></tr>
+          <tr><td>J.K. Simmons</td><td class="num">6.5</td><td class="num">8.5</td><td>Whiplash justifies the altitude. The insurance advertisements keep him approachable.</td></tr>
+          <tr><td>Paul Giamatti</td><td class="num">5.2</td><td class="num">8.4</td><td>Elite output, delivered by a man permanently four seconds from a full meltdown.</td></tr>
+          <tr><td>Paul Kelly</td><td class="num">5.7</td><td class="num">8.2</td><td>Wrote &ldquo;How to Make Gravy&rdquo;. The instrument has no axis for that, so this will have to do.</td></tr>
+          <tr><td>Keegan-Michael Key</td><td class="num">5.8</td><td class="num">6.3</td><td>Suspiciously well-adjusted. The panel found nothing to complain about, and has docked him for it.</td></tr>
+          <tr><td>The Rock&nbsp;<span class="dag">&dagger;</span></td><td class="num">8.6</td><td class="num">6.2</td><td>Maximum charisma engineering. The filmography is one film released forty times.</td></tr>
+          <tr><td>Patrick Stewart</td><td class="num">6.4</td><td class="num">5.2</td><td>A knight of the realm, mid-table. Make it so-so.</td></tr>
+          <tr><td>Samuel L. Jackson</td><td class="num">5.0</td><td class="num">5.0</td><td>Appears in everything, and therefore averages to the exact centre of everything.</td></tr>
+          <tr class="qhead"><td colspan="4">Quadrant II — High output, low likeability (respected from a distance)</td></tr>
+          <tr><td>Peter Garrett</td><td class="num">3.4</td><td class="num">9.2</td><td>The output of Midnight Oil, docked a full axis for a decade in federal cabinet.</td></tr>
+          <tr><td>Dean Norris</td><td class="num">3.4</td><td class="num">6.7</td><td>They&rsquo;re minerals, Marie. A strong body of work; likeability suppressed by association with the DEA.</td></tr>
+          <tr><td>Jason Alexander</td><td class="num">1.8</td><td class="num">5.8</td><td>Spent nine seasons perfecting an unlikeable man; the panel can no longer separate the two.</td></tr>
+          <tr class="qhead"><td colspan="4">Quadrant III — Low output, low likeability (the difficult cases)</td></tr>
+          <tr><td>Jason Statham</td><td class="num">3.4</td><td class="num">4.7</td><td>Every film is the same film. The panel respects the consistency and declines to call it range.</td></tr>
+          <tr><td>Phil Collins</td><td class="num">0.7</td><td class="num">4.6</td><td>&ldquo;In the Air Tonight&rdquo; holds the quality line. Four decades of inescapable radio play hold the other one.</td></tr>
+          <tr><td>Sean Connery</td><td class="num">1.3</td><td class="num">4.3</td><td>The definitive Bond. The interviews have aged like the opposite of whisky.</td></tr>
+          <tr><td>Bruce Willis</td><td class="num">4.9</td><td class="num">3.5</td><td>Two decades of Die Hard credit, spent one direct-to-video film at a time.</td></tr>
+          <tr><td>Vin Diesel</td><td class="num">2.9</td><td class="num">3.3</td><td>Has spoken of little but family across eleven films. The panel is not family.</td></tr>
+          <tr><td>John Travolta</td><td class="num">1.2</td><td class="num">1.6</td><td>Gotti, Wild Hogs, and the public invention of &ldquo;Adele Dazeem&rdquo;. The corner is earned.</td></tr>
+          <tr><td>Billy Zane</td><td class="num">2.8</td><td class="num">1.5</td><td>Titanic villain. Under examination conditions, the panel could not name a second credit.</td></tr>
+          <tr class="qhead"><td colspan="4">Quadrant IV — Low output, high likeability (beloved regardless)</td></tr>
+          <tr><td>Danny DeVito&nbsp;<span class="dag">&dagger;</span></td><td class="num">8.3</td><td class="num">4.9</td><td>Trash-man energy approaching Tucci-grade likeability at a fraction of the altitude.</td></tr>
+          <tr><td>Woody Harrelson&nbsp;<span class="dag">&dagger;</span></td><td class="num">6.9</td><td class="num">3.5</td><td>Placement under active household dispute; a downward revision has been tabled.</td></tr>
+          <tr><td>Terry Crews</td><td class="num">8.7</td><td class="num">3.6</td><td>Flexed individual pectorals on national television and was beloved for it. The quality axis remains unmoved.</td></tr>
+          <tr><td>Pitbull</td><td class="num">8.8</td><td class="num">1.8</td><td>Mr. Worldwide. Output quality is irrelevant to a man this pleased to be here. Dale.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="tabnote">Samuel L. Jackson sits at the exact origin of both axes
+    and has been assigned to Quadrant&nbsp;I as a courtesy.</p>
+  </section>
+
+  <figure class="fig artifact prose" id="fig2">
+    <img src="img/bald-man-scale-original.jpg" width="1600" height="1090"
+      alt="The original hand-drawn chart on torn notebook paper: two ballpoint axes labelled Likeability and Quality of Output, with 24 celebrity names written in their positions, three of them circled with arrows marking disputes."
+      loading="lazy">
+    <figcaption><strong>Fig.&nbsp;2.</strong> The original instrument
+    (household notebook, 2026). Circled subjects and directional annotations
+    record unresolved panel disputes. Perforation damage predates recovery.</figcaption>
+  </figure>
+
+  <section class="section prose appendix">
+    <h2>Appendix A — Image Credits</h2>
+    <p>Portraits in Fig.&nbsp;1 are weighted-Voronoi stipple derivatives of the
+    following photographs &mdash; freely licensed except where noted &mdash;
+    and are shared under the same licenses as their sources.</p>
+    <ul class="credits">
+      <li>Jason Alexander: derived from <a href="https://commons.wikimedia.org/wiki/File:Jason_Alexander.JPG" rel="license noopener">&ldquo;Jason Alexander&rdquo;</a> by antisocialtory, CC&nbsp;BY&nbsp;2.0.</li>
+      <li>Phil Collins: derived from <a href="https://commons.wikimedia.org/wiki/File:Phil_Collins,_2025_for_%22Eras%22_(cropped).jpg" rel="license noopener">&ldquo;Phil Collins, 2025 for &lsquo;Eras&rsquo; (cropped)&rdquo;</a> by Will Ireland, courtesy of Concord, CC&nbsp;BY-SA&nbsp;4.0.</li>
+      <li>Sean Connery: derived from <a href="https://commons.wikimedia.org/wiki/File:Sean_Connery_1999_(cropped).jpg" rel="license noopener">&ldquo;Sean Connery 1999 (cropped)&rdquo;</a> by Georges Biard, CC&nbsp;BY-SA&nbsp;3.0.</li>
+      <li>Terry Crews: derived from <a href="https://commons.wikimedia.org/wiki/File:Terry_Crews_by_Gage_Skidmore_5.jpg" rel="license noopener">&ldquo;Terry Crews by Gage Skidmore 5&rdquo;</a> by Gage Skidmore, CC&nbsp;BY-SA&nbsp;3.0.</li>
+      <li>Danny DeVito: derived from <a href="https://commons.wikimedia.org/wiki/File:Danny_DeVito_cropped_and_edited_for_brightness.jpg" rel="license noopener">&ldquo;Danny DeVito cropped and edited for brightness&rdquo;</a> by Gage Skidmore, CC&nbsp;BY-SA&nbsp;3.0.</li>
+      <li>Vin Diesel: derived from <a href="https://commons.wikimedia.org/wiki/File:Vin_Diesel_2013_SDCC_(cropped).jpg" rel="license noopener">&ldquo;Vin Diesel 2013 SDCC (cropped)&rdquo;</a> by Gage Skidmore, CC&nbsp;BY-SA&nbsp;2.0.</li>
+      <li>Peter Garrett: derived from <a href="https://commons.wikimedia.org/wiki/File:Peter_Garrett_2017.jpg" rel="license noopener">&ldquo;Peter Garrett 2017&rdquo;</a> by Xmetov, CC&nbsp;BY-SA&nbsp;4.0.</li>
+      <li>Paul Giamatti: derived from <a href="https://commons.wikimedia.org/wiki/File:Paul_Giamatti_MFF_2024.jpg" rel="license noopener">&ldquo;Paul Giamatti MFF 2024&rdquo;</a> by Montclair Film, CC&nbsp;BY&nbsp;2.0.</li>
+      <li>Woody Harrelson: derived from <a href="https://commons.wikimedia.org/wiki/File:Woody_Harrelson_191020-N-NU281-1028_(cropped).jpg" rel="license noopener">&ldquo;Woody Harrelson 191020-N-NU281-1028 (cropped)&rdquo;</a> by MCS2 Justin R. Pacheco, U.S. Navy, public domain.</li>
+      <li>Samuel L. Jackson: derived from <a href="https://commons.wikimedia.org/wiki/File:SamuelLJackson.jpg" rel="license noopener">&ldquo;SamuelLJackson&rdquo;</a> by Philip Romano, CC&nbsp;BY-SA&nbsp;4.0.</li>
+      <li>Paul Kelly: derived from <a href="https://commons.wikimedia.org/wiki/File:Paul_Kelly_2007.jpg" rel="license noopener">&ldquo;Paul Kelly 2007&rdquo;</a> by Andrew Braithwaite, CC&nbsp;BY&nbsp;2.0.</li>
+      <li>Keegan-Michael Key: derived from <a href="https://commons.wikimedia.org/wiki/File:Keegan-Michael_Key_by_Gage_Skidmore_2.jpg" rel="license noopener">&ldquo;Keegan-Michael Key by Gage Skidmore 2&rdquo;</a> by Gage Skidmore, CC&nbsp;BY-SA&nbsp;3.0.</li>
+      <li>Ben Kingsley: derived from <a href="https://commons.wikimedia.org/wiki/File:Ben_Kingsley_by_Gage_Skidmore.jpg" rel="license noopener">&ldquo;Ben Kingsley by Gage Skidmore&rdquo;</a> by Gage Skidmore, CC&nbsp;BY-SA&nbsp;3.0.</li>
+      <li>John Malkovich: derived from <a href="https://commons.wikimedia.org/wiki/File:John_Malkovich,_Berlinale_2023_(cropped).jpg" rel="license noopener">&ldquo;John Malkovich, Berlinale 2023 (cropped)&rdquo;</a> by Elena Ternovaja, CC&nbsp;BY-SA&nbsp;3.0.</li>
+      <li>Dean Norris: derived from <a href="https://commons.wikimedia.org/wiki/File:Dean_Norris_by_Gage_Skidmore_4.jpg" rel="license noopener">&ldquo;Dean Norris by Gage Skidmore 4&rdquo;</a> by Gage Skidmore, CC&nbsp;BY-SA&nbsp;3.0.</li>
+      <li>Pitbull: derived from <a href="https://commons.wikimedia.org/wiki/File:Pitbull_2009-12-15_photoby_Adam-Bielawski.jpg" rel="license noopener">&ldquo;Pitbull 2009-12-15&rdquo;</a> by Photobra Adam Bielawski, CC&nbsp;BY-SA&nbsp;3.0.</li>
+      <li>The Rock: derived from <a href="https://commons.wikimedia.org/wiki/File:Dwayne_Johnson-1764_(4x5_cropped_with_moderate_headroom).jpg" rel="license noopener">&ldquo;Dwayne Johnson-1764&rdquo;</a> by Harald Krichel, CC&nbsp;BY-SA&nbsp;4.0.</li>
+      <li>J.K. Simmons: derived from <a href="https://commons.wikimedia.org/wiki/File:JK_Simmons_at_the_2024_Toronto_International_Film_Festival_(cropped).jpg" rel="license noopener">&ldquo;JK Simmons at the 2024 Toronto International Film Festival (cropped)&rdquo;</a> by Jay Dixit, CC&nbsp;BY-SA&nbsp;4.0.</li>
+      <li>Jason Statham: derived from <a href="https://commons.wikimedia.org/wiki/File:Jason_Statham_2018.jpg" rel="license noopener">&ldquo;Jason Statham 2018&rdquo;</a> by MTV International, CC&nbsp;BY&nbsp;3.0.</li>
+      <li>Patrick Stewart: derived from <a href="https://commons.wikimedia.org/wiki/File:Patrick_Stewart_by_Gage_Skidmore_2.jpg" rel="license noopener">&ldquo;Patrick Stewart by Gage Skidmore 2&rdquo;</a> by Gage Skidmore, CC&nbsp;BY-SA&nbsp;3.0.</li>
+      <li>John Travolta: derived from <a href="https://commons.wikimedia.org/wiki/File:Travolta_05_(48686383962)_(cropped).jpg" rel="license noopener">&ldquo;Travolta 05 (48686383962) (cropped)&rdquo;</a> by GabboT, CC&nbsp;BY-SA&nbsp;2.0.</li>
+      <li>Stanley Tucci: derived from <a href="https://commons.wikimedia.org/wiki/File:ConclaveBFILFF101024_(9_of_44)_(54062519935)_(cropped).jpg" rel="license noopener">&ldquo;ConclaveBFILFF101024 (9 of 44) (cropped)&rdquo;</a> by Raph_PH, CC&nbsp;BY&nbsp;2.0.</li>
+      <li>Bruce Willis: derived from <a href="https://commons.wikimedia.org/wiki/File:Bruce_Willis_by_Gage_Skidmore_3.jpg" rel="license noopener">&ldquo;Bruce Willis by Gage Skidmore 3&rdquo;</a> by Gage Skidmore, CC&nbsp;BY-SA&nbsp;3.0.</li>
+      <li>Billy Zane: derived from a photograph in the household archive; provenance undocumented. The panel considered the likeness too strong to withhold.</li>
+    </ul>
+  </section>
+
+  <section class="cite prose">
+    <p>McPherson,&nbsp;J., &amp; Ryan,&nbsp;S.&nbsp;R. (2026). The bald man
+    scale: a two-axis taxonomy of bald celebrities. <em>Household Review of
+    Cranial Studies, 1</em>(1), 1&ndash;1. Findings are final and not subject
+    to appeal.</p>
+  </section>
+
+</main>
+
+</body>
+</html>
