@@ -40,10 +40,13 @@ rds-js (npm) -- used by fitzroy for parsing R data files
 | tipper | `@jackemcpherson/tipper` | CLI | jackemcpherson/tipper |
 | footyBot | private | Cloudflare Worker (Discord bot) | jackemcpherson/footyBot |
 
-Cloudflare resources (the `afl-stats` D1 database, footyBot's Worker, KV
-and queues, DNS) are managed as code with OpenTofu in the `cloudflare-infra`
-repository — Git is the source of truth, with a gated plan/apply pipeline
-and nightly drift detection.
+Cloudflare resources (the `afl-stats` D1 database, the AFL-MCP and footyBot
+Workers, KV and queues, DNS) are managed as code with OpenTofu in the
+`cloudflare-infra` repository — Git is the source of truth, with a gated
+plan/apply pipeline and nightly drift detection. A separate `afl-watchdog`
+Worker (source lives in the footyBot repo under `workers/watchdog`) polls
+AFL-MCP's `/mcp/health` and footyBot's liveness marker hourly and alerts a
+Discord webhook when either goes stale.
 
 ## Data Access — Start Here
 
@@ -218,6 +221,7 @@ interface Match {
   matchClockPeriods: ReadonlyArray<MatchClockPeriod> | null;
   completedQuarter: 0 | 1 | 2 | 3 | 4 | null;
   venueLocalDate: string | null; // wall-clock start in the venue's timezone
+  venueTimezone: string | null;  // IANA timezone name for the venue
   source: DataSource;
 }
 
@@ -401,10 +405,15 @@ matches, lineups, player stats, and historical PAV as a Bayesian prior.
 Main commands: `tipper predict --season Y --round R`,
 `tipper backtest [--season S] [--config ID]`,
 `tipper compare --config-a ID --config-b ID` (bootstrap hypothesis test),
-and `tipper config {list,show,current,promote,diff,create}` for config
-lifecycle. Configs are content-hashed (SHA-256) and a promotion guardrail
-requires backtest results to match the config hash. The shipped config
-(`predha-080`) holds a 73.3% tip rate on 2026 out-of-sample rounds.
+`tipper calibrate [--config ID]` (derives the recommended PAV calibration
+slope from a config's training seasons), and
+`tipper config {list,show,current,promote,diff,create}` for config
+lifecycle. Configs are content-hashed (SHA-256) and promotion is
+guardrailed: backtest results must match the config hash, and a challenger
+must not regress tip accuracy against the incumbent on pooled 2021–2025
+backtests — a tip deficit over the most recent three seasons is
+disqualifying regardless of LogLoss gains. The shipped config (`predha-080`)
+holds a 73.3% tip rate on 2026 out-of-sample rounds (through round 14).
 
 ## footyBot — Discord Consumer
 
@@ -421,9 +430,14 @@ consumes the rest of the ecosystem two ways:
 - **Proactive posts** — two Workers cron triggers feed an announce
   channel:
   - `* * * * *` (every minute, gated by a KV-cached fixture window) pulls
-    live matches via fitzroy and posts QT / HT / 3QT / FT scoreboards
-    when `Match.livePeriodStatus` transitions. Per-match KV state
-    (`live:{matchId}`) makes the tick idempotent.
+    live matches via fitzroy and posts QT / HT / 3QT / FT scoreboards at
+    quarter breaks. Break detection takes the maximum of several signals —
+    `Match.completedQuarter` (primary, from the AFL API match clock),
+    per-quarter score population, `status === "Complete"`, and the
+    `livePeriodStatus` string (unreliable since mid-2026, when the AFL API
+    stopped emitting `QTR_TIME`/`HALF_TIME`/`3QTR_TIME`) — so posts advance
+    on whichever signal arrives first. Per-match KV state (`live:{matchId}`)
+    makes the tick idempotent.
   - `0 21 * * *` (~07:00 AEST / 08:00 AEDT) finds any
     `(competition, season, round)` that completed in the trailing 36 h
     and hasn't been summarised, then posts a deterministic results +
