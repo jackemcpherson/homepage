@@ -140,7 +140,7 @@ Operational endpoints alongside `/mcp`: `GET /mcp/health` reports sync
 freshness (503 when no sync for >3 hours), and bearer-token admin routes
 (`/mcp/admin/sync`, `/mcp/admin/backfill`, `/mcp/admin/recalculate-pav`,
 `/mcp/admin/recalculate-all-pav`) trigger manual syncs and PAV rebuilds.
-The next release adds two authenticated operations.
+Release 3.4.0 added two authenticated operations.
 `POST /mcp/admin/backfill-brownlow` is a dry-run-first annual AFLM Brownlow vote
 backfill for one or two seasons. It returns bounded aggregate resolution and
 six-vote diagnostics before writes are enabled. `GET /mcp/admin/status` returns
@@ -308,7 +308,7 @@ quarter-by-quarter scores (`home_q1_goals` through `away_q4_behinds`),
 `status` (lifecycle: `Upcoming` / `Live` / `Complete` / `Postponed` /
 `Cancelled`), and `live_period_status` (raw AFL API score-level status —
 `LIVE`, `QTR_TIME`, `HALF_TIME`, `3QTR_TIME`, `FULL_TIME` — for siren
-detection without inferring state from null scores). The next release adds
+detection without inferring state from null scores). Release 3.4.0 added
 nullable `completed_quarter` (0–4, the highest completed quarter). Use it
 together with `status`; AFL-MCP's five-minute sync provides context, not a live
 siren SLA. `local_time` is Melbourne time for every competition, including
@@ -333,7 +333,7 @@ needs.
 
 ### Coverage Contract
 
-The next release extends the existing `schema` tool with a typed
+Release 3.4.0 extended the existing `schema` tool with a typed
 `database.coverage_contract` (version 1). Static expectations identify source,
 review date, range, and expected availability without reading D1. An optional
 `includeObserved: true` request must name exactly one `competition` and `season`;
@@ -423,7 +423,7 @@ whenever new player stats land for AFLM or AFLW.
 Backfill is exposed at `POST /mcp/admin/backfill` (parameters:
 `competitions`, `fromYear`, `toYear`, `skipShouldRunNow`, `skipPav`;
 30-year max per request). `GET /mcp/health` reports staleness for monitoring.
-The next release also adds the annual, dry-run-first
+Release 3.4.0 also added the annual, dry-run-first
 `POST /mcp/admin/backfill-brownlow` operation and aggregate-only
 `GET /mcp/admin/status`; both require the existing admin bearer token.
 
