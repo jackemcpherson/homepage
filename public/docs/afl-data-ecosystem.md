@@ -122,7 +122,7 @@ The AFL-MCP server exposes 3 tools via the Model Context Protocol at
 
 | Tool | Purpose |
 |------|---------|
-| `schema` | Database structure, per-competition coverage, column details, join patterns |
+| `schema` | Database structure and typed coverage; optional bounded observation for one competition-season |
 | `tools` | Sandbox capabilities and constraints |
 | `code` | Execute TypeScript against D1 in an isolated sandbox; optional `competition` arg as a hint to the LLM |
 
@@ -131,10 +131,26 @@ with read-only database access via a `db.prepare(sql).bind(...).all()` bridge.
 Queries must filter by competition explicitly — the `competition` argument is
 documentation, not auto-injection.
 
+The next AFL-MCP release keeps this three-tool surface unchanged. A no-argument
+`schema` call remains deterministic and read-free, returning static expectations
+in `database.coverage_contract` (version 1). Passing
+`{"includeObserved":true,"competition":"AFLM","season":2026}` measures exactly
+one competition-season and keeps observations separate from expectations. Row
+fields use the `rows` unit, PAV uses `table_rows`, and lineup coverage uses
+`match_presence`; successful measurements are cached for 15 minutes.
+
 Operational endpoints alongside `/mcp`: `GET /mcp/health` reports sync
 freshness (503 when no sync for >3 hours), and bearer-token admin routes
 (`/mcp/admin/sync`, `/mcp/admin/backfill`, `/mcp/admin/recalculate-pav`,
 `/mcp/admin/recalculate-all-pav`) trigger manual syncs and PAV rebuilds.
+Release 3.4.0 added two authenticated operations.
+`POST /mcp/admin/backfill-brownlow` is a dry-run-first annual AFLM Brownlow vote
+backfill for one or two seasons. It returns bounded aggregate resolution and
+six-vote diagnostics before writes are enabled. `GET /mcp/admin/status` returns
+bounded aggregate sync freshness, lease, integrity, and 24-hour degradation
+diagnostics without exposing raw errors or identifiers. Brownlow ingestion,
+cron, and manual sync share the same ten-minute operation lease, so they cannot
+overlap.
 All public endpoints are rate-limited to 60 requests/minute per IP.
 
 ## fitzroy Library Reference
@@ -246,8 +262,9 @@ interface PlayerStats {
 }
 ```
 
-VFL and VFLW return `null` for `goalAssists`, `marksInside50`, and
-`onePercenters` — the AFL API doesn't track these for those competitions.
+VFL returns `null` for `goalAssists`, `marksInside50`, and `onePercenters`.
+VFLW coverage is best-effort and sparse rather than universally absent: measured
+AFL-MCP rows contain values for all three fields.
 
 ### Error Handling
 
@@ -293,15 +310,20 @@ standard short codes: `Rd N`, `OR`, `WC`, `FW1`, `SF`, `PF`, `GF`, plus
 `home_points`, `away_points`, `margin`, `attendance`, `weather_temp_c`,
 quarter-by-quarter scores (`home_q1_goals` through `away_q4_behinds`),
 `status` (lifecycle: `Upcoming` / `Live` / `Complete` / `Postponed` /
-`Cancelled`) and `live_period_status` (raw AFL API score-level status —
+`Cancelled`), and `live_period_status` (raw AFL API score-level status —
 `LIVE`, `QTR_TIME`, `HALF_TIME`, `3QTR_TIME`, `FULL_TIME` — for siren
-detection without inferring state from null scores).
+detection without inferring state from null scores). Release 3.4.0 added
+nullable `completed_quarter` (0–4, the highest completed quarter). Use it
+together with `status`; AFL-MCP's five-minute sync provides context, not a live
+siren SLA. `local_time` is Melbourne time for every competition, including
+interstate matches; venue-native time is not stored.
 
 **player_match_stats** — One row per player per match. ~70 columns covering
 disposals, marks, goals, tackles, contested possessions, clearances, pressure
 acts, metres gained, hitouts, fantasy scores, Brownlow votes, and efficiency
-metrics. VFL/VFLW have NULL for `goal_assists`, `marks_inside_fifty`, and
-`one_percenters`.
+metrics. VFL has NULL for `goal_assists`, `marks_inside_fifty`, and
+`one_percenters`. VFLW values are best-effort and sparse, with measured
+populated rows for all three columns.
 
 **player_season_pav** — Player Approximate Value per season. Columns:
 `off_pav`, `mid_pav`, `def_pav`, `total_pav`. One row per player per season
@@ -312,6 +334,18 @@ needs.
 
 **match_lineups** — Announced team selections. `is_emergency` and
 `is_substitute` flags. Coverage: AFLM 2015+, AFLW 2017+, VFL/VFLW best-effort.
+
+### Coverage Contract
+
+Release 3.4.0 extended the existing `schema` tool with a typed
+`database.coverage_contract` (version 1). Static expectations identify source,
+review date, range, and expected availability without reading D1. An optional
+`includeObserved: true` request must name exactly one `competition` and `season`;
+it overlays bounded measurements for stats and weather (`rows`), PAV
+(`table_rows`), and lineup match coverage (`match_presence`). Expectations and
+observations remain distinct, and zero measured rows do not prove absence.
+Successful observations are cached for 15 minutes. The server still exposes
+exactly three MCP tools.
 
 ### Reference Tables
 
@@ -393,6 +427,9 @@ whenever new player stats land for AFLM or AFLW.
 Backfill is exposed at `POST /mcp/admin/backfill` (parameters:
 `competitions`, `fromYear`, `toYear`, `skipShouldRunNow`, `skipPav`;
 30-year max per request). `GET /mcp/health` reports staleness for monitoring.
+Release 3.4.0 also added the annual, dry-run-first
+`POST /mcp/admin/backfill-brownlow` operation and aggregate-only
+`GET /mcp/admin/status`; both require the existing admin bearer token.
 
 ## tipper — Prediction CLI
 
@@ -469,9 +506,11 @@ The four competitions covered:
 
 Goals score 6 points, behinds score 1. Total = goals × 6 + behinds.
 
-All match times are in Melbourne local time: AEST (UTC+10) during winter,
-AEDT (UTC+11) during daylight saving (October to April). fitzroy's `parseDate`
-and `toAestString` utilities handle this correctly.
+AFL-MCP stores `matches.local_time` in Melbourne local time for every
+competition: AEST (UTC+10) during winter and AEDT (UTC+11) during daylight
+saving (October to April). It intentionally discards venue-native time and adds
+no venue-time columns. fitzroy's public `Match` type still truthfully exposes
+the upstream `venueLocalDate`; AFL-MCP does not persist that field.
 
 Round labels mirror the AFL API and the R fitzRoy package — no
 cross-competition normalisation. The `round` column is the long form
