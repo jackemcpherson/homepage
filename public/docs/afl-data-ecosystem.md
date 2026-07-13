@@ -294,7 +294,7 @@ from a Worker without setting the `nodejs_compat` compatibility flag.
 
 ## D1 Database Schema
 
-The `afl-stats` database has 11 tables plus 5 integrity views and covers four competitions: AFL
+The `afl-stats` database has 12 tables plus 5 integrity views and covers four competitions: AFL
 Men's, AFL Women's, VFL, and VFLW. **Always filter queries by competition**
 (join through `seasons → competitions`, then `WHERE c.code = ?`) — without
 the filter, results mix competitions silently because team rows with the same
@@ -307,7 +307,7 @@ form like `Round 1`, `Grand Final`, `Wildcard`), `round_abbreviation` (AFL
 standard short codes: `Rd N`, `OR`, `WC`, `FW1`, `SF`, `PF`, `GF`, plus
 `EF`/`QF` for pre-2020 AFLM), `round_number`, `round_type` (`Regular` or
 `Finals`), `date`, `local_time`, `venue_id`, `home_team_id`, `away_team_id`,
-`home_points`, `away_points`, `margin`, `attendance`, `weather_temp_c`,
+`home_points`, `away_points`, `margin`, `attendance`,
 quarter-by-quarter scores (`home_q1_goals` through `away_q4_behinds`),
 `status` (lifecycle: `Upcoming` / `Live` / `Complete` / `Postponed` /
 `Cancelled`), and `live_period_status` (raw AFL API score-level status —
@@ -316,7 +316,23 @@ detection without inferring state from null scores). Release 3.4.0 added
 nullable `completed_quarter` (0–4, the highest completed quarter). Use it
 together with `status`; AFL-MCP's five-minute sync provides context, not a live
 siren SLA. `local_time` is Melbourne time for every competition, including
-interstate matches; venue-native time is not stored.
+interstate matches; venue-native time is not stored. The legacy
+`weather_temp_c` / `weather_type` columns are a **frozen** fryzigg record
+(AFLM 2010–2025 only; temps are daily maxima, not match-time) — use
+`match_weather` for numeric weather.
+
+**match_weather** — One row per match per `kind` (`observed` |
+`forecast`), PK `(match_id, kind)`. Six metrics over the 3-hour window
+from scheduled start: `temp_c` (mean), `precip_mm` (total),
+`precip_24h_prior_mm` (ground condition), `wind_speed_kmh` /
+`wind_gust_kmh` (max), `humidity_pct` (mean), plus `source`
+(`era5_land+era5` for finalised observations, `historical_forecast` for
+the fast post-match write, `best_match` for forecasts) and `fetched_at`.
+Forecast rows appear from 7 days out, refresh in place, and are kept
+after the observed row lands. Coverage: completed matches 1990+ across
+all four competitions (cancelled matches and unplaceable placeholder
+venues excluded). Weather data by
+[Open-Meteo](https://open-meteo.com/) (CC-BY 4.0).
 
 **player_match_stats** — One row per player per match. ~70 columns covering
 disposals, marks, goals, tackles, contested possessions, clearances, pressure
@@ -354,7 +370,12 @@ exactly three MCP tools.
   competitions yields distinct rows. Legacy names and nicknames are
   normalised to canonical names in code during ingest (there is no alias
   table).
-- **venues** — Normalised venue names; shared across competitions.
+- **venues** — Normalised venue names; shared across competitions. Carries
+  geodata: `latitude`, `longitude`, `timezone` (IANA), `roof`
+  (`retractable` | `none` — Marvel Stadium is the only retractable roof),
+  and `canonical_venue_id` (self-reference resolving sponsor/rename
+  aliases, e.g. Domain Stadium → Subiaco; join weather through the
+  canonical venue).
 - **players** — Player master data with external IDs for cross-referencing.
 - **seasons** — `(competition_id, year)` UNIQUE.
 - **sync_log** — Append-only cron run history (`timestamp`, `type`,
@@ -423,6 +444,13 @@ competitions per tick, gated by a `shouldRunNow` predicate (always runs at
 the top of the hour; otherwise only when a match exists within the past
 1 day or next 3 days). PAV is recalculated from inside the same pipeline
 whenever new player stats land for AFLM or AFLW.
+
+A weather stage runs inside the same pipeline on top-of-hour passes:
+forecasts for matches within 7 days (refreshed daily, hourly on match
+day), a fast observed write after each match completes, and an upgrade to
+ERA5 provenance once a match is more than 6 days old — capped at 25
+fetches per pass, fail-soft to `sync_log`. Historical weather was
+backfilled once via a local script (`scripts/backfill-weather.ts`).
 
 Backfill is exposed at `POST /mcp/admin/backfill` (parameters:
 `competitions`, `fromYear`, `toYear`, `skipShouldRunNow`, `skipPav`;
