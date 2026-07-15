@@ -131,13 +131,18 @@ with read-only database access via a `db.prepare(sql).bind(...).all()` bridge.
 Queries must filter by competition explicitly — the `competition` argument is
 documentation, not auto-injection.
 
-The next AFL-MCP release keeps this three-tool surface unchanged. A no-argument
-`schema` call remains deterministic and read-free, returning static expectations
-in `database.coverage_contract` (version 1). Passing
+The `schema` tool accepts three parameter shapes. A no-argument call is
+deterministic and read-free, returning static expectations in
+`database.coverage_contract` (version 1) for all four competitions. Passing
+`competition` alone filters the base response to that competition
+(`database.competitions` and `coverage_contract.by_competition` shrink;
+tables, notes, and join examples are unchanged) — still read-free. Passing
 `{"includeObserved":true,"competition":"AFLM","season":2026}` measures exactly
 one competition-season and keeps observations separate from expectations. Row
 fields use the `rows` unit, PAV uses `table_rows`, and lineup coverage uses
-`match_presence`; successful measurements are cached for 15 minutes.
+`match_presence`; successful measurements are cached for 15 minutes. Any other
+combination (e.g. `includeObserved` without both `competition` and `season`)
+is rejected with an error stating the contract.
 
 Operational endpoints alongside `/mcp`: `GET /mcp/health` reports sync
 freshness (503 when no sync for >3 hours), and bearer-token admin routes
@@ -334,6 +339,16 @@ all four competitions (cancelled matches and unplaceable placeholder
 venues excluded). Weather data by
 [Open-Meteo](https://open-meteo.com/) (CC-BY 4.0).
 
+**match_predictions** — One row per match from the tipper model, PK
+`match_id`, overwritten on regeneration (latest prediction only, no
+history). Columns: `home_win_prob` (0..1) and `predicted_margin`
+(points, positive = home favoured) — both from the **home team's
+perspective** — plus `model_version` (the tipper config id, e.g.
+`predha-080 (2641f46f)`) and `generated_at` (UTC ISO 8601). Written by
+tipper over the Cloudflare D1 REST API, not by the AFL-MCP Worker.
+Coverage starts 2026 and is sparse — `LEFT JOIN` and treat absence as
+not-published.
+
 **player_match_stats** — One row per player per match. ~70 columns covering
 disposals, marks, goals, tackles, contested possessions, clearances, pressure
 acts, metres gained, hitouts, fantasy scores, Brownlow votes, and efficiency
@@ -468,6 +483,9 @@ retired in v3.2) and reads `afl-stats` over the Cloudflare D1 REST API —
 matches, lineups, player stats, and historical PAV as a Bayesian prior.
 
 Main commands: `tipper predict --season Y --round R`,
+`tipper publish [--season Y --round R --comp AFLM|AFLW]` (writes the
+current config's predictions to the shared `match_predictions` D1 table;
+defaults to the next unplayed round),
 `tipper backtest [--season S] [--config ID]`,
 `tipper compare --config-a ID --config-b ID` (bootstrap hypothesis test),
 `tipper calibrate [--config ID]` (derives the recommended PAV calibration
@@ -479,6 +497,14 @@ must not regress tip accuracy against the incumbent on pooled 2021–2025
 backtests — a tip deficit over the most recent three seasons is
 disqualifying regardless of LogLoss gains. The shipped config (`predha-080`)
 holds a 73.3% tip rate on 2026 out-of-sample rounds (through round 14).
+
+A GitHub Actions workflow (`publish-predictions.yml`) runs
+`tipper publish` for AFLM and AFLW every Thursday at 07:30 UTC — 17:30
+Melbourne during AEST, ahead of footyBot's 18:20 round-preview window
+(during AEDT the same cron lands at 18:30 Melbourne; acceptable, since
+the preview window only matters in the AEST winter months). It needs a
+repo `CLOUDFLARE_API_TOKEN` secret with D1 write access, and supports
+`workflow_dispatch` overrides for season, round, and competition.
 
 ## footyBot — Discord Consumer
 
@@ -507,7 +533,21 @@ consumes the rest of the ecosystem two ways:
     `(competition, season, round)` that completed in the trailing 36 h
     and hasn't been summarised, then posts a deterministic results +
     ladder template plus a 2–3 paragraph LLM storylines section. State
-    in `summary:{comp}:{season}:{round}`.
+    in `summary:{comp}:{season}:{round}`. Observed weather from
+    `match_weather` is available to the storylines prompt as context,
+    mentioned only when notable and never forced.
+  - The same per-minute cron also drives a **round preview** — the
+    counterpart post to the round wrap — inside a Thursday 18:20–21:00
+    Melbourne window (18:20 is the official team-announcement time).
+    It polls every 15 minutes via the MCP `code` tool and posts once a
+    data gate passes (the round's opening match has announced lineups
+    and a published prediction); every pass from
+    20:50 is final-eligible, posting with whatever exists so one failed
+    invocation can't cost the round its preview. The post pairs a
+    deterministic fixtures template — each match tagged
+    `🔮 <favourite> by <margin> (<prob>%)` from `match_predictions` —
+    with an LLM storylines section that sees forecast weather as
+    notable-only context. State in `preview:{comp}:{season}:{round}`.
 
 State lives in a single `STATE` KV namespace. Hono handles the Discord
 interaction webhook; a queue consumer runs the tool-use loop so the
