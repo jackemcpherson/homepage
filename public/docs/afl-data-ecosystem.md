@@ -26,7 +26,7 @@ AFL API / FootyWire / AFL Tables / Squiggle / Fryzigg RDS
                                 tipper (prediction CLI)
 
 Consumers:
-  tipper      -- D1 (via Cloudflare D1 REST API, from the CLI)
+  tipper      -- D1 (native binding from its Worker; D1 REST API from the CLI)
   footyBot    -- fitzroy (live feed) + MCP endpoint (LLM tool-use)
 
 rds-js (npm) -- used by fitzroy for parsing R data files
@@ -37,12 +37,12 @@ rds-js (npm) -- used by fitzroy for parsing R data files
 | fitzroy | `fitzroy` | Library + CLI | jackemcpherson/fitzRoy-ts |
 | AFL-MCP | private | Cloudflare Worker | jackemcpherson/AFL-MCP |
 | rds-js | `@jackemcpherson/rds-js` | Library | jackemcpherson/rds-js |
-| tipper | `@jackemcpherson/tipper` | CLI | jackemcpherson/tipper |
+| tipper | `@jackemcpherson/tipper` | CLI + Cloudflare Worker | jackemcpherson/tipper |
 | footyBot | private | Cloudflare Worker (Discord bot) | jackemcpherson/footyBot |
 
-Cloudflare resources (the `afl-stats` D1 database, the AFL-MCP and footyBot
-Workers, KV and queues, DNS) are managed as code with OpenTofu in the
-`cloudflare-infra` repository — Git is the source of truth, with a gated
+Cloudflare resources (the `afl-stats` D1 database, the AFL-MCP, footyBot,
+and tipper Workers, KV and queues, DNS) are managed as code with OpenTofu in
+the `cloudflare-infra` repository — Git is the source of truth, with a gated
 plan/apply pipeline and nightly drift detection. A separate `afl-watchdog`
 Worker (source lives in the footyBot repo under `workers/watchdog`) polls
 AFL-MCP's `/mcp/health` and footyBot's liveness marker hourly and alerts a
@@ -100,8 +100,8 @@ full AFL ecosystem.
 The `afl-stats` D1 database is populated by AFL-MCP's cron sync and contains
 match results, player statistics (~70 columns), PAV ratings, and lineups for
 **four competitions**: AFLM (1990+), AFLW (2017+), VFL (2021+), VFLW (2021+).
-Tipper reads from this same database (over the Cloudflare D1 REST API, since
-it runs as a local CLI rather than a Worker).
+Tipper reads from this same database — its scheduled Worker through a native
+D1 binding, the local CLI over the Cloudflare D1 REST API.
 
 To query D1 from a Cloudflare Worker, bind to the database in wrangler.toml:
 
@@ -345,9 +345,10 @@ history). Columns: `home_win_prob` (0..1) and `predicted_margin`
 (points, positive = home favoured) — both from the **home team's
 perspective** — plus `model_version` (the tipper config id, e.g.
 `predha-080 (2641f46f)`) and `generated_at` (UTC ISO 8601). Written by
-tipper over the Cloudflare D1 REST API, not by the AFL-MCP Worker.
-Coverage starts 2026 and is sparse — `LEFT JOIN` and treat absence as
-not-published.
+the tipper Worker (native D1 binding, `*/15` cron with an in-code gate —
+see the tipper section), not by the AFL-MCP Worker; rows for a round
+refresh until its first match starts, then freeze. Coverage starts 2026
+and is sparse — `LEFT JOIN` and treat absence as not-published.
 
 **player_match_stats** — One row per player per match. ~70 columns covering
 disposals, marks, goals, tackles, contested possessions, clearances, pressure
@@ -474,13 +475,15 @@ Release 3.4.0 also added the annual, dry-run-first
 `POST /mcp/admin/backfill-brownlow` operation and aggregate-only
 `GET /mcp/admin/status`; both require the existing admin bearer token.
 
-## tipper — Prediction CLI
+## tipper — Prediction CLI + Worker
 
 tipper forecasts AFLM match results with a hybrid model: FiveThirtyEight-style
 margin-of-victory Elo blended with a calibrated PAV-based lineup rating
-(60% Elo / 40% PAV). It runs as a local CLI (the Worker component was
-retired in v3.2) and reads `afl-stats` over the Cloudflare D1 REST API —
-matches, lineups, player stats, and historical PAV as a Bayesian prior.
+(60% Elo / 40% PAV). It is a local CLI for model development (reading
+`afl-stats` over the Cloudflare D1 REST API — matches, lineups, player
+stats, and historical PAV as a Bayesian prior) plus a small Cloudflare
+Worker that publishes predictions on a schedule (below); both run the
+same engine through a runtime-agnostic orchestration layer.
 
 Main commands: `tipper predict --season Y --round R`,
 `tipper publish [--season Y --round R --comp AFLM|AFLW]` (writes the
@@ -498,13 +501,22 @@ backtests — a tip deficit over the most recent three seasons is
 disqualifying regardless of LogLoss gains. The shipped config (`predha-080`)
 holds a 73.3% tip rate on 2026 out-of-sample rounds (through round 14).
 
-A GitHub Actions workflow (`publish-predictions.yml`) runs
-`tipper publish` for AFLM and AFLW every Thursday at 07:30 UTC — 17:30
-Melbourne during AEST, ahead of footyBot's 18:20 round-preview window
-(during AEDT the same cron lands at 18:30 Melbourne; acceptable, since
-the preview window only matters in the AEST winter months). It needs a
-repo `CLOUDFLARE_API_TOKEN` secret with D1 write access, and supports
-`workflow_dispatch` overrides for season, round, and competition.
+Scheduled publishing runs as a **tipper Cloudflare Worker** (revived from
+the v3.2 retirement; same GitOps delivery as the other Workers). A
+`*/15 * * * *` cron drives an in-code gate: for each competition (AFLM
+and AFLW), rounds with unplayed matches starting within 7 days are
+republished when `max(generated_at)` is older than a context-stepped
+interval — daily as a baseline, hourly on match days, every 15 minutes
+during the Thursday 17:00–21:00 Melbourne team-announcement window (so
+footyBot's round preview posts announcement-aware numbers). A round
+freezes once its first match kicks off: every prediction row provably
+predates its round. The Worker holds a native read-write D1 binding
+(no API token) and the promoted config is baked into the artifact at
+build time, so the deployed model is auditable from the pinned SHA.
+`GET https://tipper.jackemcpherson.workers.dev/health` returns 200/503
+derived from `match_predictions` freshness against the fixture window;
+it doubles as the blocking post-deploy check. The CLI `tipper publish`
+(D1 REST API) remains the manual/break-glass path.
 
 ## footyBot — Discord Consumer
 
