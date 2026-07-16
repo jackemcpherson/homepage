@@ -551,13 +551,14 @@ consumes the rest of the ecosystem two ways:
   - The same per-minute cron also drives a **round preview** — the
     counterpart post to the round wrap — inside a Thursday 18:20–21:00
     Melbourne window (18:20 is the official team-announcement time).
-    It polls every 15 minutes via the MCP `code` tool and posts once a
+    It polls every 5 minutes via the MCP `code` tool and posts once a
     data gate passes (the round's opening match has announced lineups
     and a published prediction); every pass from
     20:50 is final-eligible, posting with whatever exists so one failed
     invocation can't cost the round its preview. The post pairs a
-    deterministic fixtures template — each match tagged
-    `🔮 <favourite> by <margin> (<prob>%)` from `match_predictions` —
+    deterministic fixtures template — fixtures grouped by day, each match
+    carrying a `Tip: <favourite> by <margin> (<prob>%)` subtext line from
+    `match_predictions` —
     with an LLM storylines section that sees forecast weather as
     notable-only context. State in `preview:{comp}:{season}:{round}`.
 
