@@ -557,7 +557,7 @@ consumes the rest of the ecosystem two ways:
     20:50 is final-eligible, posting with whatever exists so one failed
     invocation can't cost the round its preview. The post pairs a
     deterministic fixtures template — fixtures grouped by day, each match
-    carrying a `Tip: <favourite> by <margin> (<prob>%)` subtext line from
+    carrying a `FootyBot's Tip: <favourite> by <margin> (<prob>%)` subtext line from
     `match_predictions` —
     with an LLM storylines section that sees forecast weather as
     notable-only context. State in `preview:{comp}:{season}:{round}`.
