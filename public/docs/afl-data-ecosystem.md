@@ -544,10 +544,14 @@ consumes the rest of the ecosystem two ways:
   - `0 21 * * *` (~07:00 AEST / 08:00 AEDT) finds any
     `(competition, season, round)` that completed in the trailing 36 h
     and hasn't been summarised, then posts a deterministic results +
-    ladder template plus a 2–3 paragraph LLM storylines section. State
-    in `summary:{comp}:{season}:{round}`. Observed weather from
-    `match_weather` is available to the storylines prompt as context,
-    mentioned only when notable and never forced.
+    ladder template plus a compact LLM storylines section covering every
+    match. AFLM ladders from 2026 mark the direct-passage cut after sixth
+    and wildcard cutoff after 10th. Storylines receive score shape,
+    deterministic player highlights (`rating_points` leader plus
+    multi-goal players), `match_predictions` calibration, six-game form,
+    a computed previous-round ladder diff, and the next round's fixtures
+    and current ladder positions. Observed `match_weather` remains
+    notable-only context. State in `summary:{comp}:{season}:{round}`.
   - The same per-minute cron also drives a **round preview** — the
     counterpart post to the round wrap — inside a Thursday 18:20–21:00
     Melbourne window (18:20 is the official team-announcement time).
