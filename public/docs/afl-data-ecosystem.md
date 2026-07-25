@@ -564,7 +564,9 @@ consumes the rest of the ecosystem two ways:
     carrying a `FootyBot's Tip: <favourite> by <margin> (<prob>%)` subtext line from
     `match_predictions` —
     with an LLM storylines section that sees forecast weather as
-    notable-only context. State in `preview:{comp}:{season}:{round}`.
+    notable-only context. Canonical venue roof metadata suppresses outdoor
+    wind and rain evidence for roofed fixtures. State in
+    `preview:{comp}:{season}:{round}`.
 
 State lives in a single `STATE` KV namespace. Hono handles the Discord
 interaction webhook; a queue consumer runs the tool-use loop so the
