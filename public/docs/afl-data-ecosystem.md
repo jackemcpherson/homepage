@@ -1,20 +1,16 @@
 # AFL Data Ecosystem
 
-> A suite of TypeScript tools for working with Australian football data,
-> built by Jack McPherson. Includes a data access library (fitzroy), a
-> multi-competition database covering AFL Men's (1990+), AFL Women's
-> (2017+), VFL (2021+) and VFLW (2021+) (AFL-MCP), an RDS file parser
-> (rds-js), a prediction engine (tipper), and a Discord bot that posts
-> live-match scoreboards and round wraps (footyBot). All projects use
-> strict TypeScript, Bun, and Biome; the deployed services run on
-> Cloudflare Workers.
+Jack McPherson maintains this suite of TypeScript tools for Australian football
+data. The suite includes fitzroy, AFL-MCP, rds-js, tipper, and footyBot. The data
+covers AFL Men's, AFL Women's, VFL, and VFLW. All projects use strict TypeScript,
+Bun, and Biome. Cloudflare Workers runs the deployed services.
 
 ## Ecosystem Overview
 
 Five projects form the AFL data stack. They share a TypeScript style guide,
 tooling conventions, and a Cloudflare D1 database.
 
-```
+```text
 AFL API / FootyWire / AFL Tables / Squiggle / Fryzigg RDS
                         |
                     fitzroy (npm library)
@@ -32,30 +28,32 @@ Consumers:
 rds-js (npm) -- used by fitzroy for parsing R data files
 ```
 
-| Project | npm package | Type | GitHub |
-|---------|-------------|------|--------|
-| fitzroy | `fitzroy` | Library + CLI | jackemcpherson/fitzRoy-ts |
-| AFL-MCP | private | Cloudflare Worker | jackemcpherson/AFL-MCP |
-| rds-js | `@jackemcpherson/rds-js` | Library | jackemcpherson/rds-js |
-| tipper | `@jackemcpherson/tipper` | CLI + Cloudflare Worker | jackemcpherson/tipper |
-| footyBot | private | Cloudflare Worker (Discord bot) | jackemcpherson/footyBot |
+| Project  | npm package              | Type                            | GitHub                    |
+| -------- | ------------------------ | ------------------------------- | ------------------------- |
+| fitzroy  | `fitzroy`                | Library + CLI                   | jackemcpherson/fitzRoy-ts |
+| AFL-MCP  | private                  | Cloudflare Worker               | jackemcpherson/AFL-MCP    |
+| rds-js   | `@jackemcpherson/rds-js` | Library                         | jackemcpherson/rds-js     |
+| tipper   | `@jackemcpherson/tipper` | CLI + Cloudflare Worker         | jackemcpherson/tipper     |
+| footyBot | private                  | Cloudflare Worker (Discord bot) | jackemcpherson/footyBot   |
 
-Cloudflare resources (the `afl-stats` D1 database, the AFL-MCP, footyBot,
-and tipper Workers, KV and queues, DNS) are managed as code with OpenTofu in
-the `cloudflare-infra` repository — Git is the source of truth, with a gated
-plan/apply pipeline and nightly drift detection. A separate `afl-watchdog`
-Worker (source lives in the footyBot repo under `workers/watchdog`) polls
-AFL-MCP's `/mcp/health` and footyBot's liveness marker hourly and alerts a
-Discord webhook when either goes stale.
+OpenTofu manages the Cloudflare resources in the `cloudflare-infra` repository.
+These resources include D1, Workers, KV, queues, and DNS. Git is the source of
+truth.
 
-## Data Access — Start Here
+A gated pipeline applies plans, and a nightly job detects drift. The
+separate `afl-watchdog` Worker polls the AFL-MCP and footyBot health markers
+each hour. It alerts a Discord webhook when either marker becomes stale. Its
+source is in the footyBot repository under `workers/watchdog`.
+
+## Data Access: Start Here
 
 For a new AFL data project, choose one of three approaches:
 
-### 1. fitzroy library (recommended default)
+### 1. Fitzroy Library (Recommended Default)
 
-Best for: scripts, CLIs, one-off analysis, any runtime (Node.js, Bun, Deno,
-browsers, Cloudflare Workers).
+Use fitzroy for scripts, CLIs, one-time analyses, and supported JavaScript
+runtimes. Supported runtimes include Node.js, Bun, Deno, browsers, and
+Cloudflare Workers.
 
 ```bash
 bun add fitzroy
@@ -74,7 +72,7 @@ if (results.success) {
   console.log(results.data.length, "matches");
 }
 
-// Player stats for a specific round. v3 returns a partial-result
+// Player stats for a specific round. Version 3 returns a partial-result
 // envelope: { stats, failedMatchIds }.
 const statsResult = await fetchPlayerStats({
   source: "afl-api",
@@ -86,22 +84,22 @@ if (statsResult.success) {
 }
 ```
 
-Data comes fresh from upstream sources each time. No database or credentials
-needed. Supports AFL API, FootyWire, AFL Tables, Squiggle, and Fryzigg.
+Each call retrieves current data from an upstream source. The client requires no
+database or credentials. It supports AFL API, FootyWire, AFL Tables, Squiggle,
+and Fryzigg.
 Pass `competition: "AFLM" | "AFLW" | "VFL" | "VFLW"` to scope to a specific
 competition (defaults to AFLM for sources that support multiple).
 
-### 2. D1 database (pre-computed historical data)
+### 2. D1 Database (Pre-Computed Historical Data)
 
-Best for: Cloudflare Workers projects that need decades of historical data,
-pre-computed PAV ratings, team lineups, or low-latency queries across the
-full AFL ecosystem.
+Use D1 for Cloudflare Workers projects that need low-latency historical queries.
+The database includes PAV ratings and team lineups.
 
-The `afl-stats` D1 database is populated by AFL-MCP's cron sync and contains
+AFL-MCP's cron sync populates the `afl-stats` D1 database. The database contains
 match results, player statistics (~70 columns), PAV ratings, and lineups for
-**four competitions**: AFLM (1990+), AFLW (2017+), VFL (2021+), VFLW (2021+).
-Tipper reads from this same database — its scheduled Worker through a native
-D1 binding, the local CLI over the Cloudflare D1 REST API.
+four competitions: AFLM (1990+), AFLW (2017+), VFL (2021+), and VFLW (2021+).
+Tipper reads from this database. Its scheduled Worker uses a native D1 binding.
+Its local CLI uses the Cloudflare D1 REST API.
 
 To query D1 from a Cloudflare Worker, bind to the database in wrangler.toml:
 
@@ -112,103 +110,111 @@ database_name = "afl-stats"
 database_id = "fe1c1a89-805f-481d-9ba0-b9f8dee04a36"
 ```
 
-### 3. MCP endpoint (LLM-powered tools)
+### 3. MCP Endpoint (LLM-Powered Tools)
 
-Best for: AI agents and LLM-powered applications that need to query AFL data
-dynamically.
+Use the MCP endpoint for AI agents and LLM-powered applications that query AFL
+data.
 
-The AFL-MCP server exposes 3 tools via the Model Context Protocol at
-`https://afl.jackemcpherson.com/mcp`:
+The AFL-MCP server exposes three Model Context Protocol tools. Use the
+`https://afl.jackemcpherson.com/mcp` endpoint.
 
-| Tool | Purpose |
-|------|---------|
-| `schema` | Database structure and typed coverage; optional bounded observation for one competition-season |
-| `tools` | Sandbox capabilities and constraints |
-| `code` | Execute TypeScript against D1 in an isolated sandbox; optional `competition` arg as a hint to the LLM |
+| Tool     | Purpose                                                                                               |
+| -------- | ----------------------------------------------------------------------------------------------------- |
+| `schema` | Database structure and typed coverage. Optional bounded observation for one competition-season        |
+| `tools`  | Sandbox capabilities and constraints                                                                  |
+| `code`   | Execute TypeScript against D1 in an isolated sandbox. Optional `competition` arg as a hint to the LLM |
 
 The `code` tool runs user-submitted TypeScript in a Dynamic Worker isolate
 with read-only database access via a `db.prepare(sql).bind(...).all()` bridge.
-Queries must filter by competition explicitly — the `competition` argument is
+Queries must filter by competition explicitly: the `competition` argument is
 documentation, not auto-injection.
 
-The `schema` tool accepts three parameter shapes. A no-argument call is
-deterministic and read-free, returning static expectations in
-`database.coverage_contract` (version 1) for all four competitions. Passing
-`competition` alone filters the base response to that competition
-(`database.competitions` and `coverage_contract.by_competition` shrink;
-tables, notes, and join examples are unchanged) — still read-free. Passing
-`{"includeObserved":true,"competition":"AFLM","season":2026}` measures exactly
+The `schema` tool accepts three parameter shapes. A no-argument call returns
+static expectations for all four competitions. These expectations are in
+`database.coverage_contract` version 1. The call does not read D1.
+
+The `competition` parameter filters `database.competitions` and
+`coverage_contract.by_competition`. It does not change tables, notes, or join
+examples. This call also does not read D1.
+
+The `{"includeObserved":true,"competition":"AFLM","season":2026}` request measures
+exactly
 one competition-season and keeps observations separate from expectations. Row
 fields use the `rows` unit, PAV uses `table_rows`, and lineup coverage uses
-`match_presence`; successful measurements are cached for 15 minutes. Any other
-combination (e.g. `includeObserved` without both `competition` and `season`)
-is rejected with an error stating the contract.
+`match_presence`. The server caches successful measurements for 15 minutes.
+The server rejects any other combination and returns a contract error. For
+example, `includeObserved` requires both `competition` and `season`.
 
-Operational endpoints alongside `/mcp`: `GET /mcp/health` reports sync
-freshness (503 when no sync for >3 hours), and bearer-token admin routes
-(`/mcp/admin/sync`, `/mcp/admin/backfill`, `/mcp/admin/recalculate-pav`,
-`/mcp/admin/recalculate-all-pav`) trigger manual syncs and PAV rebuilds.
+`GET /mcp/health` reports sync freshness. It returns 503 when no sync occurred
+for more than three hours. Bearer-token admin routes trigger manual syncs and
+PAV rebuilds. These routes are `/mcp/admin/sync`, `/mcp/admin/backfill`,
+`/mcp/admin/recalculate-pav`, and `/mcp/admin/recalculate-all-pav`.
 Release 3.4.0 added two authenticated operations.
+
 `POST /mcp/admin/backfill-brownlow` is a dry-run-first annual AFLM Brownlow vote
 backfill for one or two seasons. It returns bounded aggregate resolution and
-six-vote diagnostics before writes are enabled. `GET /mcp/admin/status` returns
-bounded aggregate sync freshness, lease, integrity, and 24-hour degradation
+six-vote diagnostics before an operator enables writes.
+`GET /mcp/admin/status` returns bounded aggregate sync freshness, lease,
+integrity, and 24-hour degradation
 diagnostics without exposing raw errors or identifiers. Brownlow ingestion,
 cron, and manual sync share the same ten-minute operation lease, so they cannot
 overlap.
 All public endpoints are rate-limited to 60 requests/minute per IP.
 
-## fitzroy Library Reference
+## Fitzroy Library Reference
+
+The following sections describe the supported fitzroy interface and data sources.
 
 ### Available Functions
 
-| Function | Returns | Description |
-|----------|---------|-------------|
-| `fetchMatches` | `Match[]` | Match data with optional `status` filter (Upcoming, Live, Complete, Postponed, Cancelled). Replaces v1's separate `fetchMatchResults` + `fetchFixture`. |
-| `fetchPlayerStats` | `SeasonPlayerStats` | ~70 per-match statistics per player, wrapped in a `{ stats, failedMatchIds }` envelope — season-wide scrapes surface per-match failures instead of silently dropping them (v3) |
-| `fetchLadder` | `Ladder` | Standings with wins, losses, percentage |
-| `fetchLineup` | `Lineup` | Named squads for a round |
-| `fetchSquad` | `Squad` | Full squad list for a team |
-| `fetchTeams` | `Team[]` | All teams in a competition |
-| `fetchTeamStats` | `TeamStatsEntry[]` | Aggregated team-level statistics |
-| `fetchPlayerDetails` | `PlayerDetails[]` | Player biography and career info |
-| `fetchAwards` | `Award[]` | Brownlow, Coleman, All-Australian, Rising Star, coaches votes |
+| Function             | Returns             | Description                                                                                                                                                                   |
+| -------------------- | ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `fetchMatches`       | `Match[]`           | Match data with optional `status` filter (Upcoming, Live, Complete, Postponed, Cancelled). Replaces v1's separate `fetchMatchResults` + `fetchFixture`.                       |
+| `fetchPlayerStats`   | `SeasonPlayerStats` | ~70 per-match statistics per player, wrapped in a `{ stats, failedMatchIds }` envelope: season-wide scrapes surface per-match failures instead of silently dropping them (v3) |
+| `fetchLadder`        | `Ladder`            | Standings with wins, losses, percentage                                                                                                                                       |
+| `fetchLineup`        | `Lineup`            | Named squads for a round                                                                                                                                                      |
+| `fetchSquad`         | `Squad`             | Full squad list for a team                                                                                                                                                    |
+| `fetchTeams`         | `Team[]`            | All teams in a competition                                                                                                                                                    |
+| `fetchTeamStats`     | `TeamStatsEntry[]`  | Aggregated team-level statistics                                                                                                                                              |
+| `fetchPlayerDetails` | `PlayerDetails[]`   | Player biography and career info                                                                                                                                              |
+| `fetchAwards`        | `Award[]`           | Brownlow, Coleman, All-Australian, Rising Star, coaches votes                                                                                                                 |
 
 As of v3 the package root exports only this supported surface. Raw AFL
 API / Squiggle wire schemas (Zod) moved to the `fitzroy/schemas` subpath
 export, so upstream drift no longer forces a major release.
 
-Also exported (v3.2+/v3.4): `resolveDefaultSeasonForCompetition(competition)`
-(async — picks the current or most recent season from the AFL round
-schedule), and pure round-metadata helpers `roundLabel()`,
-`roundAbbreviation()`, `roundTypeLabel()` that derive R-fitzRoy-style round
-labels from `Match` fields.
+The package also exports `resolveDefaultSeasonForCompetition(competition)`
+in v3.2 and later. This asynchronous function selects the current or most
+recent season from the AFL round schedule. Version 3.4 adds the pure
+`roundLabel()`, `roundAbbreviation()`, and `roundTypeLabel()` helpers. They
+derive R-fitzRoy-style round labels from `Match` fields.
 
 ### Common Parameters
 
-All fetch functions accept a query object. Common parameters:
+All fetch functions accept a query object with these common parameters:
 
-- `source` (DataSource) — `"afl-api"`, `"footywire"`, `"afl-tables"`, `"squiggle"`, `"fryzigg"`, `"afl-coaches"`
-- `season` (number) — e.g., 2026
-- `round` (number, optional) — specific round number
-- `competition` (CompetitionCode, optional) — `"AFLM" | "AFLW" | "VFL" | "VFLW"`
-- `team` (string, optional) — team name (fuzzy-matched)
+| Parameter     | Type              | Values or Purpose                                                        |
+| ------------- | ----------------- | ------------------------------------------------------------------------ |
+| `source`      | `DataSource`      | `"afl-api"`, `"footywire"`, `"afl-tables"`, `"squiggle"`, or `"fryzigg"` |
+| `season`      | `number`          | Season year, such as 2026                                                |
+| `round`       | `number`          | Optional round number                                                    |
+| `competition` | `CompetitionCode` | Optional `"AFLM"`, `"AFLW"`, `"VFL"`, or `"VFLW"`                        |
+| `team`        | `string`          | Optional team name with fuzzy matching                                   |
 
 ### Data Sources
 
-| Source | Coverage | Best for |
-|--------|----------|----------|
-| `afl-api` | AFLM 2012+, AFLW 2017+, VFL/VFLW 2021+ | Live scores, official data, multi-competition |
-| `footywire` | AFLM 2010-present | SuperCoach scores, advanced stats |
-| `afl-tables` | AFLM 1897-present (player/team stats 1965+) | Historical records |
-| `squiggle` | AFLM 2012-present | Prediction data, third-party analysis |
-| `fryzigg` | AFLM 2012–2025, AFLW 2017–2022 | Advanced player statistics (RDS format) |
-| `afl-coaches` | AFLM coaches votes | AFLCA Champion Player votes (via `fetchAwards`) |
+| Source        | Coverage                                    | Best for                                        |
+| ------------- | ------------------------------------------- | ----------------------------------------------- |
+| `afl-api`     | AFLM 2012+, AFLW 2017+, VFL/VFLW 2021+      | Live scores, official data, multi-competition   |
+| `footywire`   | AFLM 2010-present                           | SuperCoach scores, advanced stats               |
+| `afl-tables`  | AFLM 1897-present (player/team stats 1965+) | Historical records                              |
+| `squiggle`    | AFLM 2012-present                           | Prediction data, third-party analysis           |
+| `fryzigg`     | AFLM 2012-2025, AFLW 2017-2022              | Advanced player statistics (RDS format)         |
+| `afl-coaches` | AFLM coaches votes                          | AFLCA Champion Player votes (via `fetchAwards`) |
 
-`afl-api` is the only source that covers VFL/VFLW. The fryzigg RDS dumps are
-snapshots, not live: the AFLM dump was last updated September 2025 and the
-AFLW dump has been abandoned since January 2022 — fitzroy caps coverage at
-those seasons deliberately.
+Only `afl-api` covers VFL and VFLW. The fryzigg RDS dumps are snapshots. The
+AFLM dump has no updates after September 2025. The AFLW dump has no updates
+after January 2022. Fitzroy deliberately caps coverage at those seasons.
 
 ### Key Types
 
@@ -237,7 +243,7 @@ interface Match {
   // default to "Upcoming" rather than "Complete" (fitzroy >= 3.0.1).
   status: "Upcoming" | "Live" | "Complete" | "Postponed" | "Cancelled";
   livePeriodStatus: string | null; // afl-api score-level status: LIVE, QTR_TIME, HALF_TIME, 3QTR_TIME, FULL_TIME (raw upstream string)
-  // v3.1.0 live-match fields — prefer completedQuarter over livePeriodStatus
+  // v3.1.0 live-match fields: prefer completedQuarter over livePeriodStatus
   // for break/siren detection (the upstream status strings regressed in 2026)
   matchClockPeriods: ReadonlyArray<MatchClockPeriod> | null;
   completedQuarter: 0 | 1 | 2 | 3 | 4 | null;
@@ -288,117 +294,138 @@ if (!result.success) {
 }
 ```
 
-All external data passes through Zod validation. Invalid API responses are
-returned as a failure `Result` with the original Zod error details.
+Zod validates all external data. A failure `Result` contains the original Zod
+error details for an invalid API response.
 
-### Cloudflare Workers compatibility
+### Cloudflare Workers Compatibility
 
 As of fitzroy 2.3.0, HTML scrapers use `parse5` + `cheerio/slim`, so the
-library entry no longer pulls in `node:stream`. fitzroy can be imported
-from a Worker without setting the `nodejs_compat` compatibility flag.
+library entry no longer pulls in `node:stream`. A Worker can import fitzroy
+without the `nodejs_compat` compatibility flag.
 
 ## D1 Database Schema
 
-The `afl-stats` database has 12 tables plus 5 integrity views and covers four competitions: AFL
-Men's, AFL Women's, VFL, and VFLW. **Always filter queries by competition**
-(join through `seasons → competitions`, then `WHERE c.code = ?`) — without
-the filter, results mix competitions silently because team rows with the same
-name (e.g. Carlton AFLM vs Carlton VFL) are distinct `team_id` values.
+The `afl-stats` database has 12 tables and five integrity views. It covers AFL
+Men's, AFL Women's, VFL, and VFLW. Always filter queries by competition.
+Join `seasons` to `competitions`, then use `WHERE c.code = ?`. Without
+the filter, results silently mix competitions. Teams with the same name in
+different competitions have distinct `team_id` values.
 
 ### Core Tables
 
-**matches** — One row per match. Key columns: `season_id`, `round` (long
-form like `Round 1`, `Grand Final`, `Wildcard`), `round_abbreviation` (AFL
-standard short codes: `Rd N`, `OR`, `WC`, `FW1`, `SF`, `PF`, `GF`, plus
-`EF`/`QF` for pre-2020 AFLM), `round_number`, `round_type` (`Regular` or
-`Finals`), `date`, `local_time`, `venue_id`, `home_team_id`, `away_team_id`,
-`home_points`, `away_points`, `margin`, `attendance`,
-quarter-by-quarter scores (`home_q1_goals` through `away_q4_behinds`),
-`status` (lifecycle: `Upcoming` / `Live` / `Complete` / `Postponed` /
-`Cancelled`), and `live_period_status` (raw AFL API score-level status —
-`LIVE`, `QTR_TIME`, `HALF_TIME`, `3QTR_TIME`, `FULL_TIME` — for siren
-detection without inferring state from null scores). Release 3.4.0 added
-nullable `completed_quarter` (0–4, the highest completed quarter). Use it
-together with `status`; AFL-MCP's five-minute sync provides context, not a live
-siren SLA. `local_time` is Melbourne time for every competition, including
-interstate matches; venue-native time is not stored. The legacy
-`weather_temp_c` / `weather_type` columns are a **frozen** fryzigg record
-(AFLM 2010–2025 only; temps are daily maxima, not match-time) — use
-`match_weather` for numeric weather.
+The following tables contain match, weather, prediction, player, and lineup data.
 
-**match_weather** — One row per match per `kind` (`observed` |
-`forecast`), PK `(match_id, kind)`. Six metrics over the 3-hour window
-from scheduled start: `temp_c` (mean), `precip_mm` (total),
-`precip_24h_prior_mm` (ground condition), `wind_speed_kmh` /
-`wind_gust_kmh` (max), `humidity_pct` (mean), plus `source`
+#### `matches`
+
+Each row contains one match. Identity columns include `season_id`,
+`round_number`, `round_type`, `date`, `local_time`, and the venue and team IDs.
+The `round` column contains a long label such as `Round 1` or `Grand Final`.
+The `round_abbreviation` column contains AFL short codes from `OR` through
+`GF`. Pre-2020 AFLM data can also use `EF` and `QF`.
+
+The score columns include
+points, margins, attendance, and each quarter's goals and behinds. The `status`
+column records the match lifecycle. The `live_period_status` column stores the
+raw AFL API status for siren detection without inference from null scores.
+
+Release 3.4.0 added nullable `completed_quarter`. The value from 0 through 4 is
+the highest completed quarter. Use it together with `status`. AFL-MCP's
+five-minute sync does not provide real-time match data. `local_time` is Melbourne
+time for every competition, including interstate matches.
+
+Venue-native time is not stored. The legacy
+`weather_temp_c` and `weather_type` contain a frozen fryzigg record for AFLM
+from 2010 through 2025. Temperatures are daily maxima. Use `match_weather` for
+match-time numeric weather.
+
+#### `match_weather`
+
+Each row contains one match and one `kind` (`observed` or `forecast`).
+The primary key is `(match_id, kind)`. Metrics cover the three-hour window from
+the scheduled start. They include mean temperature, total precipitation, prior
+24-hour precipitation, maximum wind speed and gusts, and mean humidity. The
+record also includes `source`
 (`era5_land+era5` for finalised observations, `historical_forecast` for
 the fast post-match write, `best_match` for forecasts) and `fetched_at`.
+
 Forecast rows appear from 7 days out, refresh in place, and are kept
 after the observed row lands. Coverage: completed matches 1990+ across
 all four competitions (cancelled matches and unplaceable placeholder
 venues excluded). Weather data by
 [Open-Meteo](https://open-meteo.com/) (CC-BY 4.0).
 
-**match_predictions** — One row per match from the tipper model, PK
-`match_id`, overwritten on regeneration (latest prediction only, no
-history). Columns: `home_win_prob` (0..1) and `predicted_margin`
-(points, positive = home favoured) — both from the **home team's
-perspective** — plus `model_version` (the tipper config id, e.g.
-`predha-080 (2641f46f)`) and `generated_at` (UTC ISO 8601). Written by
-the tipper Worker (native D1 binding, `*/15` cron with an in-code gate —
-see the tipper section), not by the AFL-MCP Worker; rows for a round
-refresh until its first match starts, then freeze. Coverage starts 2026
-and is sparse — `LEFT JOIN` and treat absence as not-published.
+#### `match_predictions`
 
-**player_match_stats** — One row per player per match. ~70 columns covering
+Each row contains one match prediction from tipper. The primary key
+is `match_id`. Regeneration overwrites the row, so the table holds only the
+latest prediction. The `home_win_prob` and `predicted_margin` columns use the
+home team's perspective. Other columns record the model version and generation
+time. The tipper Worker writes these rows through a native D1 binding.
+
+Rows
+refresh until the first match in the round starts.
+
+Coverage starts in 2026 and
+is sparse. Use `LEFT JOIN` and treat absence as unpublished.
+
+#### `player_match_stats`
+
+Each row contains one player and one match. Approximately 70 columns contain
 disposals, marks, goals, tackles, contested possessions, clearances, pressure
 acts, metres gained, hitouts, fantasy scores, Brownlow votes, and efficiency
 metrics. VFL has NULL for `goal_assists`, `marks_inside_fifty`, and
 `one_percenters`. VFLW values are best-effort and sparse, with measured
 populated rows for all three columns.
 
-**player_season_pav** — Player Approximate Value per season. Columns:
+#### `player_season_pav`
+
+This table contains Player Approximate Value per season. Columns include
 `off_pav`, `mid_pav`, `def_pav`, `total_pav`. One row per player per season
 per team. PAV is a composite metric weighting offensive, midfield, and
-defensive contributions using the HPN formula. **Available for AFLM (1998+)
-and AFLW (2017+) only** — VFL/VFLW lack the upstream stat inputs the formula
+defensive contributions using the HPN formula. Data is available only for AFLM
+(1998+) and AFLW (2017+). VFL and VFLW lack the upstream inputs that the formula
 needs.
 
-**match_lineups** — Announced team selections. `is_emergency` and
-`is_substitute` flags. Coverage: AFLM 2015+, AFLW 2017+, VFL/VFLW best-effort.
+#### `match_lineups`
+
+This table contains announced team selections. The `is_emergency` and
+`is_substitute` columns are flags. Coverage starts with AFLM 2015 and AFLW 2017.
+VFL and VFLW coverage is best-effort.
 
 ### Coverage Contract
 
 Release 3.4.0 extended the existing `schema` tool with a typed
 `database.coverage_contract` (version 1). Static expectations identify source,
 review date, range, and expected availability without reading D1. An optional
-`includeObserved: true` request must name exactly one `competition` and `season`;
-it overlays bounded measurements for stats and weather (`rows`), PAV
+`includeObserved: true` request must name exactly one `competition` and `season`.
+It overlays bounded measurements for stats and weather (`rows`), PAV
 (`table_rows`), and lineup match coverage (`match_presence`). Expectations and
 observations remain distinct, and zero measured rows do not prove absence.
-Successful observations are cached for 15 minutes. The server still exposes
+
+The server caches successful observations for 15 minutes. It still exposes
 exactly three MCP tools.
 
 ### Reference Tables
 
-- **competitions** — `AFLM`, `AFLW`, `VFL`, `VFLW`.
-- **teams** — `(name, competition_id)` UNIQUE; same team name across
+- The `competitions` table contains `AFLM`, `AFLW`, `VFL`, and `VFLW`.
+- The `teams` table has a unique `(name, competition_id)` key. The same name across
   competitions yields distinct rows. Legacy names and nicknames are
   normalised to canonical names in code during ingest (there is no alias
   table).
-- **venues** — Normalised venue names; shared across competitions. Carries
-  geodata: `latitude`, `longitude`, `timezone` (IANA), `roof`
-  (`retractable` | `none` — Marvel Stadium is the only retractable roof),
+- The `venues` table contains normalised venue names shared across competitions.
+  It contains `latitude`, `longitude`, `timezone` (IANA), `roof`
+  (`retractable` | `none`: Marvel Stadium is the only retractable roof),
   and `canonical_venue_id` (self-reference resolving sponsor/rename
-  aliases, e.g. Domain Stadium → Subiaco; join weather through the
+  aliases, for example Domain Stadium to Subiaco. Join weather through the
   canonical venue).
-- **players** — Player master data with external IDs for cross-referencing.
-- **seasons** — `(competition_id, year)` UNIQUE.
-- **sync_log** — Append-only cron run history (`timestamp`, `type`,
+- The `players` table contains master data and external identifiers.
+- The `seasons` table has a unique `(competition_id, year)` key.
+- The `sync_log` table contains append-only cron history (`timestamp`, `type`,
   `rows_affected`, `error`) used for freshness checks and backfill audits.
-  Successful no-op ticks aren't logged; rows are pruned after 90 days.
-- **sync_lease** — Single-row mutual-exclusion lock so cron and admin syncs
-  can't overlap (10-minute stale timeout).
+  Successful no-op ticks are not logged. Rows are pruned after 90 days.
+- The `sync_lease` table contains a single-row mutual-exclusion lock. The lock
+  ensures that cron and admin syncs
+  cannot overlap (10-minute stale timeout).
 
 ### Common Query Patterns
 
@@ -455,95 +482,97 @@ LIMIT 20;
 
 ### Data Freshness
 
-AFL-MCP runs a single cron (`*/5 * * * *`) that dispatches all four
-competitions per tick, gated by a `shouldRunNow` predicate (always runs at
-the top of the hour; otherwise only when a match exists within the past
-1 day or next 3 days). PAV is recalculated from inside the same pipeline
-whenever new player stats land for AFLM or AFLW.
+AFL-MCP runs one `*/5 * * * *` cron for all four competitions. The
+`shouldRunNow` predicate always permits the top-of-hour run. Other runs require
+a match in the previous day or next three days. The same pipeline recalculates
+PAV when new AFLM or AFLW player statistics arrive.
 
-A weather stage runs inside the same pipeline on top-of-hour passes:
-forecasts for matches within 7 days (refreshed daily, hourly on match
-day), a fast observed write after each match completes, and an upgrade to
-ERA5 provenance once a match is more than 6 days old — capped at 25
-fetches per pass, fail-soft to `sync_log`. Historical weather was
-backfilled once via a local script (`scripts/backfill-weather.ts`).
+The top-of-hour pipeline also runs a weather stage. It refreshes seven-day
+forecasts daily and match-day forecasts hourly. It writes a fast observation
+after each match and upgrades the provenance to ERA5 after six days. Each pass
+permits 25 fetches and records failures in `sync_log`. A local script performed
+the initial historical weather backfill.
 
-Backfill is exposed at `POST /mcp/admin/backfill` (parameters:
-`competitions`, `fromYear`, `toYear`, `skipShouldRunNow`, `skipPav`;
-30-year max per request). `GET /mcp/health` reports staleness for monitoring.
+`POST /mcp/admin/backfill` exposes the backfill operation. Its parameters are
+`competitions`, `fromYear`, `toYear`, `skipShouldRunNow`, and `skipPav`. A request
+can cover no more than 30 years. `GET /mcp/health` reports staleness for
+monitoring.
 Release 3.4.0 also added the annual, dry-run-first
 `POST /mcp/admin/backfill-brownlow` operation and aggregate-only
-`GET /mcp/admin/status`; both require the existing admin bearer token.
+`GET /mcp/admin/status`. Both require the existing admin bearer token.
 
-## tipper — Prediction CLI + Worker
+## Tipper: Prediction CLI + Worker
 
-tipper forecasts AFLM match results with a hybrid model: FiveThirtyEight-style
-margin-of-victory Elo blended with a calibrated PAV-based lineup rating
-(60% Elo / 40% PAV). It is a local CLI for model development (reading
-`afl-stats` over the Cloudflare D1 REST API — matches, lineups, player
-stats, and historical PAV as a Bayesian prior) plus a small Cloudflare
-Worker that publishes predictions on a schedule (below); both run the
-same engine through a runtime-agnostic orchestration layer.
+Tipper forecasts AFLM results with a hybrid model. The model combines
+margin-of-victory Elo with a calibrated PAV lineup rating. Elo has 60% weight,
+and PAV has 40% weight. A local CLI supports model development through the D1
+REST API. A Cloudflare Worker publishes scheduled predictions. Both interfaces
+use the same runtime-independent engine.
 
-Main commands: `tipper predict --season Y --round R`,
-`tipper publish [--season Y --round R --comp AFLM|AFLW]` (writes the
-current config's predictions to the shared `match_predictions` D1 table;
-defaults to the next unplayed round),
-`tipper backtest [--season S] [--config ID]`,
-`tipper compare --config-a ID --config-b ID` (bootstrap hypothesis test),
-`tipper calibrate [--config ID]` (derives the recommended PAV calibration
-slope from a config's training seasons), and
-`tipper config {list,show,current,promote,diff,create}` for config
-lifecycle. Configs are content-hashed (SHA-256) and promotion is
-guardrailed: backtest results must match the config hash, and a challenger
-must not regress tip accuracy against the incumbent on pooled 2021–2025
-backtests — a tip deficit over the most recent three seasons is
-disqualifying regardless of LogLoss gains. The shipped config (`predha-080`)
-holds a 73.3% tip rate on 2026 out-of-sample rounds (through round 14).
+The main commands are:
 
-Scheduled publishing runs as a **tipper Cloudflare Worker** (revived from
-the v3.2 retirement; same GitOps delivery as the other Workers). A
-`*/15 * * * *` cron drives an in-code gate: for each competition (AFLM
-and AFLW), rounds with unplayed matches starting within 7 days are
-republished when `max(generated_at)` is older than a context-stepped
-interval — daily as a baseline, hourly on match days, every 15 minutes
-during the Thursday 17:00–21:00 Melbourne team-announcement window (so
-footyBot's round preview posts announcement-aware numbers). A round
-freezes once its first match kicks off: every prediction row provably
-predates its round. The Worker holds a native read-write D1 binding
-(no API token) and the promoted config is baked into the artifact at
-build time, so the deployed model is auditable from the pinned SHA.
+- `tipper predict --season Y --round R` generates predictions.
+- `tipper publish [--season Y --round R --comp AFLM|AFLW]` writes predictions
+  to D1. It defaults to the next unplayed round.
+- `tipper backtest [--season S] [--config ID]` runs a backtest.
+- `tipper compare --config-a ID --config-b ID` runs a bootstrap hypothesis
+  test.
+- `tipper calibrate [--config ID]` derives the PAV calibration slope.
+- `tipper config {list,show,current,promote,diff,create}` manages configuration
+  lifecycle.
+
+Configurations use SHA-256 content hashes. Promotion requires backtest results
+that match the configuration hash. A challenger cannot reduce tip accuracy
+against the incumbent in pooled 2021-2025 backtests. A recent three-season tip
+deficit disqualifies a challenger regardless of LogLoss gains. The shipped
+configuration has a 73.3% tip rate through round 14 of the 2026 sample.
+
+Scheduled publishing runs as a tipper Cloudflare Worker. Version 3.4 restored
+the Worker after its version 3.2 removal. The Worker uses the same GitOps
+delivery process as the other Workers. A `*/15 * * * *` cron drives an in-code
+gate for AFLM and AFLW. The Worker
+republishes rounds with matches that start within seven days. It publishes
+daily by default and hourly on match days.
+
+During the Thursday team-announcement window, it publishes every 15 minutes.
+This schedule gives footyBot current
+numbers for its round preview.
+
+A round freezes when its first match starts. The Worker uses a native read-write
+D1 binding
+without an API token. The build embeds the promoted configuration in the
+artefact. The pinned SHA therefore identifies the deployed model.
+
 `GET https://tipper.jackemcpherson.workers.dev/health` returns 200/503
-derived from `match_predictions` freshness against the fixture window;
-it doubles as the blocking post-deploy check. The CLI `tipper publish`
-(D1 REST API) remains the manual/break-glass path.
+derived from `match_predictions` freshness against the fixture window.
+It is also the blocking post-deployment check. The CLI `tipper publish` command
+through the D1 REST API remains the manual emergency path.
 
-## footyBot — Discord Consumer
+## footyBot: Discord Consumer
 
 footyBot is a Discord bot that runs entirely on Cloudflare Workers and
 consumes the rest of the ecosystem two ways:
 
-- **`/ask <question>`** — routes the question through the configured LLM
+- The `/ask <question>` command routes the question through the configured LLM
   (`gemini-3-flash-preview` by default via Google AI Studio's `v1beta`
   endpoint, or `claude-sonnet-4-5` when `LLM_PROVIDER="anthropic"`) inside
   a manual MCP tool-use loop against `https://afl.jackemcpherson.com/mcp`.
   All LLM traffic is proxied through Cloudflare AI Gateway with
   Authenticated Gateway enabled so Unified Billing covers it. A `/help`
   command posts usage examples.
-- **Proactive posts** — two Workers cron triggers feed an announce
-  channel:
+- Two Workers cron triggers feed a proactive announcement channel:
   - `* * * * *` (every minute, gated by a KV-cached fixture window) pulls
     live matches via fitzroy and posts QT / HT / 3QT / FT scoreboards at
-    quarter breaks. Break detection takes the maximum of several signals —
+    quarter breaks. Break detection takes the maximum of several signals:
     `Match.completedQuarter` (primary, from the AFL API match clock),
     per-quarter score population, `status === "Complete"`, and the
     `livePeriodStatus` string (unreliable since mid-2026, when the AFL API
-    stopped emitting `QTR_TIME`/`HALF_TIME`/`3QTR_TIME`) — so posts advance
+    stopped emitting `QTR_TIME`/`HALF_TIME`/`3QTR_TIME`). Posts advance
     on whichever signal arrives first. Per-match KV state (`live:{matchId}`)
     makes the tick idempotent.
   - `0 21 * * *` (~07:00 AEST / 08:00 AEDT) finds any
     `(competition, season, round)` that completed in the trailing 36 h
-    and hasn't been summarised, then posts a deterministic results +
+    and has not been summarised, then posts deterministic results and a
     ladder template plus a compact LLM storylines section covering every
     match. AFLM ladders from 2026 mark the direct-passage cut after sixth
     and wildcard cutoff after 10th. Storylines receive score shape,
@@ -551,94 +580,108 @@ consumes the rest of the ecosystem two ways:
     multi-goal players), `match_predictions` calibration, six-game form,
     a computed previous-round ladder diff, and the next round's fixtures
     and current ladder positions. Observed `match_weather` remains
-    notable-only context. State in `summary:{comp}:{season}:{round}`.
-  - The same per-minute cron also drives a **round preview** — the
-    counterpart post to the round wrap — inside a Thursday 18:20–21:00
+    material weather context. The state key is
+    `summary:{comp}:{season}:{round}`.
+  - The same per-minute cron also drives a round preview inside a Thursday
+    18:20-21:00
     Melbourne window (18:20 is the official team-announcement time).
     It polls every 5 minutes via the MCP `code` tool and posts once a
     data gate passes (the round's opening match has announced lineups
-    and a published prediction); every pass from
-    20:50 is final-eligible, posting with whatever exists so one failed
-    invocation can't cost the round its preview. The post pairs a
-    deterministic fixtures template — fixtures grouped by day, each match
-    carrying a `FootyBot's Tip: <favourite> by <margin> (<prob>%)` subtext line from
-    `match_predictions` —
-    with an LLM storylines section that sees forecast weather as
-    notable-only context. Canonical venue roof metadata suppresses outdoor
-    wind and rain evidence for roofed fixtures. State in
-    `preview:{comp}:{season}:{round}`.
+    and a published prediction). Every pass from 20:50 can publish the preview.
+    The run uses available data so one failed
+    invocation cannot cost the round its preview. The post pairs a
+    deterministic fixtures template with an LLM storylines section. The template
+    groups fixtures by day. Each match includes a
+    `FootyBot's Tip: <favourite> by <margin> (<prob>%)` line from
+    `match_predictions`. The storylines use material forecast-weather context.
+    Canonical venue roof metadata suppresses outdoor wind and rain evidence for
+    roofed fixtures. The state key is `preview:{comp}:{season}:{round}`.
 
 State lives in a single `STATE` KV namespace. Hono handles the Discord
-interaction webhook; a queue consumer runs the tool-use loop so the
-interaction can ack within Discord's 3 s window. Each live tick writes a
-`lasttick:{melbourneDate}` liveness marker to distinguish "cron stopped
-firing" from "fired but had nothing to post", and an offline eval harness
-(`bun run eval`) regression-tests `/ask` answer quality.
+interaction webhook. A queue consumer runs the tool-use loop so the
+interaction can acknowledge within Discord's three-second window. Each live
+tick writes a `lasttick:{melbourneDate}` liveness marker. The marker separates
+a stopped cron from a run with no post. An offline evaluation suite
+(`bun run eval`) tests `/ask` answer quality for regressions.
 
 ## AFL Domain Essentials
 
 The four competitions covered:
 
-- **AFL Men's (AFLM)** — 18 teams. Season runs March to September: Opening
+- AFL Men's (AFLM) has 18 teams. Its season runs from March to September. It has
+  an Opening
   Round (before Round 1, `round_number = 0`, 2024+ only), 23 home-and-away
-  rounds, Finals series. Pre-2020 used `Qualifying`/`Elimination` Final;
+  rounds, Finals series. Pre-2020 used `Qualifying`/`Elimination` Final.
   2020+ uses `Finals Week 1`.
-- **AFL Women's (AFLW)** — 18 teams. Season runs August to November.
-- **VFL** — second-tier men's competition with mix of AFLM-affiliated
-  reserves (Carlton, Collingwood, etc.) and standalone clubs (Box Hill
-  Hawks, Casey Demons, Werribee Tigers). Includes a `Wildcard` round before
+- AFL Women's (AFLW) has 18 teams. Its season runs from August to November.
+- VFL is a second-tier men's competition with a mix of AFLM-affiliated reserves
+  and standalone clubs. Examples include Carlton, Collingwood, Box Hill Hawks,
+  Casey Demons, and Werribee Tigers. It includes a `Wildcard` round before
   finals.
-- **VFLW** — Victorian women's second-tier competition with AFLW affiliates
-  and standalone clubs (Darebin, etc.).
+- VFLW is a Victorian women's second-tier competition with AFLW affiliates
+  and standalone clubs such as Darebin.
 
 Goals score 6 points, behinds score 1. Total = goals × 6 + behinds.
 
 AFL-MCP stores `matches.local_time` in Melbourne local time for every
 competition: AEST (UTC+10) during winter and AEDT (UTC+11) during daylight
 saving (October to April). It intentionally discards venue-native time and adds
-no venue-time columns. fitzroy's public `Match` type still truthfully exposes
-the upstream `venueLocalDate`; AFL-MCP does not persist that field.
+no venue-time columns. Fitzroy's public `Match` type still exposes
+the upstream `venueLocalDate`. AFL-MCP does not persist that field.
 
-Round labels mirror the AFL API and the R fitzRoy package — no
-cross-competition normalisation. The `round` column is the long form
-(`Round 1`, `Wildcard`, `Grand Final`); `round_abbreviation` is the AFL's
-standard short code (`Rd 1`, `WC`, `GF`) and is consistent across all four
-competitions, so it's the right column for cross-competition queries.
+Round labels mirror the AFL API and the R fitzRoy package: no
+cross-competition normalisation. The `round` column contains the long form,
+such as `Round 1`, `Wildcard`, or `Grand Final`. The `round_abbreviation` column
+contains consistent AFL short codes. Use it for cross-competition queries.
 
 Some teams have historical aliases. AFL-MCP normalises legacy AFLM names
-during ingest (e.g. `Brisbane Bears` → `Brisbane Lions`, `Footscray` →
+during ingest (for example `Brisbane Bears` to `Brisbane Lions`, `Footscray` to
 `Western Bulldogs`).
 
 ## TypeScript Conventions
 
 All AFL data projects follow a shared style guide. Key rules:
 
-**Tooling:** Bun (package manager + runner), Biome (lint + format), Vitest
-(tests), tsc (type checking). All scripts via `bun run <name>`.
+### Tooling
 
-**TypeScript config:** `strict: true`, `noUncheckedIndexedAccess: true`,
+Use Bun for package management and script execution. Use Biome for linting and
+formatting. Use Vitest for tests and tsc for type checking. Run all scripts with
+`bun run <name>`.
+
+### TypeScript Configuration
+
+Use `strict: true`, `noUncheckedIndexedAccess: true`,
 `exactOptionalPropertyTypes: true`, `noUnusedLocals: true`,
 `noUnusedParameters: true`. Target ES2022 with bundler module resolution.
 
-**Biome rules:** `noExplicitAny: error` (use `unknown` and narrow with Zod),
-`noDefaultExport: error` (exception: Worker entry points and *.config.ts),
-`useConst: error`, 2-space indent, 100-char line width, organised imports.
+### Biome Rules
 
-**Patterns:** Validate external data with Zod at boundaries, trust types
+Use `noExplicitAny: error`. Use `unknown` and narrow with Zod. Set
+`noDefaultExport: error`, except for Worker entry points and `*.config.ts`. Set
+`useConst: error`. Use two-space indentation, a 100-character line width, and
+organised imports.
+
+### Patterns
+
+Validate external data with Zod at boundaries. Trust types
 internally. Use `Result<T, E>` for expected failures. Prefer functional
 transforms (`.filter().map().sort()`) over mutation. Use `Promise.all` for
-concurrent fetches. Types first — define domain types before implementation.
+concurrent fetches. Types first: define domain types before implementation.
 
-**No `enum`** — use union types: `type RoundType = "HomeAndAway" | "Finals"`.
-**No `any`** — use `unknown` and narrow.
-**Web Standard APIs only** in library code (fetch, Request, Response, URL,
-crypto). No Bun-specific or Node.js-specific APIs.
+Do not use `enum`. Use union types, such as
+`type RoundType = "HomeAndAway" | "Finals"`. Do not use `any`. Use `unknown` and
+narrow the value. Use only Web Standard APIs in library code, such as `fetch`,
+`Request`, `Response`, `URL`, and `crypto`. Do not use Bun-specific or
+Node.js-specific APIs.
 
-**Naming:** camelCase for variables/functions, PascalCase for types/interfaces,
+### Naming
+
+Use camelCase for variables and functions, PascalCase for types and interfaces,
 SCREAMING_SNAKE for true constants, kebab-case for file names. Abbreviations as
 words: `AflApi` not `AFLApi`.
 
-Full conventions: https://jackemcpherson.com/docs/typescript-style-guide.md
+For the complete conventions, read
+<https://jackemcpherson.com/docs/typescript-style-guide.md>.
 
 ## Starting a New Project
 
@@ -688,9 +731,9 @@ Add scripts to `package.json`:
 
 Recommended project structure:
 
-```
+```text
 src/
-  types.ts        # Domain types — define first
+  types.ts        # Domain types: define first
   index.ts        # Entry point
   lib/            # Shared utilities
   transforms/     # Pure data transformations

@@ -1,36 +1,67 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to Claude Code (claude.ai/code) when working with
+code in this repository.
 
 ## What This Is
 
-A static personal holding page for jackemcpherson.com. No build tools, no bundler, no framework — `public/` contains the entire site, served as assets from a Cloudflare Worker.
+A static personal holding page for jackemcpherson.com. The site has no build
+tools, bundler, or framework. A Cloudflare Worker serves the `public/` assets.
 
 ## Development
 
-Open `index.html` in a browser. There is no build step, dev server, or test suite. To preview the asset-serving behavior (including `_headers`) locally: `npx wrangler@4 dev`.
+Open `index.html` in a browser. There is no build step, dev server, or test
+suite. To preview the asset-serving behaviour (including `_headers`) locally:
+`npx wrangler@4 dev`.
+
+### Documentation
+
+Markdown files follow `public/docs/markdown-style-guide.md`.
+
+```sh
+rumdl check --deny-config-warnings .
+vale --no-global .
+```
+
+Use `rumdl check --deny-config-warnings --fix .` to apply safe Markdown fixes.
 
 ## Deployment
 
-Hosted on Cloudflare Workers (Static Assets) with a custom domain (`jackemcpherson.com`). Pushing to `main` triggers Workers Builds (configured in the Cloudflare dashboard via the Cloudflare GitHub App), which runs `npx wrangler@4 deploy` and ships to production. Builds typically land within ~30–60s of push. Manual deploy: `npx wrangler@4 deploy` from the repo root.
+Hosted on Cloudflare Workers (Static Assets) with a custom domain
+(`jackemcpherson.com`). Pushing to `main` triggers Workers Builds (configured in
+the Cloudflare dashboard via the Cloudflare GitHub App), which runs
+`npx wrangler@4 deploy` and ships to production. Builds typically land within
+30-60 seconds after a push. To deploy manually, run `npx wrangler@4 deploy`
+from the repository root.
 
-Workers Builds posts no GitHub commit statuses or check runs — `gh api repos/.../commits/<sha>/check-runs` will be empty even on successful builds. To verify a deploy, check `npx wrangler@4 deployments list` (look for a `Created:` timestamp newer than the push) or watch the Builds log in the Cloudflare dashboard.
+Workers Builds posts no GitHub commit statuses or check runs. The
+`gh api repos/.../commits/<sha>/check-runs` output will be empty even after a
+successful build. To verify a deploy, check
+`npx wrangler@4 deployments list` (look for a `Created:`
+timestamp newer than the push) or watch the Builds log in the Cloudflare
+dashboard.
 
 Layout:
-- `public/` — everything that gets served. Edit files here.
-- `public/_headers` — security headers (HSTS, CSP, X-Frame-Options, Permissions-Policy, etc.).
-- `wrangler.jsonc` (root) — Worker name, compat date, assets directory pointer.
-- `.assetsignore` (root) — within `public/`, files to skip (just `.DS_Store`).
+
+| Path              | Purpose                                                     |
+| ----------------- | ----------------------------------------------------------- |
+| `public/`         | Contains all served files                                   |
+| `public/_headers` | Defines HSTS, CSP, X-Frame-Options, and Permissions-Policy  |
+| `wrangler.jsonc`  | Defines the Worker name, compatibility date, and asset path |
+| `.assetsignore`   | Excludes `.DS_Store` from the uploaded assets               |
 
 ## Architecture
 
-- **index.html** — Single-page holding page with name and social links (GitHub, LinkedIn, X, Email). Uses Charter webfont via CDN.
-- **style.css** — All styling. Uses CSS custom properties in `:root` for colors, fonts, and spacing. Includes CSS animations (accent-rule draw, card fade-in), responsive breakpoint at 480px, and print styles.
-- **favicon.svg** — Red square with "JM" initials, uses the accent color `#C0392B`.
+| File          | Role                                                                   |
+| ------------- | ---------------------------------------------------------------------- |
+| `index.html`  | Defines the holding page, name, and social links                       |
+| `style.css`   | Defines colours, fonts, spacing, animations, responsive, and print CSS |
+| `favicon.svg` | Defines a red square with the "JM" initials                            |
 
 ## Design Conventions
 
-- Accent color: `#C0392B` (used in theme-color meta, accent rule, selection highlight, hover underlines, focus rings, favicon)
-- Typography: Charter (serif) for body/name, Helvetica Neue (sans) for social links
-- Minimal, centered card layout with middot-separated social links
-- Portrait image slot exists in HTML (commented out), expects `portrait.png`
+- Use `#C0392B` for the theme colour, accent rule, selection highlight, hover
+  underlines, focus rings, and favicon.
+- Use Charter for the body and name. Use Helvetica Neue for social links.
+- Use a minimal, centred card layout with middot-separated social links.
+- The commented HTML contains a portrait image slot for `portrait.png`.

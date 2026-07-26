@@ -1,48 +1,46 @@
 # Infrastructure Authoring Style Guide
 
-How to actually write the two artifacts our infrastructure work is made of: **HCL
-modules** and **GitHub Actions workflows**. The workflows cover both continuous
-integration (linting, type-checking, and testing the application code from the
-Python and TypeScript guides) and continuous delivery (planning and applying
-infrastructure), because both are written to one set of conventions. This is the
-syntax-and-convention layer
-that sits beneath the [Infrastructure Philosophy guide](./infrastructure-style-guide.md),
-the way the [Python](./python-style-guide.md) and [TypeScript](./typescript-style-guide.md)
-guides give concrete conventions beneath shared design principles. The philosophy
-guide settles *what and why*: OpenTofu, OIDC, environment-major layout,
-modules-as-the-unit, the plan-as-lockfile rule. This guide covers *how you write
-the lines*.
+This guide defines how to write HCL modules and GitHub Actions workflows.
+Workflows support continuous integration and continuous delivery. The same
+conventions apply to both uses. This authoring guide supplies the syntax layer
+beneath the [infrastructure philosophy guide](./infrastructure-style-guide.md).
 
-Two parts: OpenTofu/HCL first, GitHub Actions second. Both close into a shared set
-of design principles and a reference list.
+The [Python](./python-style-guide.md) and
+[TypeScript](./typescript-style-guide.md) guides have the same relationship to
+the shared design principles. The philosophy guide defines the decisions and
+reasons. This guide defines the implementation conventions.
+
+Part 1 covers OpenTofu and HCL. Part 2 covers GitHub Actions. The final section
+contains references.
 
 ---
 
-# Part 1 — OpenTofu (HCL)
+## Part 1: OpenTofu (HCL)
 
-## Formatting & Tooling
+Part 1 defines conventions for OpenTofu modules and HCL files.
 
-`tofu fmt` is non-negotiable and runs in pre-commit and CI; unformatted HCL fails
-the build, exactly as ruff-format failures fail the Python build. `tflint` runs
+### Formatting and Tooling
+
+Run `tofu fmt` in pre-commit and CI. Unformatted HCL fails the build. Run `tflint`
 alongside it for provider-aware static checks (deprecated syntax, invalid instance
 types, missing required arguments) that `validate` alone misses.
 
-| Command | Purpose |
-|---------|---------|
-| `tofu fmt -recursive` | Format every file. CI runs `tofu fmt -check`. |
-| `tofu validate` | Schema and reference validation. |
-| `tflint` | Provider-aware lint and naming rules. |
-| `tofu test` | Run module test suites. |
-| `terraform-docs` | Generate the inputs/outputs tables in each module README. |
+| Command               | Purpose                                                   |
+| --------------------- | --------------------------------------------------------- |
+| `tofu fmt -recursive` | Format every file. CI runs `tofu fmt -check`.             |
+| `tofu validate`       | Schema and reference validation.                          |
+| `tflint`              | Provider-aware lint and naming rules.                     |
+| `tofu test`           | Run module test suites.                                   |
+| `terraform-docs`      | Generate the inputs/outputs tables in each module README. |
 
-Two-space indentation and alignment are handled by `fmt`. Never argue with it,
-never hand-align. Let the formatter own whitespace so diffs stay about meaning.
+`fmt` handles two-space indentation and alignment. Do not align HCL manually.
+Use the formatter so a diff shows content changes.
 
-## File Layout Within a Module
+### File Layout Within a Module
 
 One file per concern. A reader should know where to look before opening anything.
 
-```
+```text
 modules/network/
 ├── main.tf          # resources and data sources
 ├── variables.tf     # the typed input interface — written first
@@ -55,9 +53,9 @@ modules/network/
     └── network.tftest.hcl
 ```
 
-`versions.tf` pins the toolchain and providers, and the **lock file
-`.terraform.lock.hcl` is committed**. It is the `uv.lock` / `bun.lockb` of
-infrastructure, guaranteeing every run resolves the same provider builds.
+`versions.tf` pins the toolchain and providers. Commit the
+`.terraform.lock.hcl` lock file. It has the same role as `uv.lock` and
+`bun.lockb`. It makes each run resolve the same provider builds.
 
 ```hcl
 # versions.tf
@@ -73,30 +71,29 @@ terraform {
 }
 ```
 
-A module never declares a `provider` block of its own. Providers are configured by
-the root and passed in, so the same module runs against any account or region the
-caller points it at.
+A module never declares a `provider` block. The root configures providers and
+passes them to the module. The caller can therefore select any account or region.
 
-## Naming Conventions
+### Naming Conventions
 
-Everything is `snake_case`. Names describe **role**, not type. The resource type
-is already in the address, so `aws_s3_bucket.state` not `aws_s3_bucket.bucket`.
+Everything is `snake_case`. Names describe the resource role. The address already
+contains the resource type. Use `aws_s3_bucket.state`.
 
-| Construct | Convention | Example |
-|-----------|-----------|---------|
-| Resources, data sources | `snake_case`, role-named | `aws_s3_bucket.state`, `aws_iam_role.apply` |
-| The single primary resource of a single-purpose module | `this` | `aws_kms_key.this` |
-| Variables | `snake_case` | `vpc_cidr`, `enable_replica` |
-| Outputs | `snake_case` | `bucket_arn`, `subnet_ids` |
-| Locals | `snake_case` | `name_prefix`, `common_tags` |
-| Modules (calls) | `snake_case`, role-named | `module.network`, `module.compute` |
-| Files | `snake_case.tf` | `main.tf`, `variables.tf` |
+| Construct                                              | Convention               | Example                                     |
+| ------------------------------------------------------ | ------------------------ | ------------------------------------------- |
+| Resources, data sources                                | `snake_case`, role-named | `aws_s3_bucket.state`, `aws_iam_role.apply` |
+| The single primary resource of a single-purpose module | `this`                   | `aws_kms_key.this`                          |
+| Variables                                              | `snake_case`             | `vpc_cidr`, `enable_replica`                |
+| Outputs                                                | `snake_case`             | `bucket_arn`, `subnet_ids`                  |
+| Locals                                                 | `snake_case`             | `name_prefix`, `common_tags`                |
+| Modules (calls)                                        | `snake_case`, role-named | `module.network`, `module.compute`          |
+| Files                                                  | `snake_case.tf`          | `main.tf`, `variables.tf`                   |
 
-- **Boolean variables** start with `enable_`, `is_`, or `has_`: `enable_replica`,
+- Boolean variables start with `enable_`, `is_`, or `has_`: `enable_replica`,
   `is_public`.
-- **Collections are plural** and keyed names singular: `subnet_ids`, and a
+- Collections are plural and keyed names singular: `subnet_ids`, and a
   `for_each` over `var.subnets`.
-- **Compose names once** in a local and reuse it, rather than re-deriving the same
+- Compose names once in a local and reuse it, rather than re-deriving the same
   string in every resource:
 
 ```hcl
@@ -112,12 +109,11 @@ locals {
 }
 ```
 
-## Variables — the Typed Boundary
+### Variables: the Typed Boundary
 
-Every variable carries a `type`, a `description`, and a `validation` block where the
-value has rules. This is the HCL form of validating at the boundary: the variable
-interface is the contract, and bad input is rejected at the door rather than
-producing a confusing error deep in a plan.
+Every variable has a `type`, a `description`, and a `validation` block when
+rules apply. The variable interface is the boundary contract. Validation rejects
+bad input before it causes a confusing plan error.
 
 ```hcl
 # variables.tf
@@ -153,19 +149,19 @@ variable "subnets" {
 
 Rules:
 
-- **No untyped variables.** A bare `variable "x" {}` accepts anything and defeats
-  the point. Always constrain the type; use `object(...)` for structured input.
-- **Descriptions are mandatory.** They render into the generated README and into
-  editor tooltips.
-- **`nullable = false`** unless absent is genuinely meaningful.
-- **`sensitive = true`** on anything secret-adjacent, so values are redacted from
+- Declare a type for every variable. A bare `variable "x" {}` accepts any value.
+  Use `object(...)` for structured input.
+- Add a description to every variable. Descriptions appear in the generated
+  README and editor tooltips.
+- Set `nullable = false` unless the absence of a value has a defined meaning.
+- Set `sensitive = true` for secret values. This setting redacts the values from
   plan output.
-- **No unused variables.** `tflint` flags them; remove them.
+- Remove unused variables. `tflint` identifies them.
 
-## Outputs — the Public Interface
+### Outputs: the Public Interface
 
-`outputs.tf` is the module's public API: the only values another layer is allowed
-to read. Expose what consumers need and nothing more, and document every one.
+`outputs.tf` is the module's public API. Other layers can read only these values.
+Expose only the values that consumers need, and document each value.
 
 ```hcl
 # outputs.tf
@@ -180,13 +176,15 @@ output "private_subnet_ids" {
 }
 ```
 
-## Resources & Logic
+### Resources and Logic
 
-### `for_each` over `count`
+Use these rules to keep resource addresses stable and dependencies explicit.
 
-Default to `for_each`. It addresses resources by a stable key, so removing the
-second of three items deletes that one item; `count` addresses by index, so the
-same removal renumbers everything after it and forces needless destroy-and-recreate.
+#### `for_each` Over `count`
+
+Default to `for_each` because it addresses resources by a stable key. Removing
+one item then deletes only that item. In contrast, `count` addresses by index.
+A removal can renumber later resources and force unnecessary replacement.
 
 ```hcl
 # Good - keyed, stable addressing
@@ -198,14 +196,14 @@ resource "aws_subnet" "private" {
   tags              = merge(local.common_tags, { Name = "${local.name_prefix}-${each.key}" })
 }
 
-# Acceptable - count only for a simple create-or-not toggle
+# Acceptable - use count only for one optional resource
 resource "aws_flow_log" "this" {
   count = var.enable_flow_logs ? 1 : 0
   # ...
 }
 ```
 
-### Refactor with `moved`, never by silent rename
+#### Refactor with `moved`, Never by Silent Rename
 
 Renaming a resource is a destroy-and-recreate unless you tell the engine the
 address moved. Use a `moved` block so the refactor is a no-op apply.
@@ -217,19 +215,18 @@ moved {
 }
 ```
 
-### Other resource rules
+#### Other Resource Rules
 
-- **Prefer implicit dependencies** through references; reach for `depends_on` only
-  when a dependency genuinely can't be expressed as a reference.
-- **`dynamic` blocks sparingly.** They obscure the plan; use them only for
-  genuinely variable-length nested blocks, not to save three lines.
-- **No `local-exec` / `remote-exec` as glue.** Provisioners that shell out are
-  imperative escape hatches; if you need them, the thing you're modelling probably
-  wants a real provider or a separate tool.
-- **No hardcoded ARNs, account IDs, or regions** in a module. They arrive as
-  variables or from data sources.
+- Prefer implicit dependencies through references. Use `depends_on` only
+  when a dependency genuinely cannot be expressed as a reference.
+- Use `dynamic` blocks only for variable-length nested blocks. They make the plan
+  more difficult to read.
+- Do not use `local-exec` or `remote-exec` to connect resources. Use a provider
+  or a separate tool for an imperative operation.
+- Do not put fixed ARNs, account IDs, or regions in a module. Supply them through
+  variables or data sources.
 
-## Cross-Layer References Are Read-Only
+### Cross-Layer References Are Read-Only
 
 A component reads another layer's outputs through a remote-state data source, and
 only reads. Layers depend downward (compute on network), never sideways or up, and
@@ -252,12 +249,11 @@ resource "aws_instance" "app" {
 }
 ```
 
-## Checks & Tests
+### Checks and Tests
 
-`check` blocks assert on planned and actual state; `tofu test` exercises the module
-against fixture inputs, including the rejection paths. Tests live beside the module
-and the negative path matters as much as the happy one, exactly as with Pydantic
-models in the Python guide.
+`check` blocks verify planned and actual state. `tofu test` uses fixture inputs,
+including invalid inputs. Store tests beside the applicable module. A failed
+invalid-input test has the same priority as a failed valid-input test.
 
 ```hcl
 # tests/network.tftest.hcl
@@ -287,40 +283,40 @@ run "rejects_invalid_cidr" {
 }
 ```
 
-## Documentation
+### Documentation
 
-- A description on every variable and output, a one-line comment at the top of each
-  module stating its purpose, and a README whose inputs/outputs tables are generated
-  by `terraform-docs` (never hand-maintained — they go stale).
-- Comments explain **why**, not what. `# capture price at order time so historical
-  values stay stable` earns its place; `# create the bucket` does not.
+- Add a description to every variable and output. Add a one-line purpose comment
+  at the top of each module. Use `terraform-docs` to generate each README input
+  and output table.
+- Use comments to explain a decision or constraint. For example, use
+  `# capture price at order time so historical values stay stable`. Do not add a
+  comment that restates the code, such as `# create the bucket`.
 
-## Anti-Patterns
+### HCL Anti-Patterns
 
-| Don't | Do |
-|-------|-----|
-| Untyped `variable "x" {}` | Constrain the type; `object(...)` for structure |
-| `count` for a keyed set | `for_each` over a map |
-| Renaming a resource in place | A `moved` block |
-| `provider` block inside a module | Configure in root, pass in |
-| Hardcoded ARNs / regions / account IDs | Variables and data sources |
-| Secrets in plaintext or in state | References to a secret store; encrypted state |
-| One 600-line `main.tf` | Split by concern; split state by component |
-| Hand-written README tables | `terraform-docs` |
+| Do not                                 | Do                                              |
+| -------------------------------------- | ----------------------------------------------- |
+| Untyped `variable "x" {}`              | Constrain the type. `object(...)` for structure |
+| `count` for a keyed set                | `for_each` over a map                           |
+| Renaming a resource in place           | A `moved` block                                 |
+| `provider` block inside a module       | Configure in root, pass in                      |
+| Hardcoded ARNs / regions / account IDs | Variables and data sources                      |
+| Secrets in plaintext or in state       | References to a secret store. Encrypted state   |
+| One 600-line `main.tf`                 | Split by concern. Split state by component      |
+| Hand-written README tables             | `terraform-docs`                                |
 
 ---
 
-# Part 2 — GitHub Actions (YAML)
+## Part 2: GitHub Actions (YAML)
 
-Every workflow in the repository is written to the conventions in this part,
-whether it runs **CI** (validating the Python and TypeScript code) or **CD**
-(planning and applying infrastructure). The structural and security rules below
-(layout, naming, triggers, permissions, pinning, secrets, reuse) apply to both;
-only the job body differs. Two shapes close the part: the CI shape and the CD shape.
+Every workflow in the repository follows these conventions. Continuous
+integration validates Python and TypeScript code. Continuous delivery plans and
+applies infrastructure. The structural and security rules apply to both uses.
+Only the job body differs. The final examples show both workflow shapes.
 
-## File Layout & Naming
+### File Layout and Naming
 
-```
+```text
 .github/
 ├── workflows/
 │   ├── ci-python.yml         # PR + push: lint, type-check, test Python
@@ -336,20 +332,18 @@ only the job body differs. Two shapes close the part: the CI shape and the CD sh
 └── dependabot.yml            # github-actions ecosystem updates
 ```
 
-- Workflow files are `kebab-case` and verb-named: `apply-prod.yml`, not `prod.yml`.
-- **`name:` on every workflow, job, and step.** A named step reads like a sentence
-  in the log and tells you what failed at a glance, the workflow analogue of
-  naming a test as a sentence.
+- Use a verb and kebab-case for each workflow filename, such as `apply-prod.yml`.
+- Add `name:` to every workflow, job, and step. A clear name identifies a failure
+  in the log.
 
-## Triggers & Concurrency
+### Triggers and Concurrency
 
-Declare `on:` explicitly with path filters so each workflow fires only on the
-changes it cares about: source paths for CI, infra paths for plan and apply. Use a
-`concurrency` group to stop runs from racing. But the apply
-behaviour is the opposite of the plan behaviour, and this distinction matters:
+Declare `on:` explicitly with path filters. Use source paths for CI and
+infrastructure paths for plan and apply. Use a `concurrency` group to prevent
+races. Apply and plan require different concurrency behaviour:
 
 ```yaml
-# plan.yml - cancel a superseded plan, it is cheap and disposable
+# plan.yml - cancel a superseded plan
 concurrency:
   group: plan-${{ github.ref }}
   cancel-in-progress: true
@@ -360,16 +354,17 @@ concurrency:
   cancel-in-progress: false
 ```
 
-Cancelling an in-flight apply can leave state and reality disagreeing. Applies
-queue; they never interrupt each other.
+Cancelling an active apply can make the state differ from the infrastructure.
+Queue apply jobs. Do not interrupt an apply job.
 
-Avoid `pull_request_target` for anything that checks out and runs PR code, and
-treat all PR metadata (title, branch name, body) as untrusted input.
+Do not use `pull_request_target` for a workflow that checks out and runs PR code.
+Treat all PR metadata, including titles, branch names, and bodies, as untrusted
+input.
 
-## Permissions — Least Privilege
+### Permissions: Least Privilege
 
-Start from nothing and grant the minimum each job needs. The default token is
-read-only; write scopes and `id-token` are added only to the job that uses them.
+Set workflow permissions to `{}` and grant the minimum permissions to each job.
+Add write scopes and `id-token` only to the job that uses them.
 
 ```yaml
 permissions: {}          # workflow-level default: nothing
@@ -389,18 +384,16 @@ jobs:
 ```
 
 `id-token: write` is what lets the job mint an OIDC token to assume a cloud role.
-Granting it globally hands every job the ability to authenticate to your cloud;
-grant it to the apply job alone.
+Granting it globally permits every job to authenticate to your cloud.
+Grant it to the apply job alone.
 
-## Pinning — the Security Core
+### Pinning Third-Party Actions
 
-**Pin every third-party action to a full 40-character commit SHA**, with a trailing
-comment naming the version it corresponds to. Tags and branches are mutable: a
-compromised upstream can repoint `@v4` or `@main` to malicious code, and your next
-run executes it. A SHA is immutable. It runs the exact code you audited. This is
-the single most important rule in the file, driven by a run of real supply-chain
-compromises (tj-actions/changed-files, reviewdog, Trivy) that hit tens of thousands
-of repositories by moving tags.
+Pin every third-party action to a full 40-character commit SHA. Add a trailing
+comment that gives the corresponding version. Tags and branches are mutable. A
+compromised upstream can point `@v4` or `@main` at malicious code. A SHA is
+immutable and runs the code that you audited. A moved tag can make a later
+workflow run execute different code.
 
 ```yaml
 # Bad - mutable references
@@ -411,16 +404,13 @@ of repositories by moving tags.
 - uses: actions/checkout@<full-40-char-commit-sha>   # v4.2.2
 ```
 
-Use the SHA of a tagged, audited release (not an arbitrary commit), and obtain and
-maintain those SHAs through tooling rather than by hand:
+Use the SHA of a tagged and audited release. Use tools to obtain and maintain the
+SHAs.
 
-- **Dependabot** on the `github-actions` ecosystem opens reviewed PRs that bump a
-  pinned SHA when a new release ships.
-- **A minimum release age** (a 7-14 day cooldown via `pinact` or Renovate) before
-  adopting a new version catches the large majority of supply-chain attacks, whose
-  detection window is usually under a week.
-- **A workflow linter** (`zizmor`, `actionlint`) in CI catches unpinned actions,
-  template injection, and dangerous triggers before they merge.
+- Dependabot for the `github-actions` ecosystem opens a PR that updates a pinned
+  SHA when a new release is available.
+- Configure a seven-day minimum release age before an update can merge.
+- Run `actionlint` in CI to check workflow syntax and expressions.
 
 ```yaml
 # dependabot.yml
@@ -432,18 +422,11 @@ updates:
       interval: "weekly"
 ```
 
-> **Watch this space:** GitHub's roadmap includes a `dependencies:` block — a
-> workflow lock file that pins direct and transitive action dependencies to SHAs,
-> the way `go.sum` locks Go modules. Until it lands, SHA pinning plus reviewed
-> updates is the strongest control. Same trajectory as the Python guide's note on
-> `ty`: the manual discipline becomes a built-in once the tooling catches up.
+### Secrets and Authentication
 
-## Secrets & OIDC
-
-No long-lived cloud keys live in GitHub. The apply job authenticates to the cloud
-through **OIDC**, assuming a role scoped by subject claim (repo, branch,
-environment), so there is no standing credential to leak. See the philosophy guide
-for the full rationale.
+Use OIDC to assume a role when the provider supports it. Subject claims restrict
+the role by repository, branch, and environment. Store a narrowly scoped
+credential in a protected environment when a provider does not support OIDC.
 
 ```yaml
 - uses: aws-actions/configure-aws-credentials@<full-40-char-commit-sha>  # v4.x
@@ -453,15 +436,15 @@ for the full rationale.
     # no access keys - the role is assumed via the OIDC token
 ```
 
-- **GitHub Environments are the prod gate.** Put the prod role behind an
-  environment with required reviewers and a branch restriction; the apply job
+- GitHub Environments enforce production approval. Put the production role in an
+  environment with required reviewers and a branch restriction. The apply job
   references that environment, and the review is the deliberate human promotion
   decision the philosophy guide describes.
-- **Environment secrets over repository secrets**: they are readable only by jobs
-  that name the environment.
-- **Never interpolate untrusted input into a `run:` script.** `${{ github.event.*
-  }}` values can carry shell injection; bind them to `env:` and reference the
-  variable instead:
+- Prefer environment secrets because only jobs that name the environment can read
+  them.
+- Never interpolate untrusted input into a `run:` script. Values from
+  `${{ github.event.* }}` can carry shell injection. Bind them to `env:` and
+  reference the variable instead:
 
 ```yaml
 # Bad - injection vector
@@ -473,11 +456,10 @@ for the full rationale.
   run: echo "Title: $PR_TITLE"
 ```
 
-## Reuse — Workflows and Composite Actions
+### Reuse: Workflows and Composite Actions
 
-Don't copy-paste a workflow per environment. Extract the shared shape into a
-**reusable workflow** and call it with typed inputs, the way environments share one
-OpenTofu module. Pass secrets explicitly rather than letting them inherit.
+Do not copy a workflow for each environment. Put shared jobs in a reusable
+workflow and call it with typed inputs. Pass each secret explicitly.
 
 ```yaml
 # apply-staging.yml
@@ -487,25 +469,27 @@ jobs:
     with:
       environment: staging
       command: apply
-    secrets: inherit   # or pass named secrets explicitly for tighter scope
+    secrets:
+      cloud_role: ${{ secrets.CLOUD_ROLE }}
 ```
 
-Reach for a **composite action** (`.github/actions/tofu-setup/action.yml`) for the
-repeated step sequence inside a job — install OpenTofu, authenticate, configure the
-backend — rather than a reusable workflow, which composes whole jobs.
+Use a composite action for a repeated step sequence inside one job. For
+example, `.github/actions/tofu-setup/action.yml` can install OpenTofu,
+authenticate, and configure the backend. A reusable workflow composes whole jobs.
 
-## The CI Shape
+### CI Workflow
 
-CI validates application code on every pull request and push, running exactly the
-checks the [Python](./python-style-guide.md) and [TypeScript](./typescript-style-guide.md)
-guides already define for pre-commit. Running the same gate in both places is the
-shift-left rule: a failure shows up on the laptop before it reaches CI, and CI is
-the backstop that makes the gate non-optional.
+CI validates application code on every pull request and push. It runs the checks
+that the [Python](./python-style-guide.md) and
+[TypeScript](./typescript-style-guide.md) guides define for pre-commit. The same
+local and CI gate reports failures early and makes the checks mandatory.
 
-The job is the same five beats every time: check out, set up the toolchain with a
-cache keyed on the lock file, install from the lock file, run the gate (format,
-lint, type-check, test), and report. Permissions stay at `contents: read`; CI has
-no business writing anything.
+Each job uses the same sequence. Check out the repository and set up the cached
+toolchain. Install from the lock file. Run formatting, linting, type checks, and
+tests.
+
+Then report the result. Keep permissions at `contents: read`. CI does not
+write repository content.
 
 ```yaml
 # ci-python.yml
@@ -570,21 +554,17 @@ jobs:
 
 Two CI-specific rules:
 
-- **Cache keyed on the lock file, nothing vaguer.** A cache keyed on `uv.lock` or
-  `bun.lockb` invalidates exactly when dependencies change and never otherwise, so
-  CI stays both fast and correct. `enable-cache: true` on `setup-uv` does this for
-  you; for other toolchains, key `actions/cache` on a hash of the lock file.
-- **Matrix only where it changes behaviour.** A matrix over operating systems or
-  supported language versions earns its runtime when the code genuinely has to work
-  across them. A matrix that fans out combinations nothing depends on just burns
-  minutes, and since the language guides pin a single version, most projects need no
-  matrix at all.
+- Key each cache on its lock file. A cache keyed on `uv.lock` or `bun.lockb`
+  changes when the dependencies change. `enable-cache: true` on `setup-uv` uses
+  this key. For other toolchains, key `actions/cache` on a hash of the lock file.
+- Use a matrix only when the project supports multiple operating systems or
+  language versions. Do not use a matrix when the project pins one version.
 
-## The CD Shape (Plan / Apply)
+### CD Workflow (Plan and Apply)
 
-The infrastructure pipeline stages are the sum of the rules above, and they encode
-the plan-as-lockfile rule directly: the plan workflow saves the plan as an
-artifact, and apply consumes that exact artifact rather than re-planning.
+The infrastructure pipeline applies the preceding rules. The plan workflow saves
+its plan as an artefact. The apply workflow uses that exact artefact and does not
+create a new plan.
 
 ```yaml
 # plan.yml (PR)
@@ -606,84 +586,33 @@ artifact, and apply consumes that exact artifact rather than re-planning.
 - run: tofu apply tfplan      # the reviewed artifact, not a fresh plan
 ```
 
-Set `timeout-minutes` on every job so a hung apply can't run indefinitely, and pin
-the runner image (`runs-on: ubuntu-24.04`, not `ubuntu-latest`) so the environment
-doesn't drift underneath you.
+Set `timeout-minutes` on every job. Pin the runner image, for example
+`runs-on: ubuntu-24.04`. Do not use `ubuntu-latest`.
 
-## Anti-Patterns
+### Anti-Patterns
 
-| Don't | Do |
-|-------|-----|
-| `uses: action@v4` or `@main` | Pin to a full commit SHA with a version comment |
-| `permissions: write-all` | `permissions: {}` then grant per job |
-| `id-token: write` at workflow level | Only on the OIDC job |
-| Static cloud keys in secrets | OIDC role assumption |
-| `${{ github.* }}` inside `run:` | Bind to `env:` and quote the variable |
-| `cancel-in-progress: true` on apply | Serialise applies; never cancel one |
-| `runs-on: ubuntu-latest` | Pin the runner image |
-| Copy-pasted per-environment workflows | One reusable workflow, called with inputs |
-| CI checks that differ from pre-commit | Run the identical gate in both |
-| Cache keyed on a date or commit | Key the cache on the lock file |
-| Matrix over combinations nothing needs | Matrix only where behaviour changes |
-
----
-
-# Design Principles
-
-### 1. The Formatter and Linter Are Not Optional
-
-Unformatted HCL or an unpinned action fails the build, in pre-commit and in CI.
-Whitespace and pinning are settled by tools, not in review.
-
-### 2. Every Input Is Typed and Validated; Every Output Is Documented
-
-`variables.tf` is the module's contract. A bare untyped variable is the `any` of
-infrastructure. Constrain it, validate it, describe it.
-
-### 3. Address Resources by Name, Never by Index
-
-`for_each` over `count`. Removing one item should delete one item, not renumber the
-rest into a destroy-and-recreate.
-
-### 4. Pin Everything to an Immutable Reference
-
-A SHA for actions, the lock file for providers, a tag for modules. If a reference
-can move underneath you, it will.
-
-### 5. Least Privilege by Default
-
-`permissions: {}`, then grant the one job that needs the one scope it needs.
-`id-token: write` belongs to the apply job alone.
-
-### 6. Secrets Are Referenced, Never Written
-
-OIDC for the cloud, environment-scoped for everything else, never interpolated into
-a shell. The value lives in the store native to its boundary.
-
-### 7. The Plan Is the Artifact
-
-CI plans and uploads; apply downloads and applies. A workflow never re-plans at
-apply time. You apply what was reviewed.
-
-### 8. Reuse, Don't Repeat
-
-Shared modules and reusable workflows hold the one definition. Environments and
-pipelines differ by input, not by copied code.
-
-### 9. Local, CI, and the Merge Gate Run the Same Checks
-
-CI runs exactly what pre-commit runs, and the merge gate requires it green. A check
-that lives only in CI gets discovered late; one that lives only locally gets
-skipped. The same gate in all three places is what makes it real.
+| Do not                                 | Do                                              |
+| -------------------------------------- | ----------------------------------------------- |
+| `uses: action@v4` or `@main`           | Pin to a full commit SHA with a version comment |
+| `permissions: write-all`               | `permissions: {}` then grant per job            |
+| `id-token: write` at workflow level    | Only on the OIDC job                            |
+| Static cloud keys in secrets           | OIDC role assumption                            |
+| `${{ github.* }}` inside `run:`        | Bind to `env:` and quote the variable           |
+| `cancel-in-progress: true` on apply    | Serialise applies. Never cancel one             |
+| `runs-on: ubuntu-latest`               | Pin the runner image                            |
+| Copy-pasted per-environment workflows  | One reusable workflow, called with inputs       |
+| CI checks that differ from pre-commit  | Run the identical gate in both                  |
+| Cache keyed on a date or commit        | Key the cache on the lock file                  |
+| Unneeded matrix combinations           | Matrix only where behaviour changes             |
 
 ---
 
-# References
+## References
 
-**Important:** Before writing infrastructure code or workflows, read the
-documentation linked below. Each link uses the `defuddle.md` prefix, which returns
-clean, agent-readable markdown. Read the full documentation, not just the
-getting-started pages.
+Before you write infrastructure code or workflows, read the linked documentation.
+Each link uses the `defuddle.md` prefix, which returns agent-readable Markdown.
+Read the complete documentation, including pages outside the getting-started
+section.
 
 - [OpenTofu language reference](https://defuddle.md/opentofu.org/docs/language/)
 - [OpenTofu style conventions](https://defuddle.md/opentofu.org/docs/language/syntax/style/)

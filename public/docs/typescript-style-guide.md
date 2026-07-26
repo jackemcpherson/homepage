@@ -1,69 +1,68 @@
 # TypeScript Development Style Guide
 
-Project conventions, tech stack, and design principles for TypeScript development.
-Informed by the Google TypeScript Style Guide, the Astral (uv/ruff) philosophy of
-fast single-purpose tooling, and FastAPI patterns adapted for the TypeScript ecosystem.
+Project conventions, tools, and design principles for TypeScript development.
+The Google TypeScript Style Guide informs these conventions. They also use the
+Astral preference for fast, single-purpose tools and adapted FastAPI patterns.
 
 ---
 
 ## Tech Stack
 
+Use the core runtime and development tools in this section.
+
 ### Core
 
-| Tool | Role | Why |
-|------|------|-----|
-| **TypeScript** | Language | Strict mode, always |
-| **Hono** | Web framework | Lightweight, Workers-native, typed routes — the FastAPI of TS |
-| **Zod** | Runtime validation | Pydantic equivalent — define once, get types + validation |
-| **D1** | Database | Cloudflare's SQLite — co-located with Workers |
-| **Drizzle ORM** | Database ORM | Type-safe SQL, D1-native, schema as code |
+| Tool            | Role               | Why                                                          |
+| --------------- | ------------------ | ------------------------------------------------------------ |
+| **TypeScript**  | Language           | Strict mode, always                                          |
+| **Hono**        | Web framework      | Lightweight, Workers-native, and typed                       |
+| **Zod**         | Runtime validation | Defines runtime validation and inferred types                |
+| **D1**          | Database           | Cloudflare's SQLite: co-located with Workers                 |
+| **Drizzle ORM** | Database ORM       | Type-safe SQL, D1-native, schema as code                     |
 
-### The minimal-Worker exception
+### The Minimal-Worker Exception
 
-Hono, Drizzle, and the rest of the Core stack are the default for new
-projects, not a hard mandate. A small Cloudflare Worker (roughly: a
-few routes, hand-countable SQL statements, single maintainer) may use
-hand-rolled routing and raw parameterised SQL instead — the framework
-overhead can exceed the code it replaces. Zod at external boundaries
-is **not** part of this exception; it applies everywhere.
+Hono, Drizzle, and the rest of the core stack are the default for new projects.
+A small Cloudflare Worker can use hand-written routing and raw parameterised SQL.
+This exception suits a few routes, few SQL statements, and one maintainer. In
+that case, framework overhead can exceed the code that it replaces. Always use
+Zod at external boundaries.
 
-If you take the exception, say so in the project's CLAUDE.md and note
-the threshold for revisiting (e.g. "adopt Hono if routes outgrow one
-if/else chain"). AFL-MCP is the canonical example.
+Record the exception in the project's CLAUDE.md. State a review threshold, such
+as adopting Hono when routes exceed one conditional chain. AFL-MCP is the
+canonical example.
 
 ### Tooling
 
-| Tool | Role | Python equivalent |
-|------|------|-------------------|
-| **Bun** | Package manager + script runner + bundler | uv |
-| **Biome** | Lint + format (single tool) | ruff |
-| **Vitest** | Test runner | pytest |
-| **wrangler** | Dev server + deploy CLI | uvicorn + deployment |
-| **tsc** | Type checker | mypy |
+| Tool         | Role                                      | Python equivalent    |
+| ------------ | ----------------------------------------- | -------------------- |
+| **Bun**      | Package manager + script runner + bundler | uv                   |
+| **Biome**    | Lint + format (single tool)               | ruff                 |
+| **Vitest**   | Test runner                               | pytest               |
+| **wrangler** | Dev server + deploy CLI                   | uvicorn + deployment |
+| **tsc**      | Type checker                              | mypy                 |
 
-**Why Bun over pnpm/npm:** Bun is the closest analogue to uv — a single
-Rust/Zig binary that handles package management, script running, and
-bundling. `bun install` is significantly faster than npm/pnpm. Bun also
-includes a built-in test runner (`bun test`), but we use Vitest for
-Workers-specific tests because of its Miniflare integration for testing
-D1, KV, and other Cloudflare bindings locally.
+#### Why the Project Uses Bun
 
-**Important:** Bun is used as the package manager and local runner, but
-the code still deploys to Cloudflare Workers (which uses the V8 runtime,
-not Bun's runtime). Don't rely on Bun-specific APIs (`Bun.file()`,
-`Bun.serve()`, etc.) in application code — stick to Web Standard APIs
-(`fetch`, `Request`, `Response`, `crypto`) which work in both Bun and
-Workers. This keeps the codebase portable.
+Bun provides package management, script execution, and bundling in one binary.
+It has a role similar to uv in Python projects. Use Vitest for Workers tests
+because its Miniflare integration supports local Cloudflare bindings such as D1
+and KV.
+
+Use Bun as the package manager and local runner. Cloudflare
+Workers runs the deployed code in V8. Do not use Bun-specific application APIs
+such as `Bun.file()` or `Bun.serve()`. Use Web Standard APIs such as `fetch`,
+`Request`, `Response`, and `crypto`. Both Bun and Workers support these APIs.
 
 ### Infrastructure (Cloudflare)
 
-| Service | Role |
-|---------|------|
-| **Workers** | Compute (HTTP handlers + cron triggers) |
-| **D1** | SQLite database |
-| **Vectorize** | Vector search index |
-| **Workers AI** | Embedding generation |
-| **Dynamic Workers** | Sandboxed code execution (Code Mode) |
+| Service             | Role                                    |
+| ------------------- | --------------------------------------- |
+| **Workers**         | Compute (HTTP handlers + cron triggers) |
+| **D1**              | SQLite database                         |
+| **Vectorize**       | Vector search index                     |
+| **Workers AI**      | Embedding generation                    |
+| **Dynamic Workers** | Sandboxed code execution (Code Mode)    |
 
 ### Package Scripts
 
@@ -80,7 +79,8 @@ Workers. This keeps the codebase portable.
 }
 ```
 
-All scripts are invoked via `bun run <name>` (e.g., `bun run dev`, `bun run test`).
+Invoke all scripts through `bun run <name>`. For example, use `bun run dev` or
+`bun run test`.
 For one-off commands, use `bunx` (equivalent to `uvx`): `bunx wrangler deploy`.
 
 ### Project Setup
@@ -104,8 +104,10 @@ bunx @biomejs/biome init
 bun run dev
 ```
 
-**Lock file:** Bun uses `bun.lockb` (binary format). Commit it to version control
-— it's the equivalent of `uv.lock`.
+#### Lock File
+
+Bun uses `bun.lockb`. Commit this file to version control. It has the same role
+as `uv.lock` in a Python project.
 
 ---
 
@@ -134,9 +136,11 @@ Always use strict mode. No exceptions.
 
 ### Key Compiler Flags
 
-- **`strict: true`** — enables all strict checks. Non-negotiable.
-- **`noUncheckedIndexedAccess: true`** — `array[0]` returns `T | undefined`, not `T`. Forces you to handle missing data from API responses.
-- **`exactOptionalPropertyTypes: true`** — distinguishes between `undefined` and "missing". Catches real bugs in config objects.
+- Enable `strict: true` to activate all strict checks.
+- Enable `noUncheckedIndexedAccess: true`. An indexed access then returns
+  `T | undefined`, which requires handling for a missing value.
+- Enable `exactOptionalPropertyTypes: true` to distinguish `undefined` from a
+  missing property. This setting identifies errors in configuration objects.
 
 ---
 
@@ -150,7 +154,7 @@ Always use strict mode. No exceptions.
     "rules": {
       "recommended": true,
       "suspicious": {
-        "noExplicitAny": "error"    // ban `any` — use `unknown` instead
+        "noExplicitAny": "error"    // ban `any`: use `unknown` instead
       },
       "style": {
         "useConst": "error",         // prefer const over let
@@ -176,33 +180,39 @@ Always use strict mode. No exceptions.
 
 Follow the Google TypeScript Style Guide naming rules.
 
-| Construct | Convention | Example |
-|-----------|-----------|---------|
-| Variables, functions, methods | `camelCase` | `fetchMatchResults`, `seasonId` |
-| Types, interfaces, classes | `PascalCase` | `Match`, `PlayerMatchStats`, `AflApiClient` |
-| Constants (true constants) | `SCREAMING_SNAKE` | `MAX_RETRY_COUNT`, `DEFAULT_PAGE_SIZE` |
-| Enum-like unions | `PascalCase` values | `type RoundType = "HomeAndAway" \| "Finals"` |
-| File names | `kebab-case` | `afl-api.ts`, `player-stats.ts` |
-| Test files | `*.test.ts` | `afl-api.test.ts` |
-| Type-only files | `*.types.ts` or `types.ts` | `types.ts` |
-| Private class members | `private` keyword | No underscore prefix — use the language |
+| Construct                     | Convention                 | Example                                      |
+| ----------------------------- | -------------------------- | -------------------------------------------- |
+| Variables, functions, methods | `camelCase`                | `fetchMatchResults`, `seasonId`              |
+| Types, interfaces, classes    | `PascalCase`               | `Match`, `PlayerMatchStats`, `AflApiClient`  |
+| Constants (true constants)    | `SCREAMING_SNAKE`          | `MAX_RETRY_COUNT`, `DEFAULT_PAGE_SIZE`       |
+| Enum-like unions              | `PascalCase` values        | `type RoundType = "HomeAndAway" \| "Finals"` |
+| File names                    | `kebab-case`               | `afl-api.ts`, `player-stats.ts`              |
+| Test files                    | `*.test.ts`                | `afl-api.test.ts`                            |
+| Type-only files               | `*.types.ts` or `types.ts` | `types.ts`                                   |
+| Private class members         | `private` keyword          | No underscore prefix: use the language       |
 
 ### Naming Principles
 
-- **Be descriptive.** `fetchMatchResultsForRound` over `getResults`. `seasonId` over `sid`.
-- **Boolean variables** start with `is`, `has`, `should`, `can`: `isStale`, `hasNewData`.
-- **Collections** are plural: `matches`, `playerStats`, `rounds`.
-- **Functions that return promises** don't need an `async` suffix — the return type says it.
-- **Abbreviations** follow Google style: treat as words, not acronyms. `AflApi`, not `AFLApi`. `HttpClient`, not `HTTPClient`. Exception: two-letter acronyms stay uppercase in PascalCase (`ID`, `IO`).
+- Use descriptive names, such as `fetchMatchResultsForRound` and `seasonId`.
+- Start Boolean variables with `is`, `has`, `should`, or `can`. Examples are
+  `isStale` and `hasNewData`.
+- Use plural names for collections, such as `matches`, `playerStats`, and
+  `rounds`.
+- Omit an `async` suffix from a function that returns a promise. The return type
+  identifies the promise.
+- Treat abbreviations as words. Use `AflApi` and `HttpClient`. Keep two-letter
+  abbreviations uppercase in PascalCase, such as `ID` and `IO`.
 
 ---
 
 ## Type System
 
+Use strict types to model valid states and check external data.
+
 ### Prefer `interface` for Object Shapes
 
 ```typescript
-// Good — use interface for object shapes
+// Good: use interface for object shapes
 interface Match {
   id: number;
   seasonId: number;
@@ -214,7 +224,7 @@ interface Match {
   margin: number;
 }
 
-// Good — use type for unions, intersections, mapped types
+// Good: use type for unions, intersections, mapped types
 type RoundType = "HomeAndAway" | "Finals";
 type SearchResult = MatchResult | PlayerSeasonResult;
 type Nullable<T> = T | null;
@@ -235,15 +245,15 @@ type WeatherType = "RAIN" | "FINE" | "OVERCAST";
 ```
 
 Enums generate runtime code, have surprising behaviour with reverse mappings,
-and don't tree-shake well. Union types are pure type-level and disappear at runtime.
+and do not tree-shake well. Union types are pure type-level and disappear at runtime.
 
 ### Ban `any`, Use `unknown`
 
 ```typescript
-// Bad — silently disables all type checking
+// Bad: silently disables all type checking
 function parseResponse(data: any) { ... }
 
-// Good — forces you to narrow before using
+// Good: forces you to narrow before using
 function parseResponse(data: unknown) {
   const parsed = MatchSchema.parse(data);  // Zod validates + narrows
 }
@@ -282,7 +292,7 @@ const raw = await res.json();
 const match = AflMatchResponseSchema.parse(raw);  // throws ZodError if invalid
 ```
 
-### Prefer `readonly` for Data That Shouldn't Change
+### Prefer `readonly` for Data That Should Not Change
 
 ```typescript
 interface LadderEntry {
@@ -335,7 +345,7 @@ function formatResult(result: SearchResult): string {
 
 Follow Google Python style docstring conventions, adapted to TSDoc syntax.
 Document all public functions, interfaces, and types. Internal helpers
-get a single-line `/** comment */` if their purpose isn't obvious from the name.
+get a single-line `/** comment */` if the name does not explain their purpose.
 
 ### Function Documentation
 
@@ -390,7 +400,7 @@ interface PlayerMatchStats {
    * Foreign key to teams table.
    *
    * This is how you determine which team a player played for in a
-   * given match — the players table has no team column.
+   * given match: the players table has no team column.
    */
   teamId: number;
 
@@ -406,17 +416,20 @@ interface PlayerMatchStats {
 
 ### When to Document
 
-- **Always:** Public functions, exported interfaces/types, module-level constants.
-- **Sometimes:** Private methods with non-obvious logic. Complex type transformations.
-- **Never:** Self-explanatory one-liners. Getters/setters with obvious names.
+- Always document public functions, exported interfaces and types, and
+  module-level constants.
+- Document private methods and complex type transformations when their logic
+  needs an explanation.
+- Do not document one-line functions or accessor methods when their names explain
+  their purpose.
 
 ```typescript
-// No doc needed — name says everything
+// No doc needed: name says everything
 function isStale(lastDate: Date, thresholdDays: number): boolean {
   return daysBetween(lastDate, new Date()) > thresholdDays;
 }
 
-// Doc needed — non-obvious calculation
+// Doc needed: calculation requires an explanation
 /**
  * Calculate Player Approximate Value for a season.
  *
@@ -437,6 +450,8 @@ function calculatePav(
 ---
 
 ## Error Handling
+
+Use explicit result types for expected failures and exceptions for other errors.
 
 ### Use Custom Error Classes
 
@@ -470,11 +485,9 @@ class StaleDataError extends Error {
 For operations that can fail in expected ways (not exceptional errors),
 return a discriminated union instead of throwing.
 
-Scope: this mandate applies to **libraries** (published packages whose
-callers need to handle failures as values — fitzroy, rds-js). For
-application code (Workers, CLIs) it is recommended at fallible seams
-but not required end-to-end; a thrown domain error caught at the
-request/command boundary is acceptable there.
+This mandate applies to libraries whose callers handle failures as values,
+such as fitzroy and rds-js. For applications, use the pattern at fallible seams.
+A Worker or CLI can instead catch a thrown domain error at its external boundary.
 
 ```typescript
 type Result<T, E = Error> =
@@ -498,14 +511,14 @@ async function fetchWithFallback(season: number): Promise<Result<Match[]>> {
 ### Never Swallow Errors
 
 ```typescript
-// Bad — silent failure
+// Bad: silent failure
 try {
   await fetchData();
 } catch {
   // do nothing
 }
 
-// Good — log and handle
+// Good: log and handle
 try {
   await fetchData();
 } catch (error) {
@@ -518,9 +531,9 @@ try {
 
 ## Project Structure
 
-```
+```text
 src/
-  types.ts              # All shared types — define these first
+  types.ts              # All shared types: define these first
   worker.ts             # Entry point: Hono app + scheduled handler
   db.ts                 # D1 query helpers
   etl/
@@ -528,7 +541,7 @@ src/
     footywire.ts        # FootyWire scraper (fallback)
     transforms.ts       # Response normalisation, flattening
     pav.ts              # PAV calculation
-    pipeline.ts         # Orchestrator: freshness → extract → load → embed
+    pipeline.ts         # Orchestrator: freshness to extract to load to embed
   mcp/
     server.ts           # MCP protocol handler
     tools.ts            # Tool definitions (traditional 5-tool interface)
@@ -557,26 +570,27 @@ package.json
 
 ### Principles
 
-- **`types.ts` is written first.** Before any fetch logic, define Match, Player,
-  PlayerMatchStats, etc. The compiler guides everything from there.
-- **One file per data source.** `afl-api.ts`, `footywire.ts` — each owns its HTTP
-  calls, response parsing, and Zod validation.
-- **`transforms.ts` is pure functions.** No I/O, no side effects. Takes raw API
-  shapes, returns domain types. Easy to unit test.
-- **`pipeline.ts` is the orchestrator.** Calls sources in priority order, handles
-  fallback logic, coordinates loading and embedding. This is the cron handler's
-  entry point.
-- **Tests mirror src structure.** Test files live in `test/` and mirror the `src/`
+- Define the domain types in `types.ts` before you write fetch logic. The compiler
+  then guides the remaining work.
+- Put each data source in one file. For example, `afl-api.ts` owns its HTTP calls,
+  response parsing, and Zod validation.
+- Keep the functions in `transforms.ts` free of I/O and side effects. They accept
+  raw API shapes and return domain types.
+- Use `pipeline.ts` to call sources in priority order, handle fallback logic, and
+  coordinate loading and embedding. It is the cron handler entry point.
+- Tests mirror src structure. Test files live in `test/` and mirror the `src/`
   directory tree.
 
 ---
 
 ## Code Patterns
 
+Use these patterns for common TypeScript project structures and boundaries.
+
 ### Async/Await Everywhere
 
 ```typescript
-// Good — reads top-to-bottom like synchronous code
+// Good: reads top-to-bottom like synchronous code
 async function runEtlPipeline(env: Env): Promise<EtlResult> {
   const seasonId = await afl.getSeasonId(currentYear);
   const rounds = await afl.getRoundIds(seasonId);
@@ -597,7 +611,7 @@ async function runEtlPipeline(env: Env): Promise<EtlResult> {
 ### Use `Map` for Lookups
 
 ```typescript
-// Good — type-safe, better semantics than plain objects
+// Good: type-safe, better semantics than plain objects
 const teamNameMap = new Map<string, string>([
   ["Brisbane", "Brisbane Lions"],
   ["GWS", "GWS Giants"],
@@ -614,7 +628,7 @@ function normaliseTeamName(raw: string): string {
 ### Functional Transforms Over Mutation
 
 ```typescript
-// Good — chain transforms, no mutation
+// Good: chain transforms, no mutation
 function processMatchResults(raw: AflMatchResponse[]): Match[] {
   return raw
     .filter((m) => m["match.date"] !== "")
@@ -623,7 +637,7 @@ function processMatchResults(raw: AflMatchResponse[]): Match[] {
     .sort((a, b) => a.date.getTime() - b.date.getTime());
 }
 
-// Bad — mutating in place
+// Bad: mutating in place
 function processMatchResults(raw: AflMatchResponse[]): void {
   for (const m of raw) {
     m.homeTeam = normaliseTeamName(m.homeTeam);  // mutation
@@ -635,7 +649,7 @@ function processMatchResults(raw: AflMatchResponse[]): void {
 ### Parallel Fetches with `Promise.all`
 
 ```typescript
-// Good — concurrent where order doesn't matter
+// Good: concurrent where order does not matter
 const [results, stats, ladder] = await Promise.all([
   fetchMatchResults(seasonId),
   fetchPlayerStats(seasonId),
@@ -683,7 +697,7 @@ app.get("/api/ladder/:year", async (c) => {
 Drizzle is the database ORM for all D1 interactions. Define schema in TypeScript,
 get type-safe queries, and generate migrations from schema changes.
 
-**Schema definition (`src/db/schema.ts`):**
+#### Schema Definition (`src/db/schema.ts`)
 
 ```typescript
 import { sqliteTable, text, integer, real } from "drizzle-orm/sqlite-core";
@@ -737,11 +751,11 @@ export const playerMatchStats = sqliteTable("player_match_stats", {
   contestedPossessions: integer("contested_possessions"),
   clearances: integer("clearances"),
   brownlowVotes: integer("brownlow_votes"),
-  // ... 50+ columns — define all in schema
+  // ... 50+ columns: define all in schema
 });
 ```
 
-**Query patterns:**
+#### Query Patterns
 
 ```typescript
 import { drizzle } from "drizzle-orm/d1";
@@ -793,7 +807,7 @@ await db.insert(schema.matches)
   });
 ```
 
-**Migrations:**
+#### Migrations
 
 ```bash
 # Generate migration from schema changes
@@ -806,7 +820,7 @@ bunx wrangler d1 migrations apply afl-mcp --local
 bunx wrangler d1 migrations apply afl-mcp --remote
 ```
 
-**Drizzle config (`drizzle.config.ts`):**
+#### Drizzle Configuration (`drizzle.config.ts`)
 
 ```typescript
 import { defineConfig } from "drizzle-kit";
@@ -818,17 +832,21 @@ export default defineConfig({
 });
 ```
 
-**Principles:**
-- Schema is the single source of truth — all table definitions live in `src/db/schema.ts`.
-- Use Drizzle's query builder for all application queries. Raw SQL via `db.run(sql`...`)`
-  is acceptable for complex aggregations or when the query builder is awkward.
-- The `execute_sql` MCP tool still accepts raw SQL strings from agents — those bypass
-  Drizzle and go directly to D1 (read-only, validated).
-- Generate migrations from schema diffs, never write migration SQL by hand.
+#### Drizzle Principles
+
+- Keep all table definitions in `src/db/schema.ts`.
+- Use Drizzle's query builder for application queries. Use raw SQL through
+  `db.run()` for a complex aggregation that the query builder cannot express
+  clearly.
+- The `execute_sql` MCP tool accepts validated, read-only SQL from agents. This
+  operation sends the SQL directly to D1.
+- Generate migrations from schema diffs. Do not write migration SQL by hand.
 
 ---
 
 ## Testing
+
+Use Vitest and Miniflare for unit and Worker integration tests.
 
 ### Use Vitest
 
@@ -845,8 +863,8 @@ export default defineConfig({
 ```
 
 Run tests via `bun run test` (which invokes Vitest) or `bun run test -- --watch`
-for watch mode during development. For quick one-off tests that don't need
-Cloudflare bindings, `bun test` (Bun's built-in runner) also works — it's
+for watch mode during development. For quick one-off tests that do not need
+Cloudflare bindings, `bun test` (Bun's built-in runner) also works: it is
 Jest-compatible and faster for pure function tests.
 
 ### Test Structure
@@ -887,15 +905,17 @@ describe("flattenMatchScores", () => {
 
 ### Test Principles
 
-- **Snapshot API responses** into `test/fixtures/`. Never hit real APIs in tests.
-- **Test transforms thoroughly** — they're pure functions, easy to cover.
-- **Test Zod schemas** against both valid and invalid payloads.
-- **Integration tests** use Miniflare (local Workers simulator) for D1 and KV.
-- **Name tests as sentences** — `it("handles missing periodScore gracefully")`.
+- Snapshot API responses into `test/fixtures/`. Never hit real APIs in tests.
+- Test transforms thoroughly because they are pure functions.
+- Test Zod schemas against both valid and invalid payloads.
+- Integration tests use Miniflare (local Workers simulator) for D1 and KV.
+- Name tests as sentences: `it("handles missing periodScore gracefully")`.
 
 ---
 
 ## Design Principles
+
+Use these principles when the detailed rules do not decide an approach.
 
 ### 1. Types First, Code Second
 
@@ -905,15 +925,15 @@ guide the implementation.
 ### 2. Validate at Boundaries, Trust Internally
 
 Use Zod to validate all external data (API responses, user input). Once
-validated, trust the types — no defensive null checks deep inside business logic.
+validated, trust the types: no defensive null checks deep inside business logic.
 
-### 3. Pure Core, Effectful Shell
+### 3. Separate Logic from Input and Output
 
-Keep business logic (transforms, calculations, validation) as pure functions.
-Push I/O (fetch, database, logging) to the edges. This makes the core
-trivially testable.
+Keep business logic (transforms, calculations, validation) in pure functions.
+Keep fetch, database, and logging operations at the system boundaries. You can
+then test the business logic without I/O setup.
 
-### 4. Fail Loudly, Recover Gracefully
+### 4. Report Errors with Context
 
 Throw meaningful errors with context. Catch them at the appropriate level
 (usually the route handler or pipeline orchestrator). Never swallow errors silently.
@@ -921,29 +941,28 @@ Throw meaningful errors with context. Catch them at the appropriate level
 ### 5. Prefer Composition Over Inheritance
 
 Use functions, interfaces, and composition. Classes are fine for stateful things
-(API clients with cached tokens), but don't build deep inheritance hierarchies.
+(API clients with cached tokens), but do not build deep inheritance hierarchies.
 
 ### 6. Minimise Dependencies
 
-Every dependency is a maintenance burden. Prefer the platform (Web APIs, Workers
-runtime) over libraries. Use libraries for genuine complexity (Zod, Hono, Drizzle),
-not for things you can write in 10 lines.
+Each dependency adds maintenance. Prefer Web APIs and the Workers runtime. Add a
+library when it implements required complex behaviour, such as Zod, Hono, or
+Drizzle.
 
 ### 7. Single Responsibility Files
 
-One module, one purpose. `afl-api.ts` talks to the AFL API. `transforms.ts`
-transforms data. `pipeline.ts` orchestrates. If a file is doing two unrelated
-things, split it.
+Give each module one purpose. `afl-api.ts` accesses the AFL API. `transforms.ts`
+transforms data. `pipeline.ts` coordinates operations. Split a file that has two
+unrelated purposes.
 
 ---
 
 ## References
 
-**Important:** Before setting up project standards, tooling, or writing application
-code, read through all of the documentation linked below. Each link uses the
-`defuddle.md` prefix which returns clean, agent-readable markdown. Read the full
-documentation — not just the getting started pages — to understand the conventions,
-APIs, and patterns available in each tool.
+Before you set project standards, configure tools, or write application code,
+read the linked documentation. Each link uses the `defuddle.md` prefix, which
+returns agent-readable Markdown. Read the complete documentation, including pages
+outside the getting-started section.
 
 - [Google TypeScript Style Guide](https://defuddle.md/google.github.io/styleguide/tsguide.html)
 - [TSDoc specification](https://defuddle.md/tsdoc.org/)

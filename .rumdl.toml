@@ -1,0 +1,36 @@
+[global]
+flavor = "gfm"
+line-length = 80
+respect-gitignore = true
+exclude = ["vendor/**", "generated/**", "archive/**"]
+extend-enable = ["MD060", "MD063", "MD080", "MD082", "MD083", "MD084"]
+
+[MD003]
+style = "atx"
+
+[MD004]
+style = "dash"
+
+[MD013]
+line-length = 80
+code_blocks = false
+headings = false
+tables = false
+
+[MD033]
+allowed_elements = []
+
+[MD035]
+style = "---"
+
+[MD046]
+style = "fenced"
+
+[MD048]
+style = "backtick"
+
+[MD060]
+style = "aligned"
+
+[MD063]
+style = "title-case"

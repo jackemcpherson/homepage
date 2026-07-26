@@ -1,108 +1,94 @@
 # Infrastructure Development Style Guide
 
-Project conventions, tooling, and design principles for infrastructure, CI/CD,
-and GitOps. Informed by the GitOps lineage (Git as the single source of truth,
-reconciled by automation), the immutable-infrastructure thesis (build once,
-deploy, never mutate in place), and the same Astral (uv/ruff) philosophy of fast,
-single-purpose, declarative tooling that runs through the [Python](./python-style-guide.md)
-and [TypeScript](./typescript-style-guide.md) guides.
+Project conventions, tools, and design principles for infrastructure, CI/CD,
+and GitOps. GitOps makes Git the single source of truth and uses automation for
+reconciliation. Immutable infrastructure replaces deployed resources instead of
+changing them in place. The [Python](./python-style-guide.md) and
+[TypeScript](./typescript-style-guide.md) guides use the same preference for fast,
+single-purpose tools.
 
-This guide is **provider-agnostic and complexity-agnostic**: one core philosophy
-that holds whether the target is a single Cloudflare Worker in its first week or a
-multi-account AWS estate, and whether you deploy to Cloudflare, AWS, or GitHub.
-It commits to specific tools the way its sibling guides commit to uv and Pydantic. The tools are the implementation; the **principles** are the part that
-transfers.
+This guide applies to all providers and project sizes. Its core principles
+apply to one Cloudflare Worker or a multi-account AWS estate. They also apply
+across Cloudflare, AWS, and GitHub. The guide selects specific implementation
+tools, but its principles transfer to other tools.
 
-The throughline from the other two guides carries directly into infrastructure.
-Where application code declares intent through a type system and an enforcing
-checker, infrastructure declares intent through **declarative desired-state** and
-an enforcing **reconciler**. Where application code validates at the boundary with
-Pydantic or Zod, infrastructure validates at the boundary with **policy-as-code**.
-Where application code commits a lock file, infrastructure **pins module versions
-and commits its plan**. Drift is the infrastructure type error.
+The principles from the other two guides apply directly to infrastructure.
+Declare desired state and use a reconciler to enforce it. Use policy-as-code to
+validate configuration. Pin module versions and commit dependency locks. Apply
+only a reviewed plan. Detect and reconcile drift.
 
 ---
 
 ## Tech Stack
 
+Use the core tools and supporting checks in this section.
+
 ### Core
 
-| Tool | Role | Why |
-|------|------|-----|
-| **OpenTofu** | IaC engine (the pillar) | One declarative tool for every provider. MPL-licensed, Linux Foundation governed; the open, community-driven choice. Native state encryption. |
-| **HCL** | Configuration language | Enforced-declarative. No imperative escape hatch; declarativeness is guaranteed, not policed. |
-| **GitHub Actions** | Pipeline + the only sanctioned writer | The pipeline is where every change to the world originates. |
-| **OIDC federation** | Cloud authentication | Short-lived, federated identity. No long-lived cloud keys to store, rotate, or leak. |
-| **Object storage** | State backend | R2 (Cloudflare), S3 (AWS), GCS (GCP): remote, locked, encrypted. The implementation follows the target; the principle is fixed. |
+| Tool                | Role                          | Why                                                                                                       |
+| ------------------- | ----------------------------- | --------------------------------------------------------------------------------------------------------- |
+| **OpenTofu**        | Infrastructure-as-code engine | One declarative tool for each provider. MPL-licensed. Linux Foundation governed. Native state encryption. |
+| **HCL**             | Configuration language        | Declarative configuration without imperative operations.                                                  |
+| **GitHub Actions**  | Deployment pipeline           | The pipeline applies each infrastructure change.                                                          |
+| **OIDC federation** | Cloud authentication          | Short-lived identity for providers that support OIDC.                                                     |
+| **Object storage**  | State backend                 | Use remote, locked, and encrypted R2, S3, or GCS storage.                                                 |
 
 ### Tooling
 
-| Tool | Role | Application-guide equivalent |
-|------|------|------------------------------|
-| **OpenTofu** | The one tool: init, validate, plan, apply, test | uv / Bun |
-| **`tofu fmt`** | Formatter | ruff format / Biome |
-| **`tofu validate` + `tflint`** | Lint + static checks | ruff / Biome lint |
-| **`variable` validation + `check` blocks** | Boundary + plan-time policy | Pydantic / Zod |
-| **`tofu test`** | Test runner | pytest / Vitest |
-| **OPA / Conftest** | Centralised policy *(graduation rung)* | — |
-| **SOPS** | Encrypted desired-state secrets | pydantic-settings (`.env`) |
+| Tool                                       | Role                                            | Application-guide equivalent |
+| ------------------------------------------ | ----------------------------------------------- | ---------------------------- |
+| **OpenTofu**                               | The one tool: init, validate, plan, apply, test | uv / Bun                     |
+| **`tofu fmt`**                             | Formatter                                       | ruff format / Biome          |
+| **`tofu validate` + `tflint`**             | Lint + static checks                            | ruff / Biome lint            |
+| **`variable` validation + `check` blocks** | Boundary + plan-time policy                     | Pydantic / Zod               |
+| **`tofu test`**                            | Test runner                                     | pytest / Vitest              |
+| **OPA / Conftest**                         | Optional central policy                         | N/A                          |
+| **SOPS**                                   | Encrypted desired-state secrets                 | pydantic-settings (`.env`)   |
 
-**Why OpenTofu over Terraform:** they are the same tool at the HCL and provider
-level. OpenTofu reads Terraform state natively and uses the same provider
-protocol, so it is a drop-in and the entire ecosystem transfers. The differences
-are exactly the ones the sibling guides optimise for. OpenTofu is MPL-licensed
-under Linux Foundation governance, where Terraform sits under the Business Source
-Licence after HashiCorp's relicense and IBM's acquisition, the same open-tooling
-ethos that makes ruff the default over a proprietary pile. It also ships **native
-client-side state and plan encryption**, which Terraform lacks, closing the single
-worst secrets hole in HCL. For greenfield work with no legacy Terraform estate,
-OpenTofu is the no-regrets default. **Terraform is the lowest common denominator**,
-named only as the fallback when an org is already locked into HCP Terraform
-Stacks or Sentinel. This is the same move the Python guide makes choosing pyright
-over mypy.
+### OpenTofu Selection
 
-> **Watch this space:** the live question in this space is not OpenTofu versus
-> Terraform. It is whether the separate-HCL-codebase-plus-separate-state model
-> itself stays the right primitive, as infrastructure-from-application-code
-> frameworks mature. The principles in this guide (desired-state, boundary
-> validation, single-writer, authored promotion) survive that shift even if the
-> tool underneath changes, the same way the Python guide's principles outlast any
-> single type checker.
+OpenTofu and Terraform use HCL and the same provider protocol. OpenTofu can read
+Terraform state. Existing provider configurations can therefore move to OpenTofu.
+
+The Linux Foundation governs the
+MPL-licensed OpenTofu project. Terraform uses the Business Source Licence after
+HashiCorp's licence change and IBM's acquisition. OpenTofu also provides native
+client-side state and plan encryption. Terraform does not provide this feature.
+
+Use OpenTofu for new work without a legacy Terraform estate. Use Terraform when
+HCP Terraform Stacks or Sentinel requires it.
+
+### Future Infrastructure Tools
+
+Infrastructure-from-application-code tools can replace separate HCL repositories
+and state. Review the selected tools as these products mature. Keep the required
+controls for desired state, validation, state writes, and promotion.
 
 ---
 
 ## Source of Truth
 
-**Git is the system of record.** The live state of every environment is a
-*projection* of what is in the repository, never the other way around. Nothing
-exists that is not declared in Git, and the acid test is concrete: *you must be
-able to rebuild the entire environment, from an empty cloud account, using only
-the repository.* If something would not survive that, it has escaped the source of
-truth and needs to be brought back in.
+Git is the system of record. Declare every resource in Git. Live infrastructure
+must match the repository. You must be able to rebuild the complete environment
+in an empty cloud account from the repository.
 
-Three structural rules make this guarantee real rather than aspirational, and they
-all rest on one thing, **the module**:
+Use these module rules:
 
-- **No resource exists outside a blessed module.** A raw, hand-rolled resource
-  dropped into an environment directory is itself a violation. Modules are the
-  unit of policy, parity, and promotion; a resource outside a module sits outside
-  all three guarantees.
-- **Environments are instances of one module**, differing only in validated inputs.
-- **Modules are pinned by version** per environment, so a change is "in staging but
-  not yet prod" by virtue of a version difference, not a timing accident.
+- Put each resource in an approved module. Do not put resource declarations in
+  an environment directory. Modules contain policy, parity, and promotion rules.
+- Environments are instances of one module, differing only in validated inputs.
+- Pin each module version for each environment. Version differences identify
+  changes that are present in staging but not production.
 
 ---
 
 ## Project Structure
 
-The directory tree is **environment-major**: the most dangerous axis (the
-environment, the blast-radius and credential boundary) is the most visible one,
-at the top. Within each environment, state is partitioned into **thematic
-components** (`network`, `storage`, `compute`) from the very first commit, the
-infrastructure equivalent of writing `types.py` first. You lay the seams up front
-and let everything hang off them; you do not earn them later.
+Put the environment at the top of the directory tree. This position makes the
+credential boundary and potential change scope visible. Divide each environment
+into components such as `network`, `storage`, and `compute` from the first commit.
 
-```
+```text
 infra/
 ├── environments/
 │   ├── staging/
@@ -116,15 +102,15 @@ infra/
 │       ├── network/
 │       ├── storage/
 │       └── compute/
-├── modules/                       # the blessed, versioned, single source of shape
+├── modules/                       # approved and versioned resource definitions
 │   ├── network/
 │   │   ├── main.tf
 │   │   ├── variables.tf           # the typed interface - written first
 │   │   ├── outputs.tf
-│   │   └── checks.tf              # check blocks: policy that travels with the module
+│   │   └── checks.tf              # check blocks stored with the module
 │   ├── storage/
 │   └── compute/
-├── policy/                        # native tofu test suites + (on graduation) Rego
+├── policy/                        # native tofu tests and optional Rego policy
 ├── .github/
 │   └── workflows/
 │       ├── plan.yml               # PR: fmt -> validate -> lint -> policy -> plan (artifact)
@@ -135,33 +121,35 @@ infra/
 └── README.md
 ```
 
-### Principles
+### Project Structure Rules
 
-- **`modules/variables.tf` is written first.** It is the typed interface of the
+- `modules/variables.tf` is written first. It is the typed interface of the
   component. Define it before any resource logic, and let the validations guide
   the implementation.
-- **Environment directories are thin.** A backend block, a pinned module call, a
-  `.tfvars`, and read-only remote-state lookups. No loose resources. Ever.
-- **Component states depend downward, never sideways or up.** `compute` reads
-  `network`'s outputs via a read-only remote-state lookup; `network` knows nothing
-  of `compute`. This is composition-over-inheritance expressed as a dependency DAG.
-- **Tests mirror modules.** A policy suite lives alongside the module it guards.
+- Keep environment directories small. Include a backend block, a pinned module
+  call, a `.tfvars` file, and read-only remote-state lookups.
+- Component states depend downward, never sideways or up. `compute` reads
+  `network`'s outputs via a read-only remote-state lookup. Do not add a dependency
+  from `network` to `compute`.
+- Tests mirror modules. A policy suite lives alongside the module it guards.
 
 ---
 
 ## State
 
-State is the real control surface, so the rules around it are the strictest in the
-guide.
+State records the resources that OpenTofu manages. Apply the following controls
+to each state file.
 
-### Remote, Encrypted, Locked — From Day One
+### Configure Remote, Encrypted, and Locked State
 
-Never local `terraform.tfstate`, never in Git. The backend is the object store
-native to the deployment target (R2, S3, GCS), with locking enabled and
-**OpenTofu's native state and plan encryption configured in the committed backend
-block**, so the security guarantee lives in version-controlled config rather than a
-bucket setting applied out of band. This is the commit-the-lock-file rule of
-infrastructure: non-negotiable, cheap, done before anything else.
+Do not use local `terraform.tfstate` for a shared or deployed environment. Never
+commit state to Git. Use the object store that is native to the deployment
+target. Enable locking.
+
+Enable OpenTofu's native state and plan encryption in the committed backend
+block. Version-controlled configuration therefore contains the security
+guarantee. An external bucket setting cannot silently change it. Configure these
+controls before you create resources.
 
 ```hcl
 # environments/prod/network/backend.tf
@@ -187,45 +175,36 @@ terraform {
 }
 ```
 
-### Remote State Has Exactly One Writer, and It Is Never a Human
+### Allow State Writes Only from the Pipeline
 
-The pipeline is the only sanctioned writer of remote state, and this is enforced
-by **credential placement, not policy**: only the pipeline holds state-write
-credentials (via OIDC), so a developer laptop *physically cannot* apply to a real
-environment. "No manual changes" stops being a rule people must remember and
-becomes a property of the architecture.
+The pipeline is the only approved writer of remote state. Credential placement
+enforces this rule. Only the pipeline receives state-write credentials through
+OIDC. A developer laptop therefore cannot apply to a real environment. The
+architecture prevents manual changes.
 
-The laptop phase does not die; it relocates. You may `tofu apply` freely against a
-**local or ephemeral backend** while iterating; that is the scratchpad. "Make it
-real" means "push it to a remote backend," which by definition means "hand it to
-the pipeline." Local state is the pure core; remote state is the effectful shell.
+During development, you can use `tofu apply` with a local or temporary backend.
+Use the pipeline for each change to a remote backend.
 
-### Break-Glass
+### Emergency State Access
 
-A no-exceptions rule with no emergency valve gets routed around when prod
-is on fire, and a rule violated in silence is worse than a loud, rare, audited one.
-So break-glass exists, modelled exactly on how the sibling guides treat `Any`:
-**permitted, narrow, named, temporary, and loud.** A separate, alarmed,
-audit-logged credential path that screams when used and carries a hard expectation
-that you reconcile state back through Git immediately afterward, the infra version
-of "the `Any` must disappear within a few lines." Drift detection (below) is what
-enforces that reconciliation actually happens.
+Provide a separate credential for emergency state changes. Restrict and monitor
+this credential. Record each use. Reconcile the state through Git immediately.
+Use drift detection to verify the reconciliation.
 
 ---
 
 ## Environments
 
+Create each environment from the same modules and validated inputs.
+
 ### Instances of One Module, Differing Only in Validated Inputs
 
-The reason staging exists is to be a faithful rehearsal of prod. The moment they
-diverge in *shape*, staging stops being a test. Parity is therefore guaranteed
-**by construction**: every environment consumes the identical module and its
-identical `variables.tf`, so the only thing that *can* differ between environments
-is the value of a declared, validated variable. If a difference is not exposed as a
-variable, it cannot exist.
+Staging must use the same structure as production. Every environment uses the
+same module and `variables.tf`. Only declared and validated variable values can
+differ between environments.
 
 ```hcl
-# modules/compute/variables.tf - the typed boundary (Pydantic/Zod analogue)
+# modules/compute/variables.tf - the typed boundary (similar to Pydantic or Zod)
 variable "environment" {
   type = string
   validation {
@@ -244,18 +223,16 @@ variable "instance_count" {
 }
 ```
 
-When you find yourself reaching for many env-conditionals inside a module, treat
-that as a **partitioning signal, not a coding problem**: the divergent piece wants
-to become its own thematic component-state or its own module. Divergence is
-promoted *into the structure*, never dropped as a loose per-environment override.
+Many environment conditions in one module indicate a partitioning problem. Move
+the divergent part into its own component state or module. Express divergence in
+the structure instead of a loose environment override.
 
 ### Promotion by Version Pin
 
-Shared modules are referenced by pinned version per environment, using a Git tag, which
-needs zero extra infrastructure and works identically across every cloud. The pin
-**is** the promotion artifact: promoting a change to prod is a one-line diff
-bumping prod's `ref`, which is reviewable, greppable, and revertable. "What is
-different between staging and prod right now?" is a `diff` of two `ref` lines.
+Each environment references a shared module by a pinned Git tag. This method needs
+no extra infrastructure and works across cloud providers. To promote a change,
+update the production `ref` in one reviewed commit. Compare environment `ref`
+values to identify different module versions.
 
 ```hcl
 # environments/staging/compute/main.tf
@@ -273,49 +250,44 @@ module "compute" {
 }
 ```
 
-> A brand-new single-environment project may reference modules by local path. With only one environment there is nothing to promote *to*, so the pin buys
-> nothing yet. The instant a second environment appears, path references are
-> forbidden and every module reference must be a pinned tag. *No module is shared
-> across environments until it is versioned.*
+### Single-Environment Module Exception
+
+A new project with one environment can reference modules by local path. When you
+add a second environment, pin every shared module to a versioned tag.
 
 ### The Promotion Mechanism
 
-A two-speed pipeline, dividing labour exactly where the sibling guides do, automating the rote and reserving humans for the irreducible judgment call:
+Use these promotion rules:
 
-- **Staging promotes automatically.** A merge to `main` bumps staging's pin, and the
-  pipeline applies. Fast inner loop; staging is meant to absorb breakage.
-- **Prod promotes by deliberate version-bump PR.** A human authors a one-line diff
-  bumping prod's `ref`, reviewed against a single question (*is staging healthy
-  enough to promote?*), then merged and applied by the pipeline. Every prod change thus
-  has a named author, a one-line diff, a timestamp, and a one-line revert.
-  *Graduates* to gated automation (auto-promote after a defined bake window plus
-  smoke tests, human veto retained) once you have enough staging signal to make
-  "healthy" a measurable bar rather than a vibe.
+- Staging promotes automatically. A merge to `main` bumps staging's pin, and
+  the pipeline applies the change. Use staging to find deployment faults.
+- Prod promotes by deliberate version-bump PR. A person authors a one-line diff
+  that updates the production `ref`. The reviewer verifies that staging meets the
+  promotion health criteria. The pipeline applies the merged change. Every
+  production change has a named author, a one-line diff, a timestamp, and a
+  one-line revert.
+  Add automatic promotion only after smoke tests and a defined observation period
+  give a measurable health result. Keep a human veto.
 
-### Rollback Is a Roll-Forward
+### Restore a Known-Good Version
 
-When prod breaks after a promotion, recovery is a normal promotion PR that bumps
-the `ref` back to the previous known-good tag, on **the same path, the same review, no
-privileged fast lane.** A rollback is a roll-*forward* to a known-good version. A
-"fast rollback that skips review" is how a small outage becomes corrupted state.
+If a promotion causes a production fault, create a normal promotion PR. Set the
+`ref` to the previous known-good tag. Use the normal review and deployment path.
 
 ---
 
 ## Policy
 
-Policy-as-code is the boundary-validation layer of infrastructure, the Pydantic/Zod
-of the stack, and it is a **hard, blocking, merge-gating check from day one**, run
-identically in pre-commit and in CI (the same shift-left parity the sibling guides
-apply to type-checking). What graduates over time is the *number* of rules behind
-the gate, not whether the gate exists.
+Policy-as-code validates infrastructure configuration. Make policy a blocking
+merge check from the first commit. Run the same checks in pre-commit and CI. Add
+rules as the project grows, but keep the check.
 
-Policy is **OpenTofu-native by default**, and it lives in the shared modules so it
-**travels with them**: every environment that pins a module inherits its policy for
-free. A module's policy therefore ships wherever the module ships, with no separate wiring.
+Use OpenTofu-native policy by default. Store policy in shared modules so each
+environment receives the same rules. No separate policy wiring is necessary.
 
-- **`variable` validation** guards *inputs* at the door (region allow-lists, valid
-  environment names, sane sizes).
-- **`check` blocks** assert *planned and actual* state (no public buckets, mandatory
+- `variable` validation checks inputs such as region allow-lists, valid
+  environment names, and permitted sizes.
+- `check` blocks assert planned and actual state (no public buckets, mandatory
   tags present), and `tofu test` runs them in CI against a plan.
 
 ```hcl
@@ -339,49 +311,42 @@ check "mandatory_tags" {
 }
 ```
 
-Day-one rules are the cheap, universal, non-negotiable ones: mandatory tagging,
-region allow-lists, no unannotated `0.0.0.0/0` exposure. Cost thresholds and
-resource-type allow-lists graduate in as the project earns them.
+Start with mandatory tags, region allow-lists, and no unannotated `0.0.0.0/0`
+exposure. Add cost thresholds and resource-type allow-lists when the project
+requires them.
 
-> **Graduation rung:** a centralised external engine (OPA/Conftest) is reached only
-> when you can no longer trust that every repo author wrote the checks, i.e. when
-> policy must be enforced *on* authors rather than *by* them. For a solo operator
-> who controls every repo and builds everything from blessed modules, native checks
-> are airtight and Conftest is unnecessary weight.
+### External Policy Engine
+
+Add a central policy engine when repository authors cannot maintain all required
+module checks. A single operator can use native checks in approved modules.
 
 ---
 
 ## Secrets
 
-Secrets are the one qualified exception to "everything in Git," so the discipline
-is making the exception **explicit and narrow** rather than letting it leak. The
-unifying rule, true across Cloudflare, AWS, and GitHub alike:
+Do not store secret values in Git. Apply this rule to Cloudflare, AWS, and
+GitHub.
 
-> **OpenTofu holds a *reference* to a secret, never the secret itself.** The value
-> lives in whichever store is native to the boundary that consumes it.
+OpenTofu stores a secret reference, not the secret value. Store the value in the
+system that consumes it.
 
-Secrets are classified by **lifecycle, not by secrecy**. Each class has exactly
-one system of record, named by *role* rather than by product so it stays
-provider-agnostic:
+Classify secrets by lifecycle. Each class has one system of record. Name each
+class by role so the model applies to all providers.
 
-| Secret class | Lives in | Rationale |
-|--------------|----------|-----------|
-| **Provisioning** (what OpenTofu needs to build things) | The pipeline's secret store, GitHub Actions environments, scoped per environment | Never in the repo; injected at apply time. |
-| **Runtime** (what the deployed app reads) | The target platform's native store, Workers Secrets, AWS Secrets Manager / SSM | OpenTofu *references* it, never contains it, so it never enters state. |
-| **Desired-state config** (rare config that genuinely belongs to the model) | SOPS-encrypted in Git | Versioned, reviewed, and drift-checked alongside the resource it configures. |
+| Secret class                                                               | Lives in                                                                         | Rationale                                                                    |
+| -------------------------------------------------------------------------- | -------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| **Provisioning** (what OpenTofu needs to build things)                     | The pipeline's secret store, GitHub Actions environments, scoped per environment | Never in the repo. Injected at apply time.                                   |
+| **Runtime** (what the deployed app reads)                                  | The target platform's native store, Workers Secrets, AWS Secrets Manager / SSM   | OpenTofu references it, never contains it, so it never enters state.         |
+| **Desired-state config** (rare config that genuinely belongs to the model) | SOPS-encrypted in Git                                                            | Versioned, reviewed, and drift-checked alongside the resource it configures. |
 
-This is pure-core/effectful-shell applied to secrets: the value is the most
-effectful thing in the system, so it lives at the edge that uses it, and the
-desired-state config only ever names it. Native state encryption is the backstop
-for the unavoidable cases where a value transits state anyway.
+Store each secret in the system that uses it. Desired-state configuration only
+names the secret. Use native state encryption when a value must transit state.
 
-### The Root of Trust Is Federated, Not Stored
+### Use Federated Authentication
 
-The pipeline needs exactly one root credential to reach everything else, and that
-root is **OIDC federation, not a stored long-lived key**. GitHub Actions assumes an
-AWS IAM role and authenticates to Cloudflare via short-lived OIDC tokens, so there
-is *no standing secret to store, rotate, or leak*. The bootstrap secret is **zero**,
-not "one carefully-guarded key."
+Use OIDC federation when the target provider supports it. For example, GitHub
+Actions can assume an AWS IAM role. For a provider without OIDC support, store a
+narrowly scoped credential in the deployment environment and rotate it.
 
 ```yaml
 # .github/workflows/apply-prod.yml (excerpt)
@@ -390,9 +355,9 @@ permissions:
   contents: read
 jobs:
   apply:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: aws-actions/configure-aws-credentials@v4
+      - uses: aws-actions/configure-aws-credentials@<full-40-char-commit-sha> # v4.x
         with:
           role-to-assume: arn:aws:iam::123456789012:role/prod-tofu-apply
           aws-region: ap-southeast-2
@@ -403,60 +368,51 @@ jobs:
 
 ## Drift
 
-Drift is the infrastructure type error: live reality no longer matches declared
-desired-state. Someone clicked in a console; a break-glass apply was not reconciled;
-a provider mutated something underneath you.
+Drift occurs when live infrastructure does not match the declared state. Manual
+console changes, emergency changes outside Git, and provider changes can cause
+drift.
 
-**Detection** is a scheduled `tofu plan` on a cadence (nightly, plus the implicit
-pre-apply plan every promotion already runs). A clean plan means reality matches
-Git; **any non-empty plan against deployed state is drift.**
+Run a scheduled `tofu plan` each night and before each apply. An empty plan means
+that live infrastructure matches Git. A non-empty plan against deployed state is
+drift.
 
-**Response is alert-and-stop, never auto-correction.** Auto-applying to "heal"
-drift would mean the pipeline writes to the world in response to a *timer* rather
-than an authored Git event, which reintroduces the exact "infrastructure changes with
-no authoring PR" problem the whole guide outlaws, and risking the silent reversion
-of a human's in-flight emergency fix. Instead, detected drift is a **loud, blocking
-failure**:
+Send an alert and stop. Never correct drift automatically. An automatic
+apply lets a timer change infrastructure without an authored Git event. It can
+also reverse an active emergency fix. Treat detected drift as a blocking failure:
 
-- **It blocks promotion, always.** You never stack a new change on top of an
-  un-accounted-for divergence.
-- **Paging scales with the resource.** Drift in `network` or `storage` pages now;
-  a low-stakes `compute` tag drift is a next-business-day ticket. "Loud" must not
-  become "cry wolf at 3am over a tag."
-- **The fix is itself an authored Git event**: either correct Git to match a
-  legitimate reality, or merge a re-apply PR to force reality back. Reality only
-  ever changes through Git, including the correction.
+- Block promotion until you reconcile the drift.
+- Paging scales with the resource. Drift in `network` or `storage` pages now.
+  Create a next-business-day ticket for a low-risk `compute` tag change.
+- Correct Git for an authorised live change. Otherwise, merge a PR that reapplies
+  the declared state.
 
-Drift detection thus does double duty as the **auditor that enforces break-glass
-reconciliation**: an emergency fix shows up as drift, alarms, and forces the
-reconciliation the break-glass rule already requires.
+Drift detection also audits break-glass reconciliation. An emergency fix appears
+as drift and causes an alarm. The alarm requires the expected reconciliation.
 
 ---
 
 ## The Pipeline
 
-The stages are the sum of every rule above, run identically in pre-commit and CI:
+Run these stages in pre-commit and CI:
 
-```
+```text
 fmt -> validate -> lint -> policy (validate + check + test) -> plan -> [gate] -> apply
 ```
 
-### The Plan Is the Lock File of an Apply
+### Apply the Reviewed Plan
 
-CI saves the plan as an artifact, and **`apply` consumes that exact artifact**,
-never a fresh plan at apply time. The thing a human reviewed and approved in the
-gate *is* the thing that hits the world, byte for byte. A re-plan between approval
-and apply could silently differ if provider state changed underneath. You apply
-what was reviewed, or you do not apply.
+CI saves the plan as an artefact. `apply` uses that exact artefact instead of
+a new plan. Provider changes could make a later plan different. Apply only the
+reviewed plan.
 
 ```yaml
 # plan.yml
 - run: tofu plan -out=tfplan
-- uses: actions/upload-artifact@v4
+- uses: actions/upload-artifact@<full-40-char-commit-sha> # v4.x
   with: { name: tfplan, path: tfplan }
 
 # apply-*.yml
-- uses: actions/download-artifact@v4
+- uses: actions/download-artifact@<full-40-char-commit-sha> # v4.x
   with: { name: tfplan }
 - run: tofu apply tfplan      # the reviewed artifact, not a fresh plan
 ```
@@ -465,16 +421,14 @@ what was reviewed, or you do not apply.
 
 ## Observability
 
-This guide owns the **infrastructure** boundary and explicitly defers
-**application** telemetry to the [Python](./python-style-guide.md) and
-[TypeScript](./typescript-style-guide.md) guides. This keeps single responsibility intact; it does
-not swallow the other two. It inherits their structured-event stance (dotted,
-lowercase, queryable event names; structured fields, never string interpolation)
-and names the infra events that must always exist.
+This guide defines infrastructure telemetry. The
+[Python](./python-style-guide.md) and
+[TypeScript](./typescript-style-guide.md) guides define application telemetry.
+Use lowercase, dotted event names and structured fields. Do not interpolate
+values into event names.
 
-"Fail loudly" for infrastructure means **no apply, drift, or policy decision is
-ever silent.** Every one of the following is emitted as a structured, queryable,
-audit-grade event, paged by the same severity model as drift:
+Emit a structured audit event for each apply, drift result, and policy decision.
+Use the drift severity model for alerts:
 
 - `tofu.apply.complete` / `tofu.apply.failed`: every apply outcome, with
   environment, component, and plan summary.
@@ -484,31 +438,28 @@ audit-grade event, paged by the same severity model as drift:
 
 ---
 
-## Naming & Tagging
+## Naming and Tagging
 
-- **Resource names** are descriptive and consistent: `{project}-{env}-{component}-{purpose}`.
-  Boolean-ish feature flags follow the sibling guides (`enable_`, `is_`).
-- **Mandatory tags on every resource**, enforced by the day-one policy gate:
-  `owner`, `environment`, `cost-centre`, `managed-by` (always `opentofu`). Untagged
-  resources do not merge.
-- **State keys** mirror the directory tree: `{component}/terraform.tfstate` under a
-  per-environment bucket. The path tells you the environment and the component
-  unambiguously.
+- Use `{project}-{env}-{component}-{purpose}` for resource names. Use `enable_`
+  and `is_` prefixes for Boolean feature flags.
+- Apply the initial policy check to mandatory tags. Require `owner`,
+  `environment`, `cost-centre`, and `managed-by`. Set `managed-by` to `opentofu`.
+  Do not merge an untagged resource.
+- State keys mirror the directory tree. Use `{component}/terraform.tfstate`
+  under a per-environment bucket. The path identifies the environment and the
+  component.
 
 ---
 
 ## Testing
 
-Testing infrastructure means asserting on plans and on module behaviour, not on a
-running cloud:
+Test plans and module behaviour with local state and provider fixtures:
 
-- **`tofu test`** exercises modules against fixture inputs, asserting on planned
-  output; pure, fast, and the highest-value layer because it encodes the rules.
-- **Policy tests** assert that bad inputs are *rejected*; the `ValidationError`
-  path matters as much as the happy path, exactly as in the application guides.
-- **Plan tests** assert that a known change produces the expected diff and *no
+- `tofu test` exercises modules against fixture inputs and checks planned output.
+- Policy tests verify that the module rejects invalid inputs.
+- Plan tests assert that a known change produces the expected diff and *no
   unexpected* resource replacement.
-- **Never test against real shared state.** Use a local backend and provider
+- Never test against real shared state. Use a local backend and provider
   fixtures. Name tests as sentences.
 
 ```hcl
@@ -525,103 +476,21 @@ run "rejects_oversized_instance_count" {
 
 ---
 
-## Design Principles
-
-### 1. Enforced Declarative Desired-State, No Exceptions
-
-Declare what the world should be; never script the steps to get there. HCL gives no
-imperative escape hatch, which makes "declarative" a property the tool guarantees
-rather than a rule you police. It is the `strict: true` of infrastructure.
-
-### 2. Remote State Has Exactly One Writer, and It Is Never a Human
-
-The pipeline alone writes remote state, enforced by credential placement: only CI
-holds state-write credentials, so a laptop physically cannot touch a real
-environment.
-
-### 3. No Project Is Real Until It Has a Pipeline
-
-The moment state goes remote, on day one, a pipeline must exist to write it. Going
-remote and having a pipeline are the same gesture, shipped together in project
-scaffolding.
-
-### 4. Break-Glass Is Loud, Narrow, and Reconciled Away at Once
-
-The emergency valve exists so the rule is never bypassed in silence. It alarms,
-it is audited, and it carries a hard expectation of immediate reconciliation
-through Git, the `Any` that must disappear within a few lines.
-
-### 5. Environments Are Instances of One Module
-
-Prod and staging are the same module with different validated inputs. If a
-difference is not a declared variable, it cannot exist. Genuine divergence is a
-partitioning signal, promoted into the structure rather than dropped as a local
-override.
-
-### 6. Promotion Is a Version Bump in Git, Never a Merge Side-Effect
-
-Modules are pinned per environment. A change reaches prod through a deliberate,
-authored, one-line `ref` bump that is reviewable, greppable, and revertable, not because a
-merge silently took effect everywhere.
-
-### 7. Promotion Is an Event With an Author
-
-Staging promotes automatically; prod promotes by human-authored PR against the
-single question "is staging healthy?" Every prod change has a name, a diff, a
-timestamp, and a one-line revert.
-
-### 8. Rollback Is a Roll-Forward, No Privileged Fast Lane
-
-Recovery is a normal promotion PR to a known-good version: same path, same review.
-A review-skipping fast rollback turns an outage into corrupted state.
-
-### 9. Policy Travels With Modules
-
-Boundary validation lives in the shared modules and is inherited by every
-environment that pins them. Native checks by default, a central engine only when
-authors can no longer be trusted to carry it. A module carries its own policy with it.
-
-### 10. No Resource Exists Outside a Blessed Module
-
-The module is the unit of policy, parity, and promotion. A resource outside a
-module sits outside all three guarantees, so it is itself a violation.
-
-### 11. Drift Is a Loud, Blocking Failure, Never an Auto-Correction
-
-Reality diverging from Git stops promotions and pages by severity. The fix is
-always an authored Git event. Drift detection is also the auditor that enforces
-break-glass reconciliation.
-
-### 12. OpenTofu Holds References to Secrets, Never Secrets
-
-Each secret lives in the store native to its boundary: pipeline, runtime, or
-encrypted-in-Git for desired-state config. The only root of trust is short-lived
-and federated; there are no long-lived credentials to store or rotate.
-
-### 13. The Plan Is the Lock File of an Apply
-
-CI saves the plan; apply consumes that exact artifact. You apply what was reviewed,
-byte for byte, or you do not apply.
-
----
-
 ## References
 
-**Important:** Before setting up infrastructure standards, tooling, or writing
-any HCL, read through the documentation linked below. Each link uses the
-`defuddle.md` prefix which returns clean, agent-readable markdown. Read the full
-documentation — not just the getting-started pages — to understand the conventions,
-APIs, and patterns available in each tool.
+Before you set infrastructure standards or write HCL, read the referenced
+documentation. The `defuddle.md` prefix returns Markdown. Read the complete
+documentation for each selected tool.
 
 - [OpenTofu documentation](https://defuddle.md/opentofu.org/docs/)
 - [OpenTofu state & plan encryption](https://defuddle.md/opentofu.org/docs/language/state/encryption/)
 - [OpenTofu `check` blocks](https://defuddle.md/opentofu.org/docs/language/checks/)
 - [OpenTofu tests (`tofu test`)](https://defuddle.md/opentofu.org/docs/cli/commands/test/)
 - [OpenTofu module sources & version pinning](https://defuddle.md/opentofu.org/docs/language/modules/sources/)
-- [HCL — the configuration language](https://defuddle.md/developer.hashicorp.com/terraform/language)
-- [GitHub Actions — OpenID Connect](https://defuddle.md/docs.github.com/en/actions/deployment/security-hardening-your-deployments/about-security-hardening-with-openid-connect)
-- [GitHub Actions — OIDC with AWS](https://defuddle.md/docs.github.com/en/actions/deployment/security-hardening-your-deployments/configuring-openid-connect-in-amazon-web-services)
-- [GitHub Actions — environments & secrets](https://defuddle.md/docs.github.com/en/actions/deployment/targeting-different-environments/using-environments-for-deployment)
+- [HCL: the configuration language](https://defuddle.md/developer.hashicorp.com/terraform/language)
+- [GitHub Actions: OpenID Connect](https://defuddle.md/docs.github.com/en/actions/deployment/security-hardening-your-deployments/about-security-hardening-with-openid-connect)
+- [GitHub Actions: OIDC with AWS](https://defuddle.md/docs.github.com/en/actions/deployment/security-hardening-your-deployments/configuring-openid-connect-in-amazon-web-services)
+- [GitHub Actions: environments & secrets](https://defuddle.md/docs.github.com/en/actions/deployment/targeting-different-environments/using-environments-for-deployment)
 - [Cloudflare Terraform/OpenTofu provider](https://defuddle.md/developers.cloudflare.com/terraform/)
 - [AWS provider](https://defuddle.md/registry.terraform.io/providers/hashicorp/aws/latest/docs)
 - [tflint](https://defuddle.md/github.com/terraform-linters/tflint)

@@ -1,62 +1,69 @@
 # Python Development Style Guide
 
 Project conventions, tech stack, and design principles for Python development.
-Informed by the Google Python Style Guide, the Astral (uv/ruff) philosophy of
-fast single-purpose tooling, FastAPI's "validate at the boundary" patterns, and
-modern type-driven Python (PEP 484+ with strict checking).
+The Google Python Style Guide informs these conventions. They also use the Astral
+preference for fast, single-purpose tools and FastAPI's boundary validation.
+Modern Python types and strict checking complete the basis.
 
-This guide spans three project shapes: **CLI tools and scripts**, **data
-pipelines**, and **HTTP / MCP services**. Some sections are scoped to a
-specific shape — they're labelled. The principles are universal.
+This guide covers CLI tools, scripts, data pipelines, and HTTP or MCP services.
+Labels identify sections for one project shape. The principles
+apply to all shapes.
 
 ---
 
 ## Tech Stack
 
+Use the core runtime and development tools in this section.
+
 ### Core
 
-| Tool | Role | Why |
-|------|------|-----|
-| **Python 3.13** | Language | Mature, full ecosystem support, improved error messages |
-| **Pydantic v2** | Runtime validation | Define once, get types + validation. The boundary layer. |
-| **FastAPI** | Web framework (services) | Pydantic-native, async-capable, the ecosystem default |
+| Tool               | Role                         | Why                                                             |
+| ------------------ | ---------------------------- | --------------------------------------------------------------- |
+| **Python 3.13**    | Language                     | Mature, full ecosystem support, improved error messages         |
+| **Pydantic v2**    | Runtime validation           | Define once, get types + validation. The boundary layer.        |
+| **FastAPI**        | Web framework (services)     | Pydantic-native, async-capable, the ecosystem default           |
 | **SQLAlchemy 2.0** | Database ORM (transactional) | Modern declarative, full type support, async via `AsyncSession` |
-| **Polars** | DataFrames (pipelines) | Multi-threaded, lazy, no index, columnar Arrow-backed |
-| **DuckDB** | Analytical SQL (pipelines) | In-process OLAP — query parquet/CSV folders with SQL |
+| **Polars**         | DataFrames (pipelines)       | Multi-threaded, lazy, no index, columnar Arrow-backed           |
+| **DuckDB**         | Analytical SQL (pipelines)   | In-process OLAP: query parquet/CSV folders with SQL             |
 
 ### Tooling
 
-| Tool | Role | TypeScript equivalent |
-|------|------|----------------------|
-| **uv** | Package manager + script runner + Python installer | Bun |
-| **ruff** | Lint + format (single tool) | Biome |
-| **pyright** | Type checker (strict mode) | tsc |
-| **pytest** | Test runner | Vitest |
-| **structlog** | Structured logging | pino |
-| **Typer** | CLI framework | — |
-| **httpx** | HTTP client (sync + async) | fetch |
-| **pydantic-settings** | Config from env / `.env` files | — |
+| Tool                  | Role                                               | TypeScript equivalent |
+| --------------------- | -------------------------------------------------- | --------------------- |
+| **uv**                | Package manager + script runner + Python installer | Bun                   |
+| **ruff**              | Lint + format (single tool)                        | Biome                 |
+| **pyright**           | Type checker (strict mode)                         | tsc                   |
+| **pytest**            | Test runner                                        | Vitest                |
+| **structlog**         | Structured logging                                 | pino                  |
+| **Typer**             | CLI framework                                      | N/A                   |
+| **httpx**             | HTTP client (sync + async)                         | fetch                 |
+| **pydantic-settings** | Config from env / `.env` files                     | N/A                   |
 
-**Why uv:** single Rust binary that installs Python itself, manages virtual
-environments, resolves dependencies, runs scripts, and builds wheels. Replaces
-pip, pip-tools, pyenv, virtualenv, pipx, poetry, and pdm. `uv sync` is an order
-of magnitude faster than poetry/pip on cold installs and effectively
-instantaneous on warm ones. Lock file is `uv.lock` — commit it.
+#### Why the Project Uses `uv`
 
-**Why ruff over black + flake8 + isort + pyupgrade:** ruff is a single
-Rust-based tool that replaces all of them at much higher speed and with one
-config file. Same philosophy as Biome in the TS world.
+uv is one Rust binary that installs Python, manages virtual environments,
+resolves dependencies, runs scripts, and builds wheels. It replaces pip,
+pip-tools, pyenv, virtualenv, pipx, poetry, and pdm. The lock file is `uv.lock`.
+Commit it.
 
-**Why pyright over mypy:** pyright is what every modern editor (VS Code,
-Cursor, Zed via Pylance) already runs in the background, so devs see errors as
-they type without extra setup. Inference is meaningfully better than mypy on
-generics and type narrowing — fewer `# type: ignore` escape hatches. Pyright
-is the de facto strict checker; mypy is the lowest common denominator.
+#### Why the Project Uses Ruff
 
-> **Watch this space:** Astral are building [`ty`](https://github.com/astral-sh/ty),
-> a Rust-based type checker. As of writing it is in preview. Once it reaches
-> stability and feature parity with pyright strict mode, it will likely become
-> the recommendation here — same trajectory as ruff replacing flake8.
+Ruff replaces black, flake8, isort, and pyupgrade with one Rust program and one
+configuration file. Biome applies the same approach to TypeScript.
+
+#### Why the Project Uses Pyright
+
+Modern editors already run Pyright in the background.
+Examples include VS Code, Cursor, and Zed through Pylance. Developers see errors
+as they type without extra setup. Pyright also handles generics and type
+narrowing better than mypy, which reduces `# type: ignore` directives. Pyright
+is the standard strict checker for these projects.
+
+### Future Type Checking
+
+Astral is developing the [`ty`](https://github.com/astral-sh/ty) type checker.
+The project is currently in preview. Review this recommendation when `ty`
+supports the features in Pyright strict mode.
 
 ### Package Configuration
 
@@ -144,7 +151,7 @@ ignore = [
 convention = "google"
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**" = ["D", "ANN", "PLR2004"]   # tests don't need docstrings or magic-number checks
+"tests/**" = ["D", "ANN", "PLR2004"]   # tests do not need docstrings or magic-number checks
 "**/__init__.py" = ["D104", "F401"]    # package __init__ files
 
 [tool.pytest.ini_options]
@@ -189,18 +196,18 @@ uv run pyright
 
 ### Common Commands
 
-| Command | Purpose |
-|---------|---------|
-| `uv sync` | Install / update dependencies from lock file |
-| `uv run <cmd>` | Run a command inside the project venv |
-| `uv add <pkg>` | Add a runtime dependency |
-| `uv add --dev <pkg>` | Add a dev-only dependency |
-| `uv tool install <pkg>` | Install a CLI tool globally (equivalent to `pipx install`) |
-| `uvx <cmd>` | Run a one-off command in an ephemeral venv (equivalent to `bunx`) |
-| `uv run pytest` | Run tests |
-| `uv run ruff check --fix .` | Lint + auto-fix |
-| `uv run ruff format .` | Format |
-| `uv run pyright` | Type-check |
+| Command                     | Purpose                                                           |
+| --------------------------- | ----------------------------------------------------------------- |
+| `uv sync`                   | Install / update dependencies from lock file                      |
+| `uv run <cmd>`              | Run a command inside the project venv                             |
+| `uv add <pkg>`              | Add a runtime dependency                                          |
+| `uv add --dev <pkg>`        | Add a dev-only dependency                                         |
+| `uv tool install <pkg>`     | Install a CLI tool globally (equivalent to `pipx install`)        |
+| `uvx <cmd>`                 | Run a one-off command in an ephemeral venv (equivalent to `bunx`) |
+| `uv run pytest`             | Run tests                                                         |
+| `uv run ruff check --fix .` | Lint + auto-fix                                                   |
+| `uv run ruff format .`      | Format                                                            |
+| `uv run pyright`            | Type-check                                                        |
 
 ---
 
@@ -211,9 +218,12 @@ Always use strict mode. No exceptions. All settings live in `pyproject.toml`
 
 ### Key Settings
 
-- **`typeCheckingMode = "strict"`** — enables all strict rules. Non-negotiable.
-- **`reportImplicitOverride = "error"`** — methods overriding a base class must be marked `@override` (PEP 698). Catches the bug where you rename a base method and silently stop overriding it.
-- **`reportMissingTypeStubs = "warning"`** — flag third-party libraries that ship without type stubs, but don't block. `# type: ignore[import-untyped]` is acceptable for those, with a comment.
+- Set `typeCheckingMode = "strict"` to enable all strict rules.
+- Set `reportImplicitOverride = "error"`. Mark each overriding method with
+  `@override` (PEP 698). The check detects a renamed base method.
+- Set `reportMissingTypeStubs = "warning"` to identify libraries without type
+  stubs. A commented `# type: ignore[import-untyped]` is permitted for these
+  libraries.
 
 If a library is genuinely untyped and matters to your business logic, write a
 local stub in `typings/<package>.pyi` rather than scattering `Any` through your
@@ -224,9 +234,10 @@ code.
 ## Ruff Configuration
 
 All ruff settings live in `pyproject.toml` (see Package Configuration above).
-Google-style docstrings are enforced via `[tool.ruff.lint.pydocstyle] convention = "google"`,
-and the `"D"` rule set ensures docstring presence and formatting. Tests are
-exempted from docstring and annotation requirements via per-file ignores.
+Ruff enforces Google-style docstrings through the
+`[tool.ruff.lint.pydocstyle] convention = "google"` setting. The `"D"` rule set
+checks docstring presence and format. Per-file ignores exempt tests from
+docstring and annotation requirements.
 
 ---
 
@@ -234,34 +245,38 @@ exempted from docstring and annotation requirements via per-file ignores.
 
 Follow PEP 8.
 
-| Construct | Convention | Example |
-|-----------|-----------|---------|
-| Variables, functions, methods | `snake_case` | `fetch_recent_orders`, `customer_id` |
-| Classes, type aliases | `PascalCase` | `Order`, `LineItem`, `PaymentsApiClient` |
-| Constants (true constants) | `SCREAMING_SNAKE` | `MAX_RETRY_COUNT`, `DEFAULT_PAGE_SIZE` |
-| Modules / file names | `snake_case` | `payments_api.py`, `line_items.py` |
-| Test files | `test_*.py` | `test_payments_api.py` |
-| Private members | `_leading_underscore` | `_token_cache` |
-| "Really private" (name-mangled) | `__double_underscore` | Rare — only for inheritance protection |
-| Type variables | `PascalCase`, single letter or descriptive | `T`, `OrderT`, `ResultT` |
+| Construct                       | Convention                                 | Example                                  |
+| ------------------------------- | ------------------------------------------ | ---------------------------------------- |
+| Variables, functions, methods   | `snake_case`                               | `fetch_recent_orders`, `customer_id`     |
+| Classes, type aliases           | `PascalCase`                               | `Order`, `LineItem`, `PaymentsApiClient` |
+| Constants (true constants)      | `SCREAMING_SNAKE`                          | `MAX_RETRY_COUNT`, `DEFAULT_PAGE_SIZE`   |
+| Modules / file names            | `snake_case`                               | `payments_api.py`, `line_items.py`       |
+| Test files                      | `test_*.py`                                | `test_payments_api.py`                   |
+| Private members                 | `_leading_underscore`                      | `_token_cache`                           |
+| "Really private" (name-mangled) | `__double_underscore`                      | Rare: only for inheritance protection    |
+| Type variables                  | `PascalCase`, single letter or descriptive | `T`, `OrderT`, `ResultT`                 |
 
 ### Naming Principles
 
-- **Be descriptive.** `fetch_orders_for_customer` over `get_orders`. `customer_id` over `cid`.
-- **Boolean variables** start with `is_`, `has_`, `should_`, `can_`: `is_paid`, `has_shipped`.
-- **Collections** are plural: `orders`, `line_items`, `customers`.
-- **Functions that return coroutines** don't need an `async_` prefix or `_async` suffix — `await` at the call site says it.
-- **Acronyms in `PascalCase`** are treated as words: `HttpClient`, not `HTTPClient`. `JsonParser`, not `JSONParser`. Same rule as Google's TypeScript style.
-- **Don't shadow builtins.** `id`, `type`, `list`, `dict`, `filter`, `map` — ruff's `A` rules will flag these.
+- Use descriptive names, such as `fetch_orders_for_customer` and `customer_id`.
+- Start Boolean variables with `is_`, `has_`, `should_`, or `can_`. Examples are
+  `is_paid` and `has_shipped`.
+- Use plural names for collections, such as `orders`, `line_items`, and
+  `customers`.
+- Omit an `async_` prefix or `_async` suffix from a function that returns a
+  coroutine. The `await` expression identifies the coroutine at the call site.
+- Treat abbreviations in `PascalCase` as words. Use `HttpClient` and
+  `JsonParser`. This rule matches the Google TypeScript style.
+- Do not shadow builtins such as `id`, `type`, `list`, `dict`, `filter`, and
+  `map`. Ruff's `A` rules identify these names.
 
 ---
 
 ## Type System
 
-Type hints are **mandatory** on every public function signature, every class
-attribute, and every module-level constant. Internal helpers with obvious
-inferred return types may omit the return annotation; everything else is
-typed.
+Type hints are mandatory on every public function signature, every class
+attribute, and every module-level constant. Internal helpers can omit the return
+annotation when the inferred return type is clear. Add types to everything else.
 
 ### Use Modern Syntax
 
@@ -269,36 +284,34 @@ Pyright in strict mode plus `target-version = "py313"` means no compatibility
 shims. Use the modern, lowercase, builtin-generic forms.
 
 ```python
-# Good — modern (PEP 585, PEP 604)
+# Good: modern (PEP 585, PEP 604)
 def fetch_orders(customer_id: int) -> list[Order]: ...
 def find_order(order_id: int) -> Order | None: ...
 def index_by_id(orders: list[Order]) -> dict[int, Order]: ...
 
-# Bad — legacy typing-module forms
+# Bad: legacy typing-module forms
 from typing import List, Optional, Dict
 def fetch_orders(customer_id: int) -> List[Order]: ...
 def find_order(order_id: int) -> Optional[Order]: ...
 def index_by_id(orders: List[Order]) -> Dict[int, Order]: ...
 ```
 
-`from __future__ import annotations` is **not** required on 3.13; ruff's `UP`
-rules will remove it if accidentally added. Omit it.
+Do not add `from __future__ import annotations` on Python 3.13. Ruff's `UP`
+rules remove it. Omit it.
 
 ### Ban `Any`, Use `object` or a Concrete Type
 
 ```python
-# Bad — silently disables all type checking
+# Bad: silently disables all type checking
 def parse_response(data: Any) -> Order: ...
 
-# Good — forces the caller / callee to narrow before using
+# Good: forces the caller / callee to narrow before using
 def parse_response(data: object) -> Order:
     return Order.model_validate(data)   # Pydantic narrows here
 ```
 
-`Any` is acceptable in exactly two situations: (1) interfacing with a third-party
-library that genuinely accepts arbitrary input (rare), and (2) bridging from
-`json.loads` output before validation runs. In both cases, the `Any` should
-disappear within a few lines.
+Use `Any` only when a third-party library accepts arbitrary input or before
+validation of `json.loads` output. Remove the `Any` within a few lines.
 
 ### Prefer `dataclass` for Simple Records, Pydantic for Boundaries
 
@@ -309,7 +322,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from pydantic import BaseModel
 
-# Pydantic — for data crossing a trust boundary (HTTP request, API response,
+# Pydantic: for data crossing a trust boundary (HTTP request, API response,
 # config, user input). Validates at construction, raises ValidationError on
 # bad input.
 class CreateOrderRequest(BaseModel):
@@ -325,8 +338,8 @@ class LineItemInput(BaseModel):
     unit_price_cents: int
 
 
-# Dataclass — for in-memory domain objects. No validation, no overhead, just
-# a typed bag of fields. Use frozen=True to make it immutable.
+# Dataclass: for in-memory domain objects without validation.
+# Use frozen=True to make it immutable.
 @dataclass(frozen=True, slots=True)
 class Order:
     id: int
@@ -339,11 +352,10 @@ class Order:
     currency: str
 ```
 
-**Rule of thumb:** if the data crosses a process boundary or comes from a
-human, it's Pydantic. If it lives only inside your code, it's a frozen
-dataclass. Don't mix them — using Pydantic everywhere bloats hot loops with
-validation overhead; using dataclasses at the boundary loses the validation
-that catches bugs.
+Use Pydantic when data crosses a process boundary or comes from a person. Use a
+frozen dataclass when data exists only inside the application. Do not use
+Pydantic for all internal data because validation adds processing time. Do not
+use dataclasses at an external boundary because they do not validate the data.
 
 ### Use Pydantic at Boundaries
 
@@ -407,7 +419,7 @@ WebhookEventAdapter = TypeAdapter(WebhookEvent)
 def describe_event(event: WebhookEvent) -> str:
     match event:
         case OrderEvent():
-            return f"Order {event.order_id} → {event.status}"
+            return f"Order {event.order_id} to {event.status}"
         case RefundEvent():
             return f"Refund {event.refund_id} for order {event.original_order_id}"
 ```
@@ -423,16 +435,16 @@ from typing import Protocol
 class SupportsFetch(Protocol):
     async def fetch(self, url: str) -> bytes: ...
 
-# Any class with a matching `fetch` signature satisfies this — no need to
+# Any class with a matching `fetch` signature satisfies this: no need to
 # inherit from SupportsFetch.
 async def download_all(client: SupportsFetch, urls: list[str]) -> list[bytes]:
     return [await client.fetch(url) for url in urls]
 ```
 
 Use `ABC` and `abstractmethod` only when you need shared implementation in the
-base class. For pure interfaces, `Protocol` is the right tool.
+base class. Use `Protocol` for interfaces.
 
-### `NewType` for Domain IDs
+### `NewType` For Domain IDs
 
 When two `int` IDs mean different things, give them distinct types so the
 checker catches mix-ups.
@@ -452,7 +464,7 @@ def get_line_items(order_id: OrderId, product_id: ProductId) -> list[LineItem]: 
 get_line_items(CustomerId(5), ProductId(123))   # pyright: error
 ```
 
-### `Final` for Constants
+### `Final` For Constants
 
 ```python
 from typing import Final
@@ -462,16 +474,16 @@ DEFAULT_TIMEOUT_SECONDS: Final[float] = 30.0
 SUPPORTED_CURRENCIES: Final[tuple[str, ...]] = ("USD", "EUR", "GBP", "AUD", "JPY")
 ```
 
-`Final` tells pyright the value won't be reassigned, and ruff treats them as
-true constants for the SCREAMING_SNAKE naming check.
+`Final` tells Pyright that code cannot reassign the value. Ruff treats these
+values as constants for the SCREAMING_SNAKE naming check.
 
 ---
 
 ## Documentation (Google-Style Docstrings)
 
 Use Google-style docstrings throughout. Document all public functions, classes,
-and modules. Internal helpers get a single-line docstring if their purpose
-isn't obvious from the name.
+and modules. Internal helpers get a single-line docstring if the name does not
+explain their purpose.
 
 ### Function Documentation
 
@@ -512,7 +524,7 @@ class LineItem:
     """A single product line within an order.
 
     One row per product per order. Quantity may be greater than one.
-    Prices are stored as integer cents in the order's currency to avoid
+    Prices are stored as integer cents in the order's currency to prevent
     floating-point rounding errors.
 
     Attributes:
@@ -537,17 +549,21 @@ class LineItem:
 
 ### When to Document
 
-- **Always:** public functions, exported classes, module-level constants, modules themselves (top-of-file docstring).
-- **Sometimes:** private methods with non-obvious logic. Complex generic functions.
-- **Never:** self-explanatory one-liners, dunder methods with obvious behaviour, properties whose name says everything.
+- Always document public functions, exported classes, module-level constants,
+  and modules.
+- Document private methods and complex generic functions when their logic needs
+  an explanation.
+- Do not document one-line functions when their names explain their purpose. Do
+  not document dunder methods when their names define their behaviour. Do not
+  document properties when their names and types are sufficient.
 
 ```python
-# No doc needed — name says everything
+# No doc needed: name says everything
 def is_overdue(invoice_due: datetime, now: datetime) -> bool:
     return now > invoice_due
 
 
-# Doc needed — non-obvious calculation
+# Doc needed: calculation requires an explanation
 def calculate_customer_lifetime_value(
     orders: list[Order],
     refunds: list[Refund],
@@ -577,7 +593,7 @@ def calculate_customer_lifetime_value(
 ## Error Handling
 
 Idiomatic Python: a custom exception hierarchy for unexpected failures, plus
-`T | None` returns for expected absences. **Don't import a `Result` library** —
+`T | None` returns for expected absences. Do not import a `Result` library:
 it produces non-idiomatic Python and `pyright` narrows `T | None` perfectly
 well.
 
@@ -624,11 +640,10 @@ class InsufficientStockError(AppError):
         self.available = available
 ```
 
-### `T | None` for Expected Absence
+### `T | None` For Expected Absence
 
-When a function can legitimately "find nothing" (DB lookup miss, optional
-config value, search returning no result), return `T | None`. The caller
-narrows with a plain `if`.
+When a function can return no record or configuration value, return `T | None`.
+The caller narrows the type with a plain `if`.
 
 ```python
 async def find_order_by_id(session: AsyncSession, order_id: OrderId) -> Order | None:
@@ -637,7 +652,7 @@ async def find_order_by_id(session: AsyncSession, order_id: OrderId) -> Order | 
     return result.scalar_one_or_none()
 
 
-# Caller — pyright narrows after the check
+# Caller: pyright narrows after the check
 order = await find_order_by_id(session, OrderId(123))
 if order is None:
     return Response(status_code=404)
@@ -645,27 +660,27 @@ if order is None:
 print(order.total_cents)
 ```
 
-Reserve exceptions for **unexpected** failures: network errors, malformed
+Reserve exceptions for unexpected failures: network errors, malformed
 data, contract violations, programmer errors. "Lookup miss" is not unexpected.
 
 ### Never Swallow Errors
 
 ```python
-# Bad — silent failure
+# Bad: silent failure
 try:
     charge = await create_charge(order)
 except Exception:
     pass
 
 
-# Bad — strips context, returns sentinel that may collide with valid data
+# Bad: strips context, returns sentinel that may collide with valid data
 try:
     charge = await create_charge(order)
 except Exception:
     return None
 
 
-# Good — log with structured context, re-raise as a project error
+# Good: log with structured context, re-raise as a project error
 try:
     charge = await create_charge(order)
 except httpx.HTTPError as exc:
@@ -678,7 +693,7 @@ except httpx.HTTPError as exc:
 ```
 
 The `raise ... from exc` chain preserves the original traceback. Always use
-`from` when re-raising — it makes debugging dramatically easier.
+`from` when re-raising: it makes debugging dramatically easier.
 
 ### Use `match` for Exception Dispatch When It Helps
 
@@ -700,10 +715,10 @@ except AppError as exc:
 
 ---
 
-## Logging (structlog)
+## Logging (Structlog)
 
-`structlog` is the only logger in the codebase. Don't import `logging`
-directly. Don't use `print` for diagnostics. Don't use `loguru`.
+`structlog` is the only logger in the codebase. Do not import `logging`
+directly. Do not use `print` for diagnostics. Do not use `loguru`.
 
 ### Configuration
 
@@ -767,21 +782,31 @@ async def fetch_recent_orders(customer_id: CustomerId) -> list[Order]:
 
 ### Logging Principles
 
-- **Event names are dotted, lowercase, past-tense or imperative.** `orders.fetch.start`, `order.placed`, `db.query.slow`. Stable identifiers — searchable in production.
-- **Pass structured context as kwargs, never f-string into the message.** `log.info("user.login", user_id=user_id)` not `log.info(f"user {user_id} logged in")`. The whole point is structured fields you can filter on.
-- **Use `contextvars` for request-scoped fields.** `structlog.contextvars.bind_contextvars(request_id=...)` once per request — every log call inside that request automatically includes it.
-- **Don't log sensitive data.** Tokens, passwords, full credit card numbers. Add scrubbing processors if your domain requires it.
-- **Choose level by audience.** `DEBUG` = developer diagnosing locally. `INFO` = operator watching production. `WARNING` = something off but not failing. `ERROR` = action required. Don't log every function entry at INFO.
+- Use dotted, lowercase, past-tense or imperative event names. Examples are
+  `orders.fetch.start`, `order.placed`, and `db.query.slow`. Stable identifiers
+  support production searches.
+- Pass structured context as keyword arguments.
+  Use `log.info("user.login", user_id=user_id)`. Do not use
+  `log.info(f"user {user_id} logged in")`. Structured fields support filters.
+- Use `contextvars` for request-scoped fields. Call
+  `structlog.contextvars.bind_contextvars(request_id=...)` once per request.
+  Every log call inside that request then includes the identifier.
+- Do not log sensitive data. Sensitive data includes tokens, passwords, and full
+  credit card numbers.
+  Add scrubbing processors if your domain requires it.
+- Use `DEBUG` for local diagnosis. Use `INFO` for normal production operations.
+  Use `WARNING` for an abnormal condition that does not stop the operation. Use
+  `ERROR` when an operator must act. Do not log every function entry at `INFO`.
 
 ---
 
 ## Project Structure
 
 Use the `src/` layout. Tests live next to it under `tests/`. This prevents the
-"my import works because the cwd is on `sys.path`" class of bug — your code
+"my import works because the cwd is on `sys.path`" class of bug: your code
 only resolves through the installed package.
 
-```
+```text
 myapp/
 ├── src/
 │   └── myapp/
@@ -808,7 +833,7 @@ myapp/
 │       │   ├── __init__.py
 │       │   ├── payments_api.py    # Payments provider client (httpx)
 │       │   ├── fulfillment_api.py # Fulfillment provider client
-│       │   ├── transforms.py      # Pure functions: raw → domain
+│       │   ├── transforms.py      # Pure functions: raw to domain
 │       │   └── pipeline.py        # Orchestrator
 │       └── analytics/             # DuckDB / Polars
 │           ├── __init__.py
@@ -833,26 +858,34 @@ myapp/
 
 ### Principles
 
-- **`types.py` is written first.** Before any fetch logic, define `Order`, `Customer`, `LineItem` and the `NewType` IDs. The checker guides everything from there.
-- **One module per data source.** `payments_api.py`, `fulfillment_api.py` — each owns its HTTP calls, response parsing, and Pydantic validation.
-- **`transforms.py` is pure functions.** No I/O, no side effects. Takes raw API shapes, returns domain types. Trivially unit-testable.
-- **`pipeline.py` is the orchestrator.** Calls sources in priority order, handles fallback logic, coordinates loading. This is the cron / scheduled-task entry point.
-- **Tests mirror `src/` structure.** A test file lives at the same relative path under `tests/` as its target module under `src/myapp/`.
-- **`__init__.py` is mostly empty.** Re-export only what is genuinely public API. No logic.
+- Define `Order`, `Customer`, `LineItem`, and the `NewType` identifiers in
+  `types.py` before you write fetch logic.
+- Put each data source in one module. For example, `payments_api.py` owns its HTTP
+  calls, response parsing, and Pydantic validation.
+- Keep the functions in `transforms.py` free of I/O and side effects. They accept
+  raw API shapes and return domain types.
+- Use `pipeline.py` to call sources in priority order, handle fallback logic, and
+  coordinate loading. It is the cron or scheduled-task entry point.
+- Tests mirror `src/` structure. A test file lives at the same relative path
+  under `tests/` as its target module under `src/myapp/`.
+- `__init__.py` is mostly empty. Re-export only what is genuinely public
+  API. No logic.
 
 ---
 
 ## Code Patterns
 
+Use these patterns for common Python project structures and boundaries.
+
 ### Async Where It Pays, Sync Elsewhere
 
-Use `async` when concurrency matters: web/MCP request handlers, code that
-makes >2 concurrent network calls, code that holds many open connections.
-Use sync everywhere else — CLIs, scripts, pure transforms, one-shot data
+Use `async` for web and MCP request handlers. Use it for more than two concurrent
+network calls or many open connections.
+Use sync everywhere else: CLIs, scripts, pure transforms, one-shot data
 loads, anything that runs end-to-end on one thread.
 
 ```python
-# Good — async pays off, three calls run concurrently
+# Good: async pays off, three calls run concurrently
 async def load_customer_dashboard(customer_id: CustomerId) -> Dashboard:
     orders, payment_methods, recommendations = await asyncio.gather(
         fetch_recent_orders(customer_id),
@@ -866,7 +899,7 @@ async def load_customer_dashboard(customer_id: CustomerId) -> Dashboard:
     )
 
 
-# Good — sync, no concurrency to gain
+# Good: sync, no concurrency to gain
 def calculate_order_total(line_items: list[LineItem], tax_rate: Decimal) -> OrderTotal:
     subtotal_cents = sum(item.line_total_cents for item in line_items)
     tax_cents = int(subtotal_cents * tax_rate)
@@ -877,17 +910,16 @@ def calculate_order_total(line_items: list[LineItem], tax_rate: Decimal) -> Orde
     )
 
 
-# Bad — async without concurrency. Just makes the call site harder.
+# Bad: async without concurrency. Just makes the call site harder.
 async def calculate_order_total(line_items: list[LineItem], tax_rate: Decimal) -> OrderTotal:
     ...
 ```
 
 ### Use `asyncio.TaskGroup`, Not Bare `gather` for Structured Concurrency
 
-`TaskGroup` (3.11+) is the modern replacement for `asyncio.gather`. It
-guarantees that if any task fails, all sibling tasks are cancelled and the
-group exits cleanly with an `ExceptionGroup`. `gather` leaves cancelled-task
-behaviour ambiguous.
+`TaskGroup` in Python 3.11 and later replaces `asyncio.gather`. When one task
+fails, `TaskGroup` cancels its siblings and exits with an `ExceptionGroup`.
+`gather` leaves cancellation behaviour ambiguous.
 
 ```python
 async def enrich_order(order_id: OrderId) -> EnrichedOrder:
@@ -903,13 +935,13 @@ async def enrich_order(order_id: OrderId) -> EnrichedOrder:
     )
 ```
 
-`gather(..., return_exceptions=True)` remains the right tool for "tolerate
-partial failure" — equivalent to `Promise.allSettled`.
+Use `gather(..., return_exceptions=True)` when an operation can continue after a
+partial failure. It has the same role as `Promise.allSettled`.
 
 ### Comprehensions and Generators Over Imperative Loops
 
 ```python
-# Good — readable, no mutation
+# Good: readable, no mutation
 def normalise_orders(raw: list[ExternalOrderResponse]) -> list[Order]:
     return [
         _build_order(_normalise_currency(o))
@@ -918,7 +950,7 @@ def normalise_orders(raw: list[ExternalOrderResponse]) -> list[Order]:
     ]
 
 
-# Bad — mutating accumulator, harder to follow
+# Bad: mutating accumulator, harder to follow
 def normalise_orders(raw: list[ExternalOrderResponse]) -> list[Order]:
     result: list[Order] = []
     for o in raw:
@@ -928,15 +960,14 @@ def normalise_orders(raw: list[ExternalOrderResponse]) -> list[Order]:
         result.append(_build_order(o))
     return result
 ```
-```
 
-For long pipelines, break each stage into a named function — comprehensions
+For long pipelines, break each stage into a named function: comprehensions
 shine for one or two transforms, not five.
 
 ### `pathlib.Path`, Never `os.path`
 
-`os.path` is a 1990s string-manipulation API. `Path` is typed, composable,
-and platform-correct.
+`os.path` is a 1990s string-manipulation API. `Path` provides type information,
+path composition, and correct behaviour on each platform.
 
 ```python
 from pathlib import Path
@@ -954,10 +985,10 @@ fixtures_dir = os.path.join(os.path.dirname(__file__), "fixtures")
 
 Ruff's `PTH` rules will flag `os.path` usage automatically.
 
-### `dict` for Lookups, with Explicit Types
+### `dict` For Lookups, with Explicit Types
 
 ```python
-# Good — typed mapping, idiomatic
+# Good: typed mapping, idiomatic
 CURRENCY_SYMBOLS: Final[dict[str, str]] = {
     "USD": "$",
     "EUR": "€",
@@ -972,9 +1003,8 @@ def format_amount(amount_cents: int, currency: str) -> str:
     return f"{symbol}{amount_cents / 100:.2f}"
 ```
 
-Reach for `collections.ChainMap` if you need layered lookups (defaults +
-overrides), and `frozenset` / `dict.keys() | other.keys()` for set algebra
-on keys.
+Use `collections.ChainMap` for layered lookups with defaults and overrides. Use
+`frozenset` or `dict.keys() | other.keys()` for set algebra on keys.
 
 ### Configuration via `pydantic-settings`
 
@@ -1013,7 +1043,7 @@ def get_settings() -> Settings:
 ```
 
 ```python
-# Usage — anywhere in the app
+# Usage: anywhere in the app
 from myapp.config import get_settings
 
 settings = get_settings()
@@ -1030,7 +1060,7 @@ FastAPI, or monkeypatch in pytest).
 ```python
 import polars as pl
 
-# Good — lazy scan, predicate pushdown, projection pruning
+# Good: lazy scan, predicate pushdown, projection pruning
 def top_customers_by_revenue(year: int, parquet_dir: Path) -> pl.DataFrame:
     return (
         pl.scan_parquet(parquet_dir / "orders.parquet")
@@ -1049,18 +1079,21 @@ def top_customers_by_revenue(year: int, parquet_dir: Path) -> pl.DataFrame:
     )
 ```
 
-**Polars principles:**
+#### Polars Principles
 
-- **Lazy by default for files.** `pl.scan_parquet` over `pl.read_parquet` — the optimiser will only read columns you select and push filters down to the file reader.
-- **Expressions over loops.** Anything you can write as `pl.col("x").something()` is faster and clearer than iterating.
-- **No index.** Polars has columns and rows. If you find yourself wanting an index, you want a `join` or a `sort`.
-- **Avoid `to_pandas()` unless required.** It allocates a full copy and loses the type information.
+- Use lazy operations for files. `pl.scan_parquet` reads selected columns and
+  applies filters in the file reader.
+- Use expressions instead of loops. An expression such as
+  `pl.col("x").something()` lets Polars optimise the operation.
+- Use columns and rows without an index. Use `join` or `sort` when you need an
+  explicit relationship or order.
+- Use `to_pandas()` only when an interface requires a pandas DataFrame. The
+  conversion allocates a full copy and loses type information.
 
 ### DuckDB: SQL Over Files
 
-DuckDB is the right tool when the operation reads as SQL, especially across
-parquet folders, S3 paths, or large tables that don't need to be in a
-service database.
+Use DuckDB when an operation reads naturally as SQL. It can query parquet
+folders, S3 paths, and large tables outside a service database.
 
 ```python
 import duckdb
@@ -1092,13 +1125,12 @@ def monthly_revenue_by_product(parquet_dir: Path, year: int) -> pl.DataFrame:
     ).pl()   # return as Polars DataFrame
 ```
 
-**When to pick DuckDB over Polars:** the query is more naturally SQL (joins
-across many tables, aggregations with HAVING, window functions). DuckDB and
-Polars share Arrow memory format — converting between them is free.
+Use DuckDB when SQL expresses the query more directly. Examples include joins
+across many tables, aggregations with `HAVING`, and window functions. DuckDB and
+Polars use the Arrow memory format, so conversion does not copy the data.
 
-**When to pick SQLAlchemy over DuckDB:** you're reading or writing the
-service's transactional state. DuckDB is for analytics over files; SQLAlchemy
-is for the application database.
+Use SQLAlchemy to read or write the service's transactional state. Use DuckDB
+for analytics over files. Use SQLAlchemy for the application database.
 
 ### SQLAlchemy 2.0: Modern Declarative
 
@@ -1186,12 +1218,17 @@ async def get_orders_for_customer(
     return list(result.scalars().all())
 ```
 
-**Principles:**
+#### SQLAlchemy Principles
 
-- **`Mapped[T]` types are mandatory.** Modern SQLAlchemy infers column types from these. `mapped_column(...)` only when you need extra metadata (PK, FK, server defaults).
-- **Wrap raw SQL** in `text()` and parameter-bind — never f-string user input into a query string.
-- **One query function per use case** in `db/queries.py`. Don't scatter `select(...)` chains through route handlers.
-- **Migrations** with Alembic, generated from model diffs (`alembic revision --autogenerate`). Never hand-write migration SQL.
+- `Mapped[T]` types are mandatory. Modern SQLAlchemy infers column types
+  from these. `mapped_column(...)` only when you need extra metadata (PK, FK,
+  server defaults).
+- Wrap raw SQL in `text()` and bind each parameter. Do not put user input in an
+  f-string query.
+- One query function per use case in `db/queries.py`. Do not scatter
+  `select(...)` chains through route handlers.
+- Generate Alembic migrations from model diffs with
+  `alembic revision --autogenerate`. Do not write migration SQL by hand.
 
 ### FastAPI Patterns
 
@@ -1209,7 +1246,7 @@ from myapp.api.routes import orders, customers
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     settings = get_settings()
     configure_logging(json_output=settings.json_logs, level=settings.log_level)
-    # set up DB engine, HTTP clients, etc. on app.state
+    # Set up the DB engine, HTTP clients, and shared resources on app.state.
     yield
     # tear down
 
@@ -1246,12 +1283,17 @@ async def list_customer_orders(
     return [OrderOut.model_validate(o, from_attributes=True) for o in orders]
 ```
 
-**Principles:**
+#### FastAPI Principles
 
-- **Pydantic models for every request body and response.** `response_model=` always set — it acts as a serialisation contract independent of your DB models.
-- **Query functions stay in `db/queries.py`.** Route handlers orchestrate; they don't write SQL.
-- **`Depends()` for cross-cutting concerns.** DB sessions, auth, settings — all injected, never imported as globals inside the handler.
-- **`HTTPException` only at the route layer.** Inside the domain, raise `AppError` subclasses; let an exception handler at the app level translate them to HTTP responses.
+- Use Pydantic models for every request body and response. Always set
+  `response_model=` as a serialisation contract independent of database models.
+- Query functions stay in `db/queries.py`. Route handlers orchestrate. They
+  do not write SQL.
+- Use `Depends()` for database sessions, authentication, settings, and other
+  cross-cutting concerns. Inject these values into the handler.
+- `HTTPException` only at the route layer. Inside the domain, raise
+  `AppError` subclasses. Let an exception handler at the app level translate
+  them to HTTP responses.
 
 ### Typer for CLIs
 
@@ -1267,7 +1309,7 @@ app = typer.Typer(help="MyApp data pipeline + service entry points.")
 
 @app.command()
 def etl(
-    since: str = typer.Option(..., help="ISO date, e.g. 2026-01-01"),
+    since: str = typer.Option(..., help="ISO date, for example 2026-01-01"),
     full_refresh: bool = typer.Option(False, help="Reload everything from scratch"),
 ) -> None:
     """Run the ETL pipeline, ingesting orders since the given date."""
@@ -1304,7 +1346,9 @@ installs the CLI globally.
 
 ## Testing
 
-### pytest, with `pytest-asyncio` and `hypothesis`
+Use pytest for unit, integration, and property-based tests.
+
+### Pytest, with `pytest-asyncio` and `hypothesis`
 
 ```python
 # tests/etl/test_transforms.py
@@ -1358,9 +1402,8 @@ async def test_list_orders_returns_404_for_quiet_customer() -> None:
     assert response.status_code == 404
 ```
 
-`pytest-asyncio` is configured in `pyproject.toml` (see Package Configuration)
-with `asyncio_mode = "auto"` so async tests don't need the `@pytest.mark.asyncio`
-decorator.
+Configure `pytest-asyncio` in `pyproject.toml` with `asyncio_mode = "auto"`.
+Async tests then do not need the `@pytest.mark.asyncio` decorator.
 
 ### Property-Based Tests with Hypothesis
 
@@ -1387,12 +1430,18 @@ def test_zero_tax_rate_yields_subtotal(subtotal: int) -> None:
 
 ### Test Principles
 
-- **Snapshot external data** into `tests/fixtures/`. Never hit real APIs in tests. Use `respx` or `httpx`'s `MockTransport` to intercept HTTP.
-- **Test transforms thoroughly** — they're pure, easy to cover, and the highest-value tests because they encode business rules.
-- **Test Pydantic models** against both valid and invalid payloads. The `ValidationError` path matters as much as the happy path.
-- **Name tests as sentences.** `def test_build_order_handles_missing_tax(...)`. The test name is the spec.
-- **One assertion per concept.** Multiple `assert` lines are fine; multiple unrelated behaviours in one test aren't.
-- **Coverage target: 90%+ on `transforms.py`, `etl/`, and `db/queries.py`.** Lower on glue code (route handlers, CLI commands) where integration tests cover more.
+- Snapshot external data into `tests/fixtures/`. Never hit real APIs in
+  tests. Use `respx` or `httpx`'s `MockTransport` to intercept HTTP.
+- Test transforms thoroughly because they are pure and encode business rules.
+- Test Pydantic models against both valid and invalid payloads. The
+  `ValidationError` path matters as much as the happy path.
+- Name tests as sentences. `def test_build_order_handles_missing_tax(...)`.
+  The test name is the spec.
+- One assertion per concept. Multiple `assert` lines are fine. Multiple
+  unrelated behaviours in one test are not.
+- Coverage target: 90%+ on `transforms.py`, `etl/`, and `db/queries.py`.
+  Lower on boundary code (route handlers, CLI commands) where integration tests
+  cover more.
 
 ### Coverage
 
@@ -1402,15 +1451,14 @@ uv run coverage report --show-missing --fail-under=85
 uv run coverage html   # browse htmlcov/index.html
 ```
 
-Coverage is configured in `pyproject.toml` (see Package Configuration) with
-branch coverage enabled and sensible exclusions for `TYPE_CHECKING` blocks,
-`NotImplementedError`, and `Protocol` ellipsis bodies.
+Configure coverage in `pyproject.toml`. Enable branch coverage. Exclude
+`TYPE_CHECKING` blocks, `NotImplementedError`, and `Protocol` ellipsis bodies.
 
 ---
 
-## Pre-commit
+## Pre-Commit
 
-Catches the same things at commit time as in CI, so devs don't push code that
+Catches the same things at commit time as in CI, so devs do not push code that
 will fail the build.
 
 ```yaml
@@ -1448,29 +1496,30 @@ uv run pre-commit run --all-files # run against the whole repo
 
 ## Design Principles
 
+Use these principles when the detailed rules do not decide an approach.
+
 ### 1. Types First, Code Second
 
-Define your domain types — `dataclass`es, `NewType`s, `Protocol`s — before
+Define your domain types: `dataclass`es, `NewType`s, `Protocol`s: before
 writing any logic. Let pyright guide the implementation. The type system is
 your first design pass.
 
 ### 2. Validate at Boundaries, Trust Internally
 
-Pydantic guards every entry point: HTTP requests, API responses, environment
-variables, file reads, MCP tool inputs. Once data has been validated and
-turned into a domain object, trust the types. No defensive `isinstance`
+Pydantic validates every entry point: HTTP requests, API responses, environment
+variables, file reads, and MCP tool inputs. After Pydantic creates a domain
+object, trust the types. Do not add defensive `isinstance`
 checks deep inside business logic.
 
-### 3. Pure Core, Effectful Shell
+### 3. Separate Logic from Input and Output
 
-Keep business logic (transforms, calculations, validation) as pure
-functions. Push I/O (HTTP, database, logging, filesystem) to the edges.
-This makes the core trivially testable — no mocks, no async setup, just
-input → output.
+Keep business logic (transforms, calculations, validation) in pure functions.
+Keep HTTP, database, logging, and file-system I/O at the system boundaries. You
+can then test the business logic without mocks or asynchronous setup.
 
-### 4. Fail Loudly, Recover Gracefully
+### 4. Report Errors with Context
 
-Throw meaningful exceptions with structured context. Catch them at the
+Raise meaningful exceptions with structured context. Catch them at the
 appropriate level (route handler, pipeline orchestrator, CLI top-level).
 Use `raise ... from exc` to preserve traceback chains. Never `except:` or
 `except Exception: pass`.
@@ -1478,61 +1527,60 @@ Use `raise ... from exc` to preserve traceback chains. Never `except:` or
 ### 5. Prefer Composition Over Inheritance
 
 Use `Protocol` for interfaces, plain functions for behaviour, and dataclasses
-for data. Inheritance is fine for genuine "is-a" relationships (custom
-exception hierarchy, SQLAlchemy `Base` subclasses); it's the wrong tool for
-sharing implementation between unrelated classes — use a helper function or
-a mixin instead.
+for data. Use inheritance when a class must extend another class. Examples
+include exception hierarchies and SQLAlchemy `Base` subclasses. Use a helper
+function or mixin to share implementation between unrelated classes.
 
 ### 6. Minimise Dependencies
 
-Every dependency is a maintenance burden, a supply-chain risk, and a slower
-install. Prefer the standard library (`pathlib`, `dataclasses`, `itertools`,
-`functools`, `contextlib`, `collections`) over reaching for a package. Use
-third-party libraries for genuine complexity (Pydantic, SQLAlchemy, FastAPI,
-Polars), not for things you can write in 10 lines.
+Each dependency adds maintenance, supply-chain risk, and installation time.
+Prefer the standard library (`pathlib`, `dataclasses`, `itertools`, `functools`,
+`contextlib`, `collections`). Add a third-party library when it implements
+required complex behaviour, such as Pydantic, SQLAlchemy, FastAPI, or Polars.
 
 ### 7. Single Responsibility Modules
 
-One module, one purpose. `payments_api.py` talks to the payments API. `transforms.py`
-transforms data. `pipeline.py` orchestrates. If a file is doing two unrelated
-things, split it. If two files are always edited together, merge them.
+Give each module one purpose. `payments_api.py` accesses the payments API.
+`transforms.py` transforms data. `pipeline.py` coordinates operations. Split a
+file that has two unrelated purposes. Merge two files that are always edited
+together.
 
-### 8. The Standard Library Is Your Friend
+### 8. Prefer the Standard Library
 
 Before adding a dependency, check the stdlib:
 
-| Need | Stdlib answer |
-|------|---------------|
-| File paths | `pathlib` |
-| JSON | `json` |
-| Date/time | `datetime` (always timezone-aware: `datetime.now(UTC)`) |
-| Functional helpers | `functools`, `itertools` |
-| Concurrency primitives | `asyncio`, `concurrent.futures`, `threading` |
-| Resource management | `contextlib` |
-| Data structures | `collections` (Counter, deque, defaultdict, ChainMap) |
-| Subprocess | `subprocess` (with `check=True`, `capture_output=True`) |
-| HTTP server (one-off) | `http.server` |
-| CLI parsing (tiny scripts) | `argparse` |
+| Need                       | Stdlib answer                                           |
+| -------------------------- | ------------------------------------------------------- |
+| File paths                 | `pathlib`                                               |
+| JSON                       | `json`                                                  |
+| Date/time                  | `datetime` (always timezone-aware: `datetime.now(UTC)`) |
+| Functional helpers         | `functools`, `itertools`                                |
+| Concurrency primitives     | `asyncio`, `concurrent.futures`, `threading`            |
+| Resource management        | `contextlib`                                            |
+| Data structures            | `collections` (Counter, deque, defaultdict, ChainMap)   |
+| Subprocess                 | `subprocess` (with `check=True`, `capture_output=True`) |
+| HTTP server (one-off)      | `http.server`                                           |
+| CLI parsing (tiny scripts) | `argparse`                                              |
 
-Reach outside it when the stdlib answer is genuinely worse, not by default.
+Add a dependency when the standard library cannot meet the project requirements.
 
 ---
 
 ## References
 
-**Important:** Before setting up project standards, tooling, or writing
-application code, read through the documentation linked below. Each link
-uses the `defuddle.md` prefix which returns clean, agent-readable markdown.
-Read the full documentation — not just the getting started pages — to
-understand the conventions, APIs, and patterns available in each tool.
+Before you set project standards, configure tools, or write application code,
+read the documentation linked below. Each link uses the `defuddle.md` prefix,
+which returns agent-readable Markdown. Read the complete documentation,
+including pages outside the getting-started section. This material defines the
+available conventions, APIs, and patterns.
 
 - [Google Python Style Guide](https://defuddle.md/google.github.io/styleguide/pyguide.html)
-- [PEP 8 — Style Guide for Python Code](https://defuddle.md/peps.python.org/pep-0008/)
-- [PEP 257 — Docstring Conventions](https://defuddle.md/peps.python.org/pep-0257/)
-- [PEP 484 — Type Hints](https://defuddle.md/peps.python.org/pep-0484/)
-- [PEP 585 — Builtin Generic Types](https://defuddle.md/peps.python.org/pep-0585/)
-- [PEP 604 — Union Type Syntax (`X | Y`)](https://defuddle.md/peps.python.org/pep-0604/)
-- [PEP 695 — Type Parameter Syntax](https://defuddle.md/peps.python.org/pep-0695/)
+- [PEP 8: Style Guide for Python Code](https://defuddle.md/peps.python.org/pep-0008/)
+- [PEP 257: Docstring Conventions](https://defuddle.md/peps.python.org/pep-0257/)
+- [PEP 484: Type Hints](https://defuddle.md/peps.python.org/pep-0484/)
+- [PEP 585: Builtin Generic Types](https://defuddle.md/peps.python.org/pep-0585/)
+- [PEP 604: Union Type Syntax (`X | Y`)](https://defuddle.md/peps.python.org/pep-0604/)
+- [PEP 695: Type Parameter Syntax](https://defuddle.md/peps.python.org/pep-0695/)
 - [uv documentation](https://defuddle.md/docs.astral.sh/uv/)
 - [ruff documentation](https://defuddle.md/docs.astral.sh/ruff/)
 - [pyright documentation](https://defuddle.md/microsoft.github.io/pyright/)

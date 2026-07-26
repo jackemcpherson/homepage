@@ -11,6 +11,9 @@
 # Python
 __pycache__/
 
+# Documentation tooling
+.rumdl_cache/
+
 # Claude Code
 .claude/
 .playwright-mcp/
