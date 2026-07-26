@@ -34,12 +34,10 @@ the Cloudflare dashboard via the Cloudflare GitHub App), which runs
 30-60 seconds after a push. To deploy manually, run `npx wrangler@4 deploy`
 from the repository root.
 
-Workers Builds posts no GitHub commit statuses or check runs. The
-`gh api repos/.../commits/<sha>/check-runs` output will be empty even after a
-successful build. To verify a deploy, check
-`npx wrangler@4 deployments list` (look for a `Created:`
-timestamp newer than the push) or watch the Builds log in the Cloudflare
-dashboard.
+Workers Builds posts a `Workers Builds: jackemcpherson-homepage` check run. To
+verify a deployment, confirm that this check succeeds. Then run
+`npx wrangler@4 deployments list` and find a `Created:` timestamp newer than the
+push. The Cloudflare dashboard also contains the complete build log.
 
 Layout:
 
