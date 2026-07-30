@@ -115,35 +115,43 @@ database_id = "fe1c1a89-805f-481d-9ba0-b9f8dee04a36"
 Use the MCP endpoint for AI agents and LLM-powered applications that query AFL
 data.
 
-The AFL-MCP server exposes three Model Context Protocol tools. Use the
-`https://afl.jackemcpherson.com/mcp` endpoint.
+The AFL-MCP server exposes two Model Context Protocol tools. Use the
+`https://afl.jackemcpherson.com/mcp` endpoint. Release 3.7.0 removed the
+`tools` tool: its sandbox constraints now travel in the `code` tool's
+description, the only surface every MCP client reads.
 
 | Tool     | Purpose                                                                                               |
 | -------- | ----------------------------------------------------------------------------------------------------- |
 | `schema` | Database structure and typed coverage. Optional bounded observation for one competition-season        |
-| `tools`  | Sandbox capabilities and constraints                                                                  |
 | `code`   | Execute TypeScript against D1 in an isolated sandbox. Optional `competition` arg as a hint to the LLM |
 
 The `code` tool runs user-submitted TypeScript in a Dynamic Worker isolate
 with read-only database access via a `db.prepare(sql).bind(...).all()` bridge.
 Queries must filter by competition explicitly: the `competition` argument is
-documentation, not auto-injection.
+documentation, not auto-injection. Sandbox constraints: no network, no npm,
+a 30-second timeout, a 1 MB result cap, and 60 requests per minute per IP.
 
 The `schema` tool accepts three parameter shapes. A no-argument call returns
-static expectations for all four competitions. These expectations are in
-`database.coverage_contract` version 1. The call does not read D1.
+static expectations for all four competitions in
+`database.coverage_contract` version 2, without reading D1.
+
+In version 2, each table declares a default (`range`, `expected`, `source`)
+that applies to every column, and `columns` lists only exceptions that
+deviate from it. A `how_to_read` key in the response explains the encoding.
+The full response is about 29 KB, down from 126 KB under version 1.
 
 The `competition` parameter filters `database.competitions` and
 `coverage_contract.by_competition`. It does not change tables, notes, or join
 examples. This call also does not read D1.
 
 The `{"includeObserved":true,"competition":"AFLM","season":2026}` request measures
-exactly
-one competition-season and keeps observations separate from expectations. Row
-fields use the `rows` unit, PAV uses `table_rows`, and lineup coverage uses
-`match_presence`. The server caches successful measurements for 15 minutes.
-The server rejects any other combination and returns a contract error. For
-example, `includeObserved` requires both `competition` and `season`.
+exactly one competition-season and attaches the result as a sibling
+`observed` block beside the static contract. Measurements never mutate
+expectations. Row fields use the `rows` unit, PAV uses `table_rows`, and
+lineup coverage uses `match_presence`. The server caches successful
+measurements for 15 minutes. The server rejects any other combination and
+returns a contract error. For example, `includeObserved` requires both
+`competition` and `season`.
 
 `GET /mcp/health` reports sync freshness. It returns 503 when no sync occurred
 for more than three hours. Bearer-token admin routes trigger manual syncs and
@@ -321,11 +329,15 @@ Each row contains one match. Identity columns include `season_id`,
 `round_number`, `round_type`, `date`, `local_time`, and the venue and team IDs.
 The `round` column contains a long label such as `Round 1` or `Grand Final`.
 The `round_abbreviation` column contains AFL short codes from `OR` through
-`GF`. Pre-2020 AFLM data can also use `EF` and `QF`.
+`GF`. Pre-2020 AFLM data can also use `EF` and `QF`. Finals round names
+without a mapped short form fall back to `F<round_number>`, such as `F25` for
+the AFLM 2026 `Wildcard Finals`.
 
 The score columns include
 points, margins, attendance, and each quarter's goals and behinds. The `status`
-column records the match lifecycle. The `live_period_status` column stores the
+column records the match lifecycle and release 3.7.0 backfilled it for every
+historical row. The 38 score-less VFL/VFLW 2021 COVID-era matches read
+`Cancelled`. The `live_period_status` column stores the
 raw AFL API status for siren detection without inference from null scores.
 
 Release 3.4.0 added nullable `completed_quarter`. The value from 0 through 4 is
@@ -333,10 +345,9 @@ the highest completed quarter. Use it together with `status`. AFL-MCP's
 five-minute sync does not provide real-time match data. `local_time` is Melbourne
 time for every competition, including interstate matches.
 
-Venue-native time is not stored. The legacy
-`weather_temp_c` and `weather_type` contain a frozen fryzigg record for AFLM
-from 2010 through 2025. Temperatures are daily maxima. Use `match_weather` for
-match-time numeric weather.
+Venue-native time is not stored. Release 3.7.0 dropped the legacy
+`weather_temp_c` and `weather_type` columns (a frozen fryzigg record, AFLM
+2010 through 2025, daily maxima). Use `match_weather` for all weather data.
 
 #### `match_weather`
 
