@@ -199,7 +199,9 @@ derive R-fitzRoy-style round labels from `Match` fields.
 
 ### Common Parameters
 
-All fetch functions accept a query object with these common parameters:
+Most fetch functions accept a query object drawing from these common
+parameters, though exact fields vary per function — `fetchTeams` takes only
+`competition`, and `fetchTeamStats` omits `round`, `competition`, and `team`:
 
 | Parameter     | Type              | Values or Purpose                                                        |
 | ------------- | ----------------- | ------------------------------------------------------------------------ |
@@ -218,7 +220,7 @@ All fetch functions accept a query object with these common parameters:
 | `afl-tables`  | AFLM 1897-present (player/team stats 1965+) | Historical records                              |
 | `squiggle`    | AFLM 2012-present                           | Prediction data, third-party analysis           |
 | `fryzigg`     | AFLM 2012-2025, AFLW 2017-2022              | Advanced player statistics (RDS format)         |
-| `afl-coaches` | AFLM coaches votes                          | AFLCA Champion Player votes (via `fetchAwards`) |
+| `afl-coaches` | AFLM (2006+) and AFLW (2018+) coaches votes | AFLCA Champion Player votes (via `fetchAwards`) |
 
 Only `afl-api` covers VFL and VFLW. The fryzigg RDS dumps are snapshots. The
 AFLM dump has no updates after September 2025. The AFLW dump has no updates
@@ -313,7 +315,7 @@ without the `nodejs_compat` compatibility flag.
 
 ## D1 Database Schema
 
-The `afl-stats` database has 12 tables and five integrity views. It covers AFL
+The `afl-stats` database has 13 tables and five integrity views. It covers AFL
 Men's, AFL Women's, VFL, and VFLW. Always filter queries by competition.
 Join `seasons` to `competitions`, then use `WHERE c.code = ?`. Without
 the filter, results silently mix competitions. Teams with the same name in
@@ -400,8 +402,9 @@ needs.
 #### `match_lineups`
 
 This table contains announced team selections. The `is_emergency` and
-`is_substitute` columns are flags. Coverage starts with AFLM 2015 and AFLW 2017.
-VFL and VFLW coverage is best-effort.
+`is_substitute` columns are flags. Coverage starts with AFLM 2015. AFLW, VFL,
+and VFLW coverage starts 2023 (release 3.7.1): the AFL API only publishes
+announced teams, not who played, before 2023.
 
 ### Coverage Contract
 
@@ -500,9 +503,11 @@ PAV when new AFLM or AFLW player statistics arrive.
 
 The top-of-hour pipeline also runs a weather stage. It refreshes seven-day
 forecasts daily and match-day forecasts hourly. It writes a fast observation
-after each match and upgrades the provenance to ERA5 after six days. Each pass
-permits 25 fetches and records failures in `sync_log`. A local script performed
-the initial historical weather backfill.
+after each match and upgrades the provenance to ERA5 after six days. Each of
+the three fetch stages (forecast, fast-observation, final-observation) permits
+up to 25 fetches per pass, so a pass can issue up to 75 total. It records
+failures in `sync_log`. A local script performed the initial historical
+weather backfill.
 
 `POST /mcp/admin/backfill` exposes the backfill operation. Its parameters are
 `competitions`, `fromYear`, `toYear`, `skipShouldRunNow`, and `skipPav`. A request
@@ -565,12 +570,12 @@ footyBot is a Discord bot that runs entirely on Cloudflare Workers and
 consumes the rest of the ecosystem two ways:
 
 - The `/ask <question>` command routes the question through the configured LLM
-  (`gemini-3-flash-preview` by default via Google AI Studio's `v1beta`
-  endpoint, or `claude-sonnet-4-5` when `LLM_PROVIDER="anthropic"`) inside
-  a manual MCP tool-use loop against `https://afl.jackemcpherson.com/mcp`.
-  All LLM traffic is proxied through Cloudflare AI Gateway with
-  Authenticated Gateway enabled so Unified Billing covers it. A `/help`
-  command posts usage examples.
+  (`google/gemini-3-flash` by default via the Cloudflare Workers AI binding,
+  or `claude-sonnet-4-5` when `LLM_PROVIDER="anthropic"`) inside a manual MCP
+  tool-use loop against `https://afl.jackemcpherson.com/mcp`. Only the
+  Anthropic path is proxied through Cloudflare AI Gateway with Authenticated
+  Gateway enabled so Unified Billing covers it; the default Gemini path calls
+  the Workers AI binding directly. A `/help` command posts usage examples.
 - Two Workers cron triggers feed a proactive announcement channel:
   - `* * * * *` (every minute, gated by a KV-cached fixture window) pulls
     live matches via fitzroy and posts QT / HT / 3QT / FT scoreboards at
@@ -593,12 +598,12 @@ consumes the rest of the ecosystem two ways:
     and current ladder positions. Observed `match_weather` remains
     material weather context. The state key is
     `summary:{comp}:{season}:{round}`.
-  - The same per-minute cron also drives a round preview inside a Thursday
-    18:20-21:00
-    Melbourne window (18:20 is the official team-announcement time).
-    It polls every 5 minutes via the MCP `code` tool and posts once a
-    data gate passes (the round's opening match has announced lineups
-    and a published prediction). Every pass from 20:50 can publish the preview.
+  - The same per-minute cron also drives a round preview from Thursday
+    18:20 Melbourne time onward, with no upper cutoff that evening (18:20
+    is the official team-announcement time). It polls every minute via the
+    MCP `code` tool and posts once a data gate passes (the round's opening
+    match has announced lineups and a published prediction). Every pass
+    from 18:30 can publish the preview.
     The run uses available data so one failed
     invocation cannot cost the round its preview. The post pairs a
     deterministic fixtures template with an LLM storylines section. The template
