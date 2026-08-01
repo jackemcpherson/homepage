@@ -200,8 +200,9 @@ derive R-fitzRoy-style round labels from `Match` fields.
 ### Common Parameters
 
 Most fetch functions accept a query object drawing from these common
-parameters, though exact fields vary per function — `fetchTeams` takes only
-`competition`, and `fetchTeamStats` omits `round`, `competition`, and `team`:
+parameters. Exact fields vary per function (for example, `fetchTeams` takes
+only `competition`, and `fetchTeamStats` omits `round`, `competition`, and
+`team`):
 
 | Parameter     | Type              | Values or Purpose                                                        |
 | ------------- | ----------------- | ------------------------------------------------------------------------ |
@@ -574,7 +575,7 @@ consumes the rest of the ecosystem two ways:
   or `claude-sonnet-4-5` when `LLM_PROVIDER="anthropic"`) inside a manual MCP
   tool-use loop against `https://afl.jackemcpherson.com/mcp`. Only the
   Anthropic path is proxied through Cloudflare AI Gateway with Authenticated
-  Gateway enabled so Unified Billing covers it; the default Gemini path calls
+  Gateway enabled so Unified Billing covers it. The default Gemini path calls
   the Workers AI binding directly. A `/help` command posts usage examples.
 - Two Workers cron triggers feed a proactive announcement channel:
   - `* * * * *` (every minute, gated by a KV-cached fixture window) pulls
