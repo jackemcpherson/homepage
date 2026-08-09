@@ -123,9 +123,9 @@ infra/
 
 ### Project Structure Rules
 
-- `modules/variables.tf` is written first. It is the typed interface of the
-  component. Define it before any resource logic, and let the validations guide
-  the implementation.
+- Define `modules/variables.tf` first. It is the typed interface of the component.
+  Define it before any resource logic, and let the validations guide the
+  implementation.
 - Keep environment directories small. Include a backend block, a pinned module
   call, a `.tfvars` file, and read-only remote-state lookups.
 - Component states depend downward, never sideways or up. `compute` reads
@@ -266,7 +266,7 @@ Use these promotion rules:
   promotion health criteria. The pipeline applies the merged change. Every
   production change has a named author, a one-line diff, a timestamp, and a
   one-line revert.
-  Add automatic promotion only after smoke tests and a defined observation period
+- Add automatic promotion only after smoke tests and a defined observation period
   give a measurable health result. Keep a human veto.
 
 ### Restore a Known-Good Version

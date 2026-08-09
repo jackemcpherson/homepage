@@ -564,10 +564,11 @@ through the D1 REST API remains the manual emergency path.
 footyBot is a Discord bot that runs entirely on Cloudflare Workers and
 consumes the rest of the ecosystem two ways:
 
-- The `/ask <question>` command routes the question through the configured LLM
-  (`gemini-3-flash-preview` by default via Google AI Studio's `v1beta`
-  endpoint, or `claude-sonnet-4-5` when `LLM_PROVIDER="anthropic"`) inside
-  a manual MCP tool-use loop against `https://afl.jackemcpherson.com/mcp`.
+- The `/ask <question>` command uses a manual MCP tool-use loop against
+  `https://afl.jackemcpherson.com/mcp`. It routes the question through the
+  configured LLM. `gemini-3-flash-preview` is the default through Google AI
+  Studio's `v1beta` endpoint. `claude-sonnet-4-5` runs when
+  `LLM_PROVIDER="anthropic"`.
   All LLM traffic is proxied through Cloudflare AI Gateway with
   Authenticated Gateway enabled so Unified Billing covers it. A `/help`
   command posts usage examples.
@@ -609,20 +610,41 @@ regressions.
 
 ## AFL Domain Essentials
 
-The four competitions covered:
+The following sections describe the four supported competitions.
 
-- AFL Men's (AFLM) has 18 teams. Its season runs from March to September. It has
-  an Opening
-  Round (before Round 1, `round_number = 0`, 2024+ only), 23 home-and-away
-  rounds, Finals series. Pre-2020 used `Qualifying`/`Elimination` Final.
-  2020+ uses `Finals Week 1`.
-- AFL Women's (AFLW) has 18 teams. Its season runs from August to November.
-- VFL is a second-tier men's competition with a mix of AFLM-affiliated reserves
-  and standalone clubs. Examples include Carlton, Collingwood, Box Hill Hawks,
-  Casey Demons, and Werribee Tigers. It includes a `Wildcard` round before
-  finals.
-- VFLW is a Victorian women's second-tier competition with AFLW affiliates
-  and standalone clubs such as Darebin.
+### AFLM Season
+
+AFL Men's (AFLM) has 18 teams. Its season runs from March to September.
+
+Each season has 23 home-and-away rounds and a Finals series.
+
+### AFLM Opening Round
+
+The Opening Round precedes Round 1.
+
+From 2024 onward, AFL-MCP stores zero in its round number field.
+
+### AFLM Finals Labels
+
+Seasons before 2020 used `Qualifying` and `Elimination` Final. Seasons from 2020
+use `Finals Week 1`.
+
+### AFL Women's
+
+AFL Women's (AFLW) has 18 teams. Its season runs from August to November.
+
+### VFL
+
+VFL is a second-tier men's competition with AFLM-affiliated reserves and
+standalone clubs. Examples include Carlton, Collingwood, Box Hill Hawks, Casey
+Demons, and Werribee Tigers.
+
+The competition includes a `Wildcard` round before finals.
+
+### VFLW
+
+VFLW is a Victorian women's second-tier competition with AFLW affiliates and
+standalone clubs such as Darebin.
 
 Goals score 6 points, behinds score 1. Total = goals × 6 + behinds.
 
