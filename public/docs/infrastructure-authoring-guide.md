@@ -218,7 +218,7 @@ moved {
 #### Other Resource Rules
 
 - Prefer implicit dependencies through references. Use `depends_on` only
-  when a dependency genuinely cannot be expressed as a reference.
+  when no reference can express the dependency.
 - Use `dynamic` blocks only for variable-length nested blocks. They make the plan
   more difficult to read.
 - Do not use `local-exec` or `remote-exec` to connect resources. Use a provider

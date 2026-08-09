@@ -222,8 +222,7 @@ Always use strict mode. No exceptions. All settings live in `pyproject.toml`
 - Set `reportImplicitOverride = "error"`. Mark each overriding method with
   `@override` (PEP 698). The check detects a renamed base method.
 - Set `reportMissingTypeStubs = "warning"` to identify libraries without type
-  stubs. A commented `# type: ignore[import-untyped]` is permitted for these
-  libraries.
+  stubs. Use a commented `# type: ignore[import-untyped]` only for these libraries.
 
 If a library is genuinely untyped and matters to your business logic, write a
 local stub in `typings/<package>.pyi` rather than scattering `Any` through your
