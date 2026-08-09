@@ -433,7 +433,7 @@ exactly three MCP tools.
 - The `seasons` table has a unique `(competition_id, year)` key.
 - The `sync_log` table contains append-only cron history (`timestamp`, `type`,
   `rows_affected`, `error`) used for freshness checks and backfill audits.
-  Successful no-op ticks are not logged. Rows are pruned after 90 days.
+  Successful no-op ticks are not logged. The system removes rows after 90 days.
 - The `sync_lease` table contains a single-row mutual-exclusion lock. The lock
   ensures that cron and admin syncs
   cannot overlap (10-minute stale timeout).
@@ -571,49 +571,41 @@ consumes the rest of the ecosystem two ways:
   All LLM traffic is proxied through Cloudflare AI Gateway with
   Authenticated Gateway enabled so Unified Billing covers it. A `/help`
   command posts usage examples.
-- Two Workers cron triggers feed a proactive announcement channel:
-  - `* * * * *` (every minute, gated by a KV-cached fixture window) pulls
-    live matches via fitzroy and posts QT / HT / 3QT / FT scoreboards at
-    quarter breaks. Break detection takes the maximum of several signals:
-    `Match.completedQuarter` (primary, from the AFL API match clock),
-    per-quarter score population, `status === "Complete"`, and the
-    `livePeriodStatus` string (unreliable since mid-2026, when the AFL API
-    stopped emitting `QTR_TIME`/`HALF_TIME`/`3QTR_TIME`). Posts advance
-    on whichever signal arrives first. Per-match KV state (`live:{matchId}`)
-    makes the tick idempotent.
-  - `0 21 * * *` (~07:00 AEST / 08:00 AEDT) finds any
-    `(competition, season, round)` that completed in the trailing 36 h
-    and has not been summarised, then posts deterministic results and a
-    ladder template plus a compact LLM storylines section covering every
-    match. AFLM ladders from 2026 mark the direct-passage cut after sixth
-    and wildcard cutoff after 10th. Storylines receive score shape,
-    deterministic player highlights (`rating_points` leader plus
-    multi-goal players), `match_predictions` calibration, six-game form,
-    a computed previous-round ladder diff, and the next round's fixtures
-    and current ladder positions. Observed `match_weather` remains
-    material weather context. The state key is
-    `summary:{comp}:{season}:{round}`.
-  - The same per-minute cron also drives a round preview inside a Thursday
-    18:20-21:00
-    Melbourne window (18:20 is the official team-announcement time).
-    It polls every 5 minutes via the MCP `code` tool and posts once a
-    data gate passes (the round's opening match has announced lineups
-    and a published prediction). Every pass from 20:50 can publish the preview.
-    The run uses available data so one failed
-    invocation cannot cost the round its preview. The post pairs a
-    deterministic fixtures template with an LLM storylines section. The template
-    groups fixtures by day. Each match includes a
-    `FootyBot's Tip: <favourite> by <margin> (<prob>%)` line from
-    `match_predictions`. The storylines use material forecast-weather context.
-    Canonical venue roof metadata suppresses outdoor wind and rain evidence for
-    roofed fixtures. The state key is `preview:{comp}:{season}:{round}`.
+- One per-minute cron starts durable Cloudflare Workflows.
+  - One Live Match-Day Workflow polls AFLM and AFLW together. It posts QT, HT,
+    3QT, and FT scoreboards in channel order.
+  - Separate Round Preview and Round Review Workflows retry within their
+    Melbourne-time publication windows.
+
+Each Round Publication contains exactly two messages. An authoritative factual
+post comes first, followed by an AI-written editorial post.
+
+FootyBot prepares and validates both before delivery. It records success only
+after Discord confirms both.
+
+Editorial rules:
+
+- Model output cites supplied facts and may omit insignificant matches.
+- Optional evidence never blocks a Review.
+- Lineups never block a Preview.
+
+All proactive posts use stable Discord delivery identifiers. A Workflow checks
+recent channel history before and after sending, so a lost HTTP response does
+not create a duplicate. Workflow state owns in-progress delivery. KV retains
+the shared fixture cache, `/ask` quotas, cron heartbeat, and final Round
+Publication markers.
 
 State lives in a single `STATE` KV namespace. Hono handles the Discord
-interaction webhook. A queue consumer runs the tool-use loop so the
-interaction can acknowledge within Discord's three-second window. Each live
-tick writes a `lasttick:{melbourneDate}` liveness marker. The marker separates
-a stopped cron from a run with no post. An offline evaluation suite
-(`bun run eval`) tests `/ask` answer quality for regressions.
+interaction webhook.
+
+A queue consumer runs the tool-use loop. This lets Discord acknowledge the
+interaction within three seconds.
+
+Cron runs update the daily liveness marker. It distinguishes a stopped cron
+from a run with no post.
+
+An offline evaluation suite (`bun run eval`) tests `/ask` answer quality for
+regressions.
 
 ## AFL Domain Essentials
 
