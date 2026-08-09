@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://jackemcpherson.com/</loc>
+  </url>
+  <url>
+    <loc>https://jackemcpherson.com/docs/</loc>
+  </url>
+  <url>
+    <loc>https://jackemcpherson.com/docs/afl-data-ecosystem.md</loc>
+  </url>
+  <url>
+    <loc>https://jackemcpherson.com/docs/infrastructure-authoring-guide.md</loc>
+  </url>
+  <url>
+    <loc>https://jackemcpherson.com/docs/infrastructure-style-guide.md</loc>
+  </url>
+  <url>
+    <loc>https://jackemcpherson.com/docs/markdown-style-guide.md</loc>
+  </url>
+  <url>
+    <loc>https://jackemcpherson.com/docs/media-server-review.html</loc>
+  </url>
+  <url>
+    <loc>https://jackemcpherson.com/docs/python-style-guide.md</loc>
+  </url>
+  <url>
+    <loc>https://jackemcpherson.com/docs/typescript-style-guide.md</loc>
+  </url>
+</urlset>

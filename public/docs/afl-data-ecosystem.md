@@ -437,7 +437,7 @@ exactly three MCP tools.
 - The `seasons` table has a unique `(competition_id, year)` key.
 - The `sync_log` table contains append-only cron history (`timestamp`, `type`,
   `rows_affected`, `error`) used for freshness checks and backfill audits.
-  Successful no-op ticks are not logged. Rows are pruned after 90 days.
+  Successful no-op ticks are not logged. The system removes rows after 90 days.
 - The `sync_lease` table contains a single-row mutual-exclusion lock. The lock
   ensures that cron and admin syncs
   cannot overlap (10-minute stale timeout).
@@ -587,56 +587,79 @@ consumes the rest of the ecosystem two ways:
     stopped emitting `QTR_TIME`/`HALF_TIME`/`3QTR_TIME`). Posts advance
     on whichever signal arrives first. Per-match KV state (`live:{matchId}`)
     makes the tick idempotent.
-  - `0 21 * * *` (~07:00 AEST / 08:00 AEDT) finds any
-    `(competition, season, round)` that completed in the trailing 36 h
-    and has not been summarised, then posts deterministic results and a
-    ladder template plus a compact LLM storylines section covering every
-    match. AFLM ladders from 2026 mark the direct-passage cut after sixth
-    and wildcard cutoff after 10th. Storylines receive score shape,
-    deterministic player highlights (`rating_points` leader plus
-    multi-goal players), `match_predictions` calibration, six-game form,
-    a computed previous-round ladder diff, and the next round's fixtures
-    and current ladder positions. Observed `match_weather` remains
-    material weather context. The state key is
-    `summary:{comp}:{season}:{round}`.
-  - The same per-minute cron also drives a round preview from Thursday
-    18:20 Melbourne time onward, with no upper cutoff that evening (18:20
-    is the official team-announcement time). It polls every minute via the
-    MCP `code` tool and posts once a data gate passes (the round's opening
-    match has announced lineups and a published prediction). Every pass
-    from 18:30 can publish the preview.
-    The run uses available data so one failed
-    invocation cannot cost the round its preview. The post pairs a
-    deterministic fixtures template with an LLM storylines section. The template
-    groups fixtures by day. Each match includes a
-    `FootyBot's Tip: <favourite> by <margin> (<prob>%)` line from
-    `match_predictions`. The storylines use material forecast-weather context.
-    Canonical venue roof metadata suppresses outdoor wind and rain evidence for
-    roofed fixtures. The state key is `preview:{comp}:{season}:{round}`.
+  - The same per-minute cron also drives a checkpoint-based Round Publication
+    for each of the Preview and Review purposes, retrying within its own
+    Melbourne-time window (Preview from Thursday 18:20, eligible to publish
+    from 18:30, Review once a round's matches have all completed). Each
+    publication is exactly two Discord messages: a deterministic, fact-only
+    template post, followed by an LLM-written editorial post whose claims
+    must cite deterministic fact cards (results, ladder positions and moves,
+    upsets, match stats) and pass validation (coverage, banned phrasing,
+    verb and citation rules) before delivery, with a repair pass on
+    rejection. A KV-backed checkpoint (`stage`: `template_posted`,
+    `editorial_pending`, `editorial_posted`, `editorial_omitted`, and so on)
+    tracks each message's nonce and Discord message ID, so a retried tick
+    resumes from wherever the previous attempt left off, checks channel
+    history for an already-delivered nonce before posting again, and only
+    advances once Discord confirms delivery. Missing lineups or a
+    missing/stale prediction hold a Preview back until they resolve. An
+    editorial that fails validation after repair is omitted rather than
+    blocking the template post. The Review's fact cards fold in six-game
+    form, a computed previous-round ladder diff, the next round's fixtures,
+    and observed `match_weather` as context. Persistent per-purpose failures
+    throttle to one ops-channel alert per error code per hour rather than
+    repeating every minute. AFLM ladders from 2026 mark the direct-passage
+    cut after sixth and wildcard cutoff after 10th.
 
 State lives in a single `STATE` KV namespace. Hono handles the Discord
-interaction webhook. A queue consumer runs the tool-use loop so the
-interaction can acknowledge within Discord's three-second window. Each live
-tick writes a `lasttick:{melbourneDate}` liveness marker. The marker separates
-a stopped cron from a run with no post. An offline evaluation suite
-(`bun run eval`) tests `/ask` answer quality for regressions.
+interaction webhook.
+
+A queue consumer runs the tool-use loop. This lets Discord acknowledge the
+interaction within three seconds.
+
+Cron runs update the daily liveness marker. It distinguishes a stopped cron
+from a run with no post.
+
+An offline evaluation suite (`bun run eval`) tests `/ask` answer quality for
+regressions.
 
 ## AFL Domain Essentials
 
-The four competitions covered:
+The following sections describe the four supported competitions.
 
-- AFL Men's (AFLM) has 18 teams. Its season runs from March to September. It has
-  an Opening
-  Round (before Round 1, `round_number = 0`, 2024+ only), 23 home-and-away
-  rounds, Finals series. Pre-2020 used `Qualifying`/`Elimination` Final.
-  2020+ uses `Finals Week 1`.
-- AFL Women's (AFLW) has 18 teams. Its season runs from August to November.
-- VFL is a second-tier men's competition with a mix of AFLM-affiliated reserves
-  and standalone clubs. Examples include Carlton, Collingwood, Box Hill Hawks,
-  Casey Demons, and Werribee Tigers. It includes a `Wildcard` round before
-  finals.
-- VFLW is a Victorian women's second-tier competition with AFLW affiliates
-  and standalone clubs such as Darebin.
+### AFLM Season
+
+AFL Men's (AFLM) has 18 teams. Its season runs from March to September.
+
+Each season has 23 home-and-away rounds and a Finals series.
+
+### AFLM Opening Round
+
+The Opening Round precedes Round 1.
+
+From 2024 onward, AFL-MCP stores zero in its round number field.
+
+### AFLM Finals Labels
+
+Seasons before 2020 used `Qualifying` and `Elimination` Final. Seasons from 2020
+use `Finals Week 1`.
+
+### AFL Women's
+
+AFL Women's (AFLW) has 18 teams. Its season runs from August to November.
+
+### VFL
+
+VFL is a second-tier men's competition with AFLM-affiliated reserves and
+standalone clubs. Examples include Carlton, Collingwood, Box Hill Hawks, Casey
+Demons, and Werribee Tigers.
+
+The competition includes a `Wildcard` round before finals.
+
+### VFLW
+
+VFLW is a Victorian women's second-tier competition with AFLW affiliates and
+standalone clubs such as Darebin.
 
 Goals score 6 points, behinds score 1. Total = goals × 6 + behinds.
 

@@ -786,7 +786,7 @@ Before you approve a Markdown change, confirm these facts:
 - Procedural sentences contain no more than 20 words.
 - Descriptive sentences contain no more than 25 words.
 - General words follow the approved controlled vocabulary.
-- Project terms are defined and consistent.
+- Project terms have consistent definitions.
 - Instructions use active voice and imperative mood.
 - Prose does not contain semicolons or decorative Unicode punctuation.
 - Lists do not start items with bold labels.
