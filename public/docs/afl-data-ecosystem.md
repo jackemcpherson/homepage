@@ -199,7 +199,10 @@ derive R-fitzRoy-style round labels from `Match` fields.
 
 ### Common Parameters
 
-All fetch functions accept a query object with these common parameters:
+Most fetch functions accept a query object drawing from these common
+parameters. Exact fields vary per function (for example, `fetchTeams` takes
+only `competition`, and `fetchTeamStats` omits `round`, `competition`, and
+`team`):
 
 | Parameter     | Type              | Values or Purpose                                                        |
 | ------------- | ----------------- | ------------------------------------------------------------------------ |
@@ -218,7 +221,7 @@ All fetch functions accept a query object with these common parameters:
 | `afl-tables`  | AFLM 1897-present (player/team stats 1965+) | Historical records                              |
 | `squiggle`    | AFLM 2012-present                           | Prediction data, third-party analysis           |
 | `fryzigg`     | AFLM 2012-2025, AFLW 2017-2022              | Advanced player statistics (RDS format)         |
-| `afl-coaches` | AFLM coaches votes                          | AFLCA Champion Player votes (via `fetchAwards`) |
+| `afl-coaches` | AFLM (2006+) and AFLW (2018+) coaches votes | AFLCA Champion Player votes (via `fetchAwards`) |
 
 Only `afl-api` covers VFL and VFLW. The fryzigg RDS dumps are snapshots. The
 AFLM dump has no updates after September 2025. The AFLW dump has no updates
@@ -313,7 +316,7 @@ without the `nodejs_compat` compatibility flag.
 
 ## D1 Database Schema
 
-The `afl-stats` database has 12 tables and five integrity views. It covers AFL
+The `afl-stats` database has 13 tables and five integrity views. It covers AFL
 Men's, AFL Women's, VFL, and VFLW. Always filter queries by competition.
 Join `seasons` to `competitions`, then use `WHERE c.code = ?`. Without
 the filter, results silently mix competitions. Teams with the same name in
@@ -400,8 +403,9 @@ needs.
 #### `match_lineups`
 
 This table contains announced team selections. The `is_emergency` and
-`is_substitute` columns are flags. Coverage starts with AFLM 2015 and AFLW 2017.
-VFL and VFLW coverage is best-effort.
+`is_substitute` columns are flags. Coverage starts with AFLM 2015. AFLW, VFL,
+and VFLW coverage starts 2023 (release 3.7.1): the AFL API only publishes
+announced teams, not who played, before 2023.
 
 ### Coverage Contract
 
@@ -500,9 +504,11 @@ PAV when new AFLM or AFLW player statistics arrive.
 
 The top-of-hour pipeline also runs a weather stage. It refreshes seven-day
 forecasts daily and match-day forecasts hourly. It writes a fast observation
-after each match and upgrades the provenance to ERA5 after six days. Each pass
-permits 25 fetches and records failures in `sync_log`. A local script performed
-the initial historical weather backfill.
+after each match and upgrades the provenance to ERA5 after six days. Each of
+the three fetch stages (forecast, fast-observation, final-observation) permits
+up to 25 fetches per pass, so a pass can issue up to 75 total. It records
+failures in `sync_log`. A local script performed the initial historical
+weather backfill.
 
 `POST /mcp/admin/backfill` exposes the backfill operation. Its parameters are
 `competitions`, `fromYear`, `toYear`, `skipShouldRunNow`, and `skipPav`. A request
@@ -564,37 +570,46 @@ through the D1 REST API remains the manual emergency path.
 footyBot is a Discord bot that runs entirely on Cloudflare Workers and
 consumes the rest of the ecosystem two ways:
 
-- The `/ask <question>` command uses a manual MCP tool-use loop against
-  `https://afl.jackemcpherson.com/mcp`. It routes the question through the
-  configured LLM. `gemini-3-flash-preview` is the default through Google AI
-  Studio's `v1beta` endpoint. `claude-sonnet-4-5` runs when
-  `LLM_PROVIDER="anthropic"`.
-  All LLM traffic is proxied through Cloudflare AI Gateway with
-  Authenticated Gateway enabled so Unified Billing covers it. A `/help`
-  command posts usage examples.
-- One per-minute cron starts durable Cloudflare Workflows.
-  - One Live Match-Day Workflow polls AFLM and AFLW together. It posts QT, HT,
-    3QT, and FT scoreboards in channel order.
-  - Separate Round Preview and Round Review Workflows retry within their
-    Melbourne-time publication windows.
-
-Each Round Publication contains exactly two messages. An authoritative factual
-post comes first, followed by an AI-written editorial post.
-
-FootyBot prepares and validates both before delivery. It records success only
-after Discord confirms both.
-
-Editorial rules:
-
-- Model output cites supplied facts and may omit insignificant matches.
-- Optional evidence never blocks a Review.
-- Lineups never block a Preview.
-
-All proactive posts use stable Discord delivery identifiers. A Workflow checks
-recent channel history before and after sending, so a lost HTTP response does
-not create a duplicate. Workflow state owns in-progress delivery. KV retains
-the shared fixture cache, `/ask` quotas, cron heartbeat, and final Round
-Publication markers.
+- The `/ask <question>` command routes the question through the configured LLM
+  (`google/gemini-3-flash` by default via the Cloudflare Workers AI binding,
+  or `claude-sonnet-4-5` when `LLM_PROVIDER="anthropic"`) inside a manual MCP
+  tool-use loop against `https://afl.jackemcpherson.com/mcp`. Only the
+  Anthropic path is proxied through Cloudflare AI Gateway with Authenticated
+  Gateway enabled so Unified Billing covers it. The default Gemini path calls
+  the Workers AI binding directly. A `/help` command posts usage examples.
+- Two Workers cron triggers feed a proactive announcement channel:
+  - `* * * * *` (every minute, gated by a KV-cached fixture window) pulls
+    live matches via fitzroy and posts QT / HT / 3QT / FT scoreboards at
+    quarter breaks. Break detection takes the maximum of several signals:
+    `Match.completedQuarter` (primary, from the AFL API match clock),
+    per-quarter score population, `status === "Complete"`, and the
+    `livePeriodStatus` string (unreliable since mid-2026, when the AFL API
+    stopped emitting `QTR_TIME`/`HALF_TIME`/`3QTR_TIME`). Posts advance
+    on whichever signal arrives first. Per-match KV state (`live:{matchId}`)
+    makes the tick idempotent.
+  - The same per-minute cron also drives a checkpoint-based Round Publication
+    for each of the Preview and Review purposes, retrying within its own
+    Melbourne-time window (Preview from Thursday 18:20, eligible to publish
+    from 18:30, Review once a round's matches have all completed). Each
+    publication is exactly two Discord messages: a deterministic, fact-only
+    template post, followed by an LLM-written editorial post whose claims
+    must cite deterministic fact cards (results, ladder positions and moves,
+    upsets, match stats) and pass validation (coverage, banned phrasing,
+    verb and citation rules) before delivery, with a repair pass on
+    rejection. A KV-backed checkpoint (`stage`: `template_posted`,
+    `editorial_pending`, `editorial_posted`, `editorial_omitted`, and so on)
+    tracks each message's nonce and Discord message ID, so a retried tick
+    resumes from wherever the previous attempt left off, checks channel
+    history for an already-delivered nonce before posting again, and only
+    advances once Discord confirms delivery. Missing lineups or a
+    missing/stale prediction hold a Preview back until they resolve. An
+    editorial that fails validation after repair is omitted rather than
+    blocking the template post. The Review's fact cards fold in six-game
+    form, a computed previous-round ladder diff, the next round's fixtures,
+    and observed `match_weather` as context. Persistent per-purpose failures
+    throttle to one ops-channel alert per error code per hour rather than
+    repeating every minute. AFLM ladders from 2026 mark the direct-passage
+    cut after sixth and wildcard cutoff after 10th.
 
 State lives in a single `STATE` KV namespace. Hono handles the Discord
 interaction webhook.
