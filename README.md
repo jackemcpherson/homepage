@@ -42,7 +42,7 @@ The `wrangler.jsonc` file defines the asset directory and custom domains.
 - [Markdown style guide](public/docs/markdown-style-guide.md)
 - [Python style guide](public/docs/python-style-guide.md)
 - [TypeScript style guide](public/docs/typescript-style-guide.md)
-- [Infrastructure development style guide](public/docs/infrastructure-style-guide.md)
+- [Infrastructure style guide](public/docs/infrastructure-style-guide.md)
 - [Infrastructure authoring guide](public/docs/infrastructure-authoring-guide.md)
 - [AFL data ecosystem](public/docs/afl-data-ecosystem.md)
 
