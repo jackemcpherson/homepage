@@ -573,8 +573,11 @@ consumes the rest of the ecosystem two ways:
   Authenticated Gateway enabled so Unified Billing covers it. A `/help`
   command posts usage examples.
 - One per-minute cron starts durable Cloudflare Workflows.
-  - One Live Match-Day Workflow polls AFLM and AFLW together. It posts QT, HT,
-    3QT, and FT scoreboards in channel order.
+  - One Live Match-Day Workflow polls the competitions in the day's fixture
+    with round-scoped fetches. It posts QT, HT, 3QT, and FT scoreboards in
+    channel order. If every fetch fails for five consecutive polls it raises
+    an ops alert and errors itself so the cron restarts it with a fresh
+    engine context.
   - Separate Round Preview and Round Review Workflows retry within their
     Melbourne-time publication windows.
 
