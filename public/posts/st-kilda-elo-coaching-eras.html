@@ -45,7 +45,7 @@ body {
 ::selection { background: #ED1B2F; color: #fff; }
 
 .page {
-  max-width: 1020px;
+  max-width: 1180px;
   margin: 0 auto;
   padding: 0 32px 72px;
 }
@@ -55,9 +55,9 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  padding: 18px 0 12px;
+  padding: 12px 0 8px;
   font-family: 'IBM Plex Mono', monospace;
-  font-size: 11px;
+  font-size: 10px;
   letter-spacing: 1.5px;
   text-transform: uppercase;
 }
@@ -68,31 +68,32 @@ body {
 }
 .topbar a:hover { color: var(--accent); }
 .topbar a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
-.series-label { color: var(--muted); }
 
 /* ── Guernsey masthead ── */
 .guernsey {
   position: relative;
-  height: 150px;
+  height: 56px;
   overflow: hidden;
   background: linear-gradient(180deg, #ED1B2F 0%, #ED1B2F 33.3%, #FFFFFF 33.3%, #FFFFFF 66.6%, #1A1A1E 66.6%, #1A1A1E 100%); border: 1.5px solid #1A1A1E;
 }
 
 .club-name {
   position: absolute;
-  left: 20px;
-  bottom: 10px;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
   font-family: 'Anton', sans-serif;
-  font-size: 30px;
-  letter-spacing: 4px;
+  font-size: 16px;
+  letter-spacing: 3px;
   line-height: 1;
   color: #FFFFFF;
   z-index: 2;
 }
 .club-est {
   position: absolute;
-  right: 20px;
-  bottom: 14px;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
   font-family: 'IBM Plex Mono', monospace;
   font-size: 10px;
   letter-spacing: 2px;
@@ -103,55 +104,21 @@ body {
 /* ── Header ── */
 h1 {
   font-family: 'Anton', sans-serif;
-  font-size: clamp(38px, 7vw, 68px);
+  font-size: clamp(26px, 3.4vw, 40px);
   font-weight: 400;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   line-height: 1.02;
-  margin: 34px 0 16px;
+  margin: 18px 0 10px;
 }
 
 .deck {
-  font-size: 16px;
+  font-size: 13.5px;
   font-weight: 400;
-  line-height: 1.55;
+  line-height: 1.5;
   color: #3E3E38;
-  max-width: 680px;
-  margin-bottom: 30px;
-}
-
-/* ── Stat strip ── */
-.stats {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  border-top: 2px solid var(--rule);
-  border-bottom: 2px solid var(--rule);
-  margin-bottom: 30px;
-}
-.stat {
-  padding: 14px 18px 16px;
-}
-.stat + .stat { border-left: 1px solid var(--grid); }
-.stat-label {
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 10px;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  color: var(--muted);
-  margin-bottom: 6px;
-}
-.stat-value {
-  font-family: 'Anton', sans-serif;
-  font-size: 34px;
-  line-height: 1;
-  color: var(--primary);
-  margin-bottom: 6px;
-}
-.stat-sub {
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 10px;
-  letter-spacing: 0.5px;
-  color: var(--faint);
+  max-width: 900px;
+  margin-bottom: 14px;
 }
 
 /* ── Chart panel ── */
@@ -183,7 +150,7 @@ h1 {
 .chart-wrap {
   position: relative;
   width: 100%;
-  height: 520px;
+  height: 680px;
 }
 canvas { display: block; }
 
@@ -241,14 +208,11 @@ canvas { display: block; }
 
 @media (max-width: 768px) {
   .page { padding: 0 16px 44px; }
-  .guernsey { height: 96px; }
-  .club-name { font-size: 22px; letter-spacing: 3px; }
-  h1 { margin-top: 24px; }
-  .deck { font-size: 14.5px; }
-  .stats { grid-template-columns: 1fr 1fr 1fr; }
-  .stat { padding: 10px 10px 12px; }
-  .stat-value { font-size: 24px; }
-  .chart-wrap { height: 360px; }
+  .guernsey { height: 40px; }
+  .club-name { font-size: 13px; letter-spacing: 2px; }
+  h1 { margin-top: 14px; }
+  .deck { font-size: 12.5px; }
+  .chart-wrap { height: 460px; }
 }
 </style>
 </head>
@@ -257,7 +221,6 @@ canvas { display: block; }
 <div class="page">
   <div class="topbar">
     <a href="./">&larr; Posts</a>
-    <span class="series-label">ELO by Coaching Era</span>
   </div>
 
   <header class="guernsey">
@@ -268,23 +231,6 @@ canvas { display: block; }
   <h1>The Search for Stability</h1>
   <p class="deck">St Kilda’s ELO from 1990 to Round 23, 2026. Alves took the Saints to the 1997 Grand Final, the rating fell to 1124 in 2001, and it peaked at 1924 during the near-misses of 2009 and 2010 under Lyon. Long rebuilds under Richardson and Ratten followed. Lyon returned in 2023; after Round 23 of 2026 the Saints sit at 1437.</p>
 
-  <div class="stats">
-    <div class="stat">
-      <div class="stat-label">Peak</div>
-      <div class="stat-value" id="st-peak">&nbsp;</div>
-      <div class="stat-sub" id="st-peak-sub"></div>
-    </div>
-    <div class="stat">
-      <div class="stat-label">Low</div>
-      <div class="stat-value" id="st-low">&nbsp;</div>
-      <div class="stat-sub" id="st-low-sub"></div>
-    </div>
-    <div class="stat">
-      <div class="stat-label">After Rd 23, 2026</div>
-      <div class="stat-value" id="st-now">&nbsp;</div>
-      <div class="stat-sub" id="st-now-sub"></div>
-    </div>
-  </div>
 
   <section class="chart-panel">
     <div class="legend">
@@ -368,21 +314,6 @@ function xOf(i) { return pL + (i / (D.length - 1)) * (pR - pL); }
 function yOf(v) { return pB - ((v - Y_MIN) / (Y_MAX - Y_MIN)) * (pB - pT); }
 function coachOf(date) { return coaches.find(c => date >= c.start && date <= c.end); }
 
-// ─── Stat strip ───
-(function fillStats() {
-  const peakI = vals.indexOf(Math.max(...vals));
-  const lowI = vals.indexOf(Math.min(...vals));
-  const nowI = D.length - 1;
-  const put = (id, i) => {
-    const c = coachOf(D[i][0]);
-    document.getElementById('st-' + id).textContent = Math.round(vals[i]).toLocaleString();
-    document.getElementById('st-' + id + '-sub').textContent =
-      D[i][0].substring(0, 4) + (c ? ' \u00b7 ' + c.name.replace('*', '') : '');
-  };
-  put('peak', peakI);
-  put('low', lowI);
-  put('now', nowI);
-})();
 
 // ─── Draw ───
 function draw() {
