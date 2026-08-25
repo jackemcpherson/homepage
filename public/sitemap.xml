@@ -4,6 +4,30 @@
     <loc>https://jackemcpherson.com/</loc>
   </url>
   <url>
+    <loc>https://jackemcpherson.com/posts/</loc>
+  </url>
+  <url>
+    <loc>https://jackemcpherson.com/posts/bald-man-scale</loc>
+  </url>
+  <url>
+    <loc>https://jackemcpherson.com/posts/best-albums-of-the-1960s</loc>
+  </url>
+  <url>
+    <loc>https://jackemcpherson.com/posts/best-albums-of-the-1970s</loc>
+  </url>
+  <url>
+    <loc>https://jackemcpherson.com/posts/carlton-elo-coaching-eras</loc>
+  </url>
+  <url>
+    <loc>https://jackemcpherson.com/posts/most-important-software</loc>
+  </url>
+  <url>
+    <loc>https://jackemcpherson.com/posts/st-kilda-elo-coaching-eras</loc>
+  </url>
+  <url>
+    <loc>https://jackemcpherson.com/posts/sydney-elo-coaching-eras</loc>
+  </url>
+  <url>
     <loc>https://jackemcpherson.com/docs/</loc>
   </url>
   <url>
@@ -19,12 +43,15 @@
     <loc>https://jackemcpherson.com/docs/markdown-style-guide.md</loc>
   </url>
   <url>
-    <loc>https://jackemcpherson.com/docs/media-server-review.html</loc>
+    <loc>https://jackemcpherson.com/docs/media-server-review</loc>
   </url>
   <url>
     <loc>https://jackemcpherson.com/docs/python-style-guide.md</loc>
   </url>
   <url>
     <loc>https://jackemcpherson.com/docs/typescript-style-guide.md</loc>
+  </url>
+  <url>
+    <loc>https://jackemcpherson.com/calendars/</loc>
   </url>
 </urlset>
