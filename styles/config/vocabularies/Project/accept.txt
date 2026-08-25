@@ -145,6 +145,7 @@ Dependabot
 Helvetica
 (?i)hitouts
 httpx
+iCalendar
 (?i)init
 isort
 (?i)kwargs
