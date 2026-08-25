@@ -1,0 +1,225 @@
+/* Shared styles for the ELO coaching-era posts. Per-club pages define
+   --primary, --accent, --band-a, --band-b, the club name colours, and
+   the guernsey masthead art in a small inline style block. */
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --ink: #14161A;
+  --muted: #75756E;
+  --faint: #A3A39B;
+  --paper: #FBFBF9;
+  --panel: #FFFFFF;
+  --rule: var(--ink);
+  --grid: #E7E7E1;
+  --club-name-color: #FFFFFF;
+  --club-est-color: rgba(255, 255, 255, 0.55);
+}
+
+body {
+  font-family: 'Archivo', sans-serif;
+  background: var(--paper);
+  color: var(--ink);
+  min-height: 100vh;
+}
+
+::selection { background: var(--accent); color: #fff; }
+
+.page {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 32px 72px;
+}
+
+/* ── Utility bar ── */
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 12px 0 8px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+.topbar a {
+  color: var(--ink);
+  text-decoration: none;
+  font-weight: 500;
+}
+.topbar a:hover { color: var(--accent); }
+.topbar a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+/* ── Guernsey masthead ── */
+.guernsey {
+  position: relative;
+  height: 56px;
+  overflow: hidden;
+}
+.club-name {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: 'Anton', sans-serif;
+  font-size: 16px;
+  letter-spacing: 3px;
+  line-height: 1;
+  color: var(--club-name-color);
+  z-index: 2;
+}
+.club-est {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: var(--club-est-color);
+  z-index: 2;
+}
+
+/* ── Header ── */
+h1 {
+  font-family: 'Anton', sans-serif;
+  font-size: clamp(26px, 3.4vw, 40px);
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  line-height: 1.02;
+  margin: 18px 0 10px;
+}
+
+.deck {
+  font-size: 13.5px;
+  font-weight: 400;
+  line-height: 1.5;
+  color: #3E3E38;
+  max-width: 900px;
+  margin-bottom: 14px;
+}
+
+/* ── Chart panel ── */
+.chart-panel {
+  background: var(--panel);
+  border: 1.5px solid var(--rule);
+  padding: 16px 16px 10px;
+  margin-bottom: 14px;
+}
+.legend {
+  display: flex;
+  gap: 22px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 2px 4px 10px;
+  flex-wrap: wrap;
+}
+.legend-item { display: flex; align-items: center; gap: 7px; }
+.swatch { display: inline-block; width: 16px; height: 3px; background: var(--primary); }
+.swatch-band { width: 20px; height: 11px; display: flex; gap: 1px; }
+.swatch-band::before, .swatch-band::after { content: ''; flex: 1; }
+.swatch-band::before { background: var(--band-a); }
+.swatch-band::after { background: var(--band-b); }
+.swatch-dash { width: 16px; border-top: 1.5px dashed var(--faint); }
+.chart-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+}
+.picker {
+  display: flex;
+  gap: 3px;
+  padding: 0 4px 10px 0;
+}
+.picker button {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 4px 9px;
+  border: 1px solid var(--grid);
+  background: none;
+  color: var(--muted);
+  cursor: pointer;
+}
+.picker button:hover { border-color: var(--ink); color: var(--ink); }
+.picker button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.picker button.active {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: #fff;
+}
+
+.chart-wrap {
+  position: relative;
+  width: 100%;
+  height: 680px;
+}
+canvas { display: block; }
+
+/* ── Footnotes ── */
+.methodology, .source {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.4px;
+  line-height: 1.7;
+  color: var(--faint);
+}
+.methodology { margin-bottom: 4px; }
+
+/* ── Tooltip ── */
+.tt {
+  position: absolute;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.12s ease, transform 0.12s ease;
+  transform: translateY(3px);
+  z-index: 50;
+}
+.tt.show { opacity: 1; transform: translateY(0); }
+.tt-inner {
+  background: var(--panel);
+  border: 1.5px solid var(--rule);
+  padding: 10px 14px;
+  min-width: 150px;
+}
+.tt-date {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.5px;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+.tt-elo {
+  font-family: 'Anton', sans-serif;
+  font-size: 26px;
+  line-height: 1.05;
+  color: var(--primary);
+  margin-bottom: 3px;
+}
+.tt-coach {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink);
+}
+.tt-vs {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  color: var(--faint);
+  margin-top: 3px;
+}
+
+@media (max-width: 768px) {
+  .page { padding: 0 16px 44px; }
+  .guernsey { height: 40px; }
+  .club-name { font-size: 13px; letter-spacing: 2px; }
+  h1 { margin-top: 14px; }
+  .deck { font-size: 12.5px; }
+  .chart-wrap { height: 460px; }
+}
