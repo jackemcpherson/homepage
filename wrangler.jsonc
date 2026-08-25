@@ -1,9 +1,13 @@
 {
-  "$schema": "node_modules/wrangler/config-schema.json",
+  "$schema": "https://unpkg.com/wrangler/config-schema.json",
   "name": "jackemcpherson-homepage",
   "compatibility_date": "2026-06-08",
   "assets": {
-    "directory": "./public"
+    "directory": "./public",
+    // Extensionless canonical URLs depend on this mapping (/posts/foo serves
+    // /posts/foo.html); keep it explicit rather than relying on the default.
+    "html_handling": "auto-trailing-slash",
+    "not_found_handling": "404-page"
   },
   "routes": [
     { "pattern": "jackemcpherson.com", "custom_domain": true },
