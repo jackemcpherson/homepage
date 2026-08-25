@@ -175,17 +175,17 @@ The following sections describe the supported fitzroy interface and data sources
 
 ### Available Functions
 
-| Function             | Returns             | Description                                                                                                                                                                   |
-| -------------------- | ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `fetchMatches`       | `Match[]`           | Match data with optional `status` filter (Upcoming, Live, Complete, Postponed, Cancelled). Replaces v1's separate `fetchMatchResults` + `fetchFixture`.                       |
-| `fetchPlayerStats`   | `SeasonPlayerStats` | ~70 per-match statistics per player, wrapped in a `{ stats, failedMatchIds }` envelope: season-wide scrapes surface per-match failures instead of silently dropping them (v3) |
-| `fetchLadder`        | `Ladder`            | Standings with wins, losses, percentage                                                                                                                                       |
-| `fetchLineup`        | `Lineup`            | Named squads for a round                                                                                                                                                      |
-| `fetchSquad`         | `Squad`             | Full squad list for a team                                                                                                                                                    |
-| `fetchTeams`         | `Team[]`            | All teams in a competition                                                                                                                                                    |
-| `fetchTeamStats`     | `TeamStatsEntry[]`  | Aggregated team-level statistics                                                                                                                                              |
-| `fetchPlayerDetails` | `PlayerDetails[]`   | Player biography and career info                                                                                                                                              |
-| `fetchAwards`        | `Award[]`           | Brownlow, Coleman, All-Australian, Rising Star, coaches votes                                                                                                                 |
+| Function             | Returns               | Description                                                                                                                                                                   |
+| -------------------- | --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `fetchMatches`       | `Match[]`             | Match data with optional `status` filter (Upcoming, Live, Complete, Postponed, Cancelled). Replaces v1's separate `fetchMatchResults` + `fetchFixture`.                       |
+| `fetchPlayerStats`   | `SeasonPlayerStats`   | ~70 per-match statistics per player, wrapped in a `{ stats, failedMatchIds }` envelope: season-wide scrapes surface per-match failures instead of silently dropping them (v3) |
+| `fetchLadder`        | `Ladder`              | Standings with wins, losses, percentage                                                                                                                                       |
+| `fetchLineup`        | `Lineup`              | Named squads for a round                                                                                                                                                      |
+| `fetchSquad`         | `Squad`               | Team roster with `season` or `all-time` scope                                                                                                                                 |
+| `fetchTeams`         | `Team[]`              | All teams in a competition                                                                                                                                                    |
+| `fetchTeamStats`     | `TeamStatsEntry[]`    | Aggregated team-level statistics                                                                                                                                              |
+| `fetchPlayerDetails` | `PlayerDetailsResult` | Player rows with failed team names and squad scope                                                                                                                            |
+| `fetchAwards`        | `AwardResult`         | Award rows with failed coaches rounds                                                                                                                                         |
 
 As of v3 the package root exports only this supported surface. Raw AFL
 API / Squiggle wire schemas (Zod) moved to the `fitzroy/schemas` subpath
@@ -196,6 +196,11 @@ in v3.2 and later. This asynchronous function selects the current or most
 recent season from the AFL round schedule. Version 3.4 adds the pure
 `roundLabel()`, `roundAbbreviation()`, and `roundTypeLabel()` helpers. They
 derive R-fitzRoy-style round labels from `Match` fields.
+
+Version 4 makes incomplete results machine-readable. Player details return
+`{ players, failedTeams, scope }`, while awards return
+`{ awards, failedRounds }`. Season coaches requests retain successful rounds.
+Team statistics accept `competition` and use `gamesPlayed: number | null`.
 
 ### Common Parameters
 
@@ -304,6 +309,10 @@ if (!result.success) {
 
 Zod validates all external data. A failure `Result` contains the original Zod
 error details for an invalid API response.
+
+Successful results can still be incomplete. Check `failedMatchIds`,
+`failedTeams`, or `failedRounds` before publishing derived data. Check squad
+`scope` before treating a scraped player list as season-specific.
 
 ### Cloudflare Workers Compatibility
 
@@ -575,9 +584,8 @@ consumes the rest of the ecosystem two ways:
 - One per-minute cron starts durable Cloudflare Workflows.
   - One Live Match-Day Workflow polls the competitions in the day's fixture
     with round-scoped fetches. It posts QT, HT, 3QT, and FT scoreboards in
-    channel order. If every fetch fails for five consecutive polls it raises
-    an ops alert and errors itself so the cron restarts it with a fresh
-    engine context.
+    channel order. Five consecutive failed polls raise an ops alert. The
+    workflow then errors so the cron restarts it with a fresh engine context.
   - Separate Round Preview and Round Review Workflows retry within their
     Melbourne-time publication windows.
 
