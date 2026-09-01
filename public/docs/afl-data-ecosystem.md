@@ -167,7 +167,9 @@ integrity, and 24-hour degradation
 diagnostics without exposing raw errors or identifiers. Brownlow ingestion,
 cron, and manual sync share the same ten-minute operation lease, so they cannot
 overlap.
-All public endpoints are rate-limited to 60 requests/minute per IP.
+All public `/mcp` and `/mcp/health` (also served at `/health`) endpoints
+are rate-limited to 60 requests/minute per IP. Bearer-token-gated
+`/mcp/admin/*` routes are not IP rate-limited.
 
 ## Fitzroy Library Reference
 
@@ -206,13 +208,13 @@ Team statistics accept `competition` and use `gamesPlayed: number | null`.
 
 All fetch functions accept a query object with these common parameters:
 
-| Parameter     | Type              | Values or Purpose                                                        |
-| ------------- | ----------------- | ------------------------------------------------------------------------ |
-| `source`      | `DataSource`      | `"afl-api"`, `"footywire"`, `"afl-tables"`, `"squiggle"`, or `"fryzigg"` |
-| `season`      | `number`          | Season year, such as 2026                                                |
-| `round`       | `number`          | Optional round number                                                    |
-| `competition` | `CompetitionCode` | Optional `"AFLM"`, `"AFLW"`, `"VFL"`, or `"VFLW"`                        |
-| `team`        | `string`          | Optional team name with fuzzy matching                                   |
+| Parameter     | Type              | Values or Purpose                                                                         |
+| ------------- | ----------------- | ----------------------------------------------------------------------------------------- |
+| `source`      | `DataSource`      | `"afl-api"`, `"footywire"`, `"afl-tables"`, `"squiggle"`, `"fryzigg"`, or `"afl-coaches"` |
+| `season`      | `number`          | Season year, such as 2026                                                                 |
+| `round`       | `number`          | Optional round number                                                                     |
+| `competition` | `CompetitionCode` | Optional `"AFLM"`, `"AFLW"`, `"VFL"`, or `"VFLW"`                                         |
+| `team`        | `string`          | Optional team name with fuzzy matching                                                    |
 
 ### Data Sources
 
@@ -223,7 +225,7 @@ All fetch functions accept a query object with these common parameters:
 | `afl-tables`  | AFLM 1897-present (player/team stats 1965+) | Historical records                              |
 | `squiggle`    | AFLM 2012-present                           | Prediction data, third-party analysis           |
 | `fryzigg`     | AFLM 2012-2025, AFLW 2017-2022              | Advanced player statistics (RDS format)         |
-| `afl-coaches` | AFLM coaches votes                          | AFLCA Champion Player votes (via `fetchAwards`) |
+| `afl-coaches` | AFLM 2006+, AFLW 2018+                      | AFLCA Champion Player votes (via `fetchAwards`) |
 
 Only `afl-api` covers VFL and VFLW. The fryzigg RDS dumps are snapshots. The
 AFLM dump has no updates after September 2025. The AFLW dump has no updates
@@ -322,7 +324,7 @@ without the `nodejs_compat` compatibility flag.
 
 ## D1 Database Schema
 
-The `afl-stats` database has 12 tables and five integrity views. It covers AFL
+The `afl-stats` database has 13 tables and five integrity views. It covers AFL
 Men's, AFL Women's, VFL, and VFLW. Always filter queries by competition.
 Join `seasons` to `competitions`, then use `WHERE c.code = ?`. Without
 the filter, results silently mix competitions. Teams with the same name in
@@ -409,13 +411,14 @@ needs.
 #### `match_lineups`
 
 This table contains announced team selections. The `is_emergency` and
-`is_substitute` columns are flags. Coverage starts with AFLM 2015 and AFLW 2017.
-VFL and VFLW coverage is best-effort.
+`is_substitute` columns are flags. Coverage starts with AFLM 2015. AFLW, VFL,
+and VFLW coverage starts in 2023: the AFL API does not publish announced
+teams for earlier seasons in those competitions.
 
 ### Coverage Contract
 
 Release 3.4.0 extended the existing `schema` tool with a typed
-`database.coverage_contract` (version 1). Static expectations identify source,
+`database.coverage_contract` (version 2). Static expectations identify source,
 review date, range, and expected availability without reading D1. An optional
 `includeObserved: true` request must name exactly one `competition` and `season`.
 It overlays bounded measurements for stats and weather (`rows`), PAV
@@ -509,9 +512,10 @@ PAV when new AFLM or AFLW player statistics arrive.
 
 The top-of-hour pipeline also runs a weather stage. It refreshes seven-day
 forecasts daily and match-day forecasts hourly. It writes a fast observation
-after each match and upgrades the provenance to ERA5 after six days. Each pass
-permits 25 fetches and records failures in `sync_log`. A local script performed
-the initial historical weather backfill.
+after each match and upgrades the provenance to ERA5 after six days. Each
+query stage permits 25 fetches (up to 75 per pass across the forecast,
+fast-observed, and final-observed stages) and records failures in
+`sync_log`. A local script performed the initial historical weather backfill.
 
 `POST /mcp/admin/backfill` exposes the backfill operation. Its parameters are
 `competitions`, `fromYear`, `toYear`, `skipShouldRunNow`, and `skipPav`. A request
@@ -523,7 +527,7 @@ Release 3.4.0 also added the annual, dry-run-first
 
 ## Tipper: Prediction CLI + Worker
 
-Tipper forecasts AFLM results with a hybrid model. The model combines
+Tipper forecasts AFLM and AFLW results with a hybrid model. The model combines
 margin-of-victory Elo with a calibrated PAV lineup rating. Elo has 60% weight,
 and PAV has 40% weight. A local CLI supports model development through the D1
 REST API. A Cloudflare Worker publishes scheduled predictions. Both interfaces
@@ -541,13 +545,15 @@ The main commands are:
 - `tipper config {list,show,current,promote,diff,create}` manages configuration
   lifecycle.
 
-Configurations use SHA-256 content hashes. Promotion requires backtest results
-that match the configuration hash. A challenger cannot reduce tip accuracy
-against the incumbent in pooled 2021-2025 backtests. A recent three-season tip
-deficit disqualifies a challenger regardless of LogLoss gains. The shipped
-configuration has a 73.3% tip rate through round 14 of the 2026 sample.
+Configurations use SHA-256 content hashes. Promotion is code-gated on a
+backtest results file matching the configuration hash. On top of that gate,
+the maintainer applies a research bar before promoting. A challenger should
+not reduce tip accuracy against the incumbent in pooled 2021-2025 backtests.
+A recent three-season tip deficit disqualifies a challenger regardless of
+LogLoss gains. The shipped configuration has a 73.3% tip rate through round
+14 of the 2026 sample.
 
-Scheduled publishing runs as a tipper Cloudflare Worker. Version 3.4 restored
+Scheduled publishing runs as a tipper Cloudflare Worker. Version 3.4.1 restored
 the Worker after its version 3.2 removal. The Worker uses the same GitOps
 delivery process as the other Workers. A `*/15 * * * *` cron drives an in-code
 gate for AFLM and AFLW. The Worker
@@ -561,7 +567,9 @@ numbers for its round preview.
 A round freezes when its first match starts. The Worker uses a native read-write
 D1 binding
 without an API token. The build embeds the promoted configuration in the
-artefact. The pinned SHA therefore identifies the deployed model.
+artefact. `bun run bake-config` regenerates that embedded copy from
+`configs/_current.json` after every promotion. The pinned SHA therefore
+identifies the deployed model.
 
 `GET https://tipper.jackemcpherson.workers.dev/health` returns 200/503
 derived from `match_predictions` freshness against the fixture window.
@@ -575,9 +583,9 @@ consumes the rest of the ecosystem two ways:
 
 - The `/ask <question>` command uses a manual MCP tool-use loop against
   `https://afl.jackemcpherson.com/mcp`. It routes the question through the
-  configured LLM. `gemini-3-flash-preview` is the default through Google AI
-  Studio's `v1beta` endpoint. `claude-sonnet-4-5` runs when
-  `LLM_PROVIDER="anthropic"`.
+  configured LLM. `gemini-3-flash` (stable) is the default, called through
+  the Cloudflare Workers AI binding via AI Gateway. `claude-sonnet-4-5` runs
+  when `LLM_PROVIDER="anthropic"`.
   All LLM traffic is proxied through Cloudflare AI Gateway with
   Authenticated Gateway enabled so Unified Billing covers it. A `/help`
   command posts usage examples.
@@ -586,7 +594,8 @@ consumes the rest of the ecosystem two ways:
     with round-scoped fetches. It posts QT, HT, 3QT, and FT scoreboards in
     channel order. Five consecutive failed polls raise an ops alert. The
     workflow then errors so the cron restarts it with a fresh engine context.
-  - Separate Round Preview and Round Review Workflows retry within their
+  - A single Round Publication Workflow, parameterised by purpose (preview
+    or review), runs as two daily instances that retry within their
     Melbourne-time publication windows.
 
 Each Round Publication contains exactly two messages. An authoritative factual
