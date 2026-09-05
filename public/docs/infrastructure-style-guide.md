@@ -65,8 +65,9 @@ storage, the deploy identities (OIDC roles or scoped API tokens), and the DNS
 zones. The foundation repository has no pipeline. Apply foundation changes by
 hand from a workstation. The foundation README records the procedure.
 
-Each environment directory holds its own backend and credentials, so the
-credential boundary stays visible.
+Each leaf directory `infra/<project>/<env>/<type>/` holds its own backend and
+credentials. The leaf is the credential boundary and the change-scope
+boundary, so both stay visible in the path.
 
 A repository must still rebuild its estate in an empty account. The foundation
 procedure plus the project module satisfy that requirement. The
@@ -77,7 +78,7 @@ shows the directory tree.
 
 ## State
 
-Each environment has one state file. The state is remote and locked. Never
+Each leaf directory has one state file. The state is remote and locked. Never
 commit state to Git. Rely on the bucket's server-side encryption.
 
 The foundation repository creates the state storage before any project
@@ -91,9 +92,11 @@ path with the `tofu state mv` command, so the deferred cost stays visible.
 
 ## Modules and Environments
 
-Each repository contains one project module. Environment directories are thin
-callers of that module. A thin caller contains a backend block, a module call
-with a local path, and a `.tfvars` file.
+Each repository contains one project module. Leaf directories under
+`infra/<project>/<env>/<type>/` are thin callers of that module. The
+environment is the second path segment, never the first, so a project's
+environments sit together. A thin caller contains a backend block, a module
+call with a local path, and a `.tfvars` file.
 
 Resources live in the project module. Extract a sub-module only when a second
 project shares the pattern. Do not create a separate module repository, and do

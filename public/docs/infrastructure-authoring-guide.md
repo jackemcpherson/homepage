@@ -12,7 +12,7 @@ the worked example. The final section contains references.
 
 ## Part 1: OpenTofu (HCL)
 
-Part 1 defines conventions for the project module and its environment callers.
+Part 1 defines conventions for the project module and its leaf callers.
 
 ### Formatting and Tooling
 
@@ -43,23 +43,28 @@ before opening anything.
 example-worker/
 ├── src/                          # application code
 ├── infra/
-│   ├── modules/
+│   ├── modules/                  # shared resource modules, extracted on second use
 │   │   └── project/              # every resource lives here
 │   │       ├── main.tf           # resources and data sources
 │   │       ├── variables.tf      # the typed input interface - written first
 │   │       ├── outputs.tf        # the public interface
 │   │       ├── versions.tf       # required_version + pinned providers
 │   │       └── locals.tf         # derived values (omit if there are none)
-│   └── environments/
-│       └── production/           # thin caller
-│           ├── backend.tf        # remote, locked state
-│           ├── providers.tf      # provider configuration
-│           ├── main.tf           # one local-path module call
-│           ├── variables.tf      # declarations for the tfvars values
-│           └── production.tfvars # validated inputs; values only
+│   └── example-worker/           # <project>
+│       └── production/           # <env>
+│           └── worker/           # <type>: one state root per leaf
+│               ├── backend.tf        # remote, locked state
+│               ├── providers.tf      # provider configuration
+│               ├── main.tf           # one local-path module call
+│               ├── variables.tf      # declarations for the tfvars values
+│               └── production.tfvars # validated inputs; values only
 └── .github/
     └── workflows/
 ```
+
+Each leaf is one state root and one pipeline Target. The path reads project,
+then environment, then resource type. Single-environment estates may flatten
+to `<project>/` and record the deviation in an architecture decision record.
 
 `versions.tf` pins the toolchain and providers. Commit the
 `.terraform.lock.hcl` lock file. It has the same role as `uv.lock` and
@@ -481,19 +486,19 @@ jobs:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
     defaults:
       run:
-        working-directory: infra/environments/production
+        working-directory: infra/example-worker/production/worker
     steps:
       - uses: actions/checkout@v5
       - uses: opentofu/setup-opentofu@v1
       - uses: terraform-linters/setup-tflint@v6
       - name: Check formatting
-        run: tofu fmt -check -recursive ../..
+        run: tofu fmt -check -recursive ../../..
       - name: Init
         run: tofu init -input=false
       - name: Validate
         run: tofu validate
       - name: Lint
-        run: tflint --chdir=../../modules/project
+        run: tflint --chdir=../../../modules/project
       - name: Plan
         run: tofu plan -input=false -no-color -out=tfplan
       - name: Render the plan
@@ -504,7 +509,7 @@ jobs:
           script: |
             const fs = require("fs");
             const plan = fs.readFileSync(
-              "infra/environments/production/plan.txt",
+              "infra/example-worker/production/worker/plan.txt",
               "utf8",
             );
             const marker = "## Infrastructure plan";
@@ -590,7 +595,7 @@ jobs:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
     defaults:
       run:
-        working-directory: infra/environments/production
+        working-directory: infra/example-worker/production/worker
     steps:
       - uses: actions/checkout@v5
       - uses: opentofu/setup-opentofu@v1
@@ -662,7 +667,7 @@ jobs:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
     defaults:
       run:
-        working-directory: infra/environments/production
+        working-directory: infra/example-worker/production/worker
     steps:
       - uses: actions/checkout@v5
       - uses: opentofu/setup-opentofu@v1
@@ -719,14 +724,15 @@ example-worker/
 │   │       ├── outputs.tf
 │   │       ├── versions.tf
 │   │       └── locals.tf
-│   └── environments/
+│   └── example-worker/
 │       └── production/
-│           ├── backend.tf
-│           ├── providers.tf
-│           ├── main.tf
-│           ├── variables.tf
-│           ├── production.tfvars
-│           └── .terraform.lock.hcl
+│           └── worker/
+│               ├── backend.tf
+│               ├── providers.tf
+│               ├── main.tf
+│               ├── variables.tf
+│               ├── production.tfvars
+│               └── .terraform.lock.hcl
 ├── .github/
 │   ├── workflows/
 │   │   ├── ci.yml
@@ -869,7 +875,7 @@ credentials arrive as `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`
 environment variables and never appear in the file.
 
 ```hcl
-# infra/environments/production/backend.tf
+# infra/example-worker/production/worker/backend.tf
 terraform {
   backend "s3" {
     bucket = "acme-tfstate"
@@ -892,15 +898,15 @@ terraform {
 ```
 
 ```hcl
-# infra/environments/production/providers.tf
+# infra/example-worker/production/worker/providers.tf
 # The provider reads CLOUDFLARE_API_TOKEN from the environment.
 provider "cloudflare" {}
 ```
 
 ```hcl
-# infra/environments/production/main.tf
+# infra/example-worker/production/worker/main.tf
 module "project" {
-  source = "../../modules/project"
+  source = "../../../modules/project"
 
   account_id  = var.account_id
   zone_id     = var.zone_id
@@ -911,7 +917,7 @@ module "project" {
 ```
 
 ```hcl
-# infra/environments/production/variables.tf
+# infra/example-worker/production/worker/variables.tf
 # Declarations for the tfvars values. The module validates them.
 
 variable "account_id" {
@@ -941,7 +947,7 @@ variable "hostname" {
 ```
 
 ```hcl
-# infra/environments/production/production.tfvars
+# infra/example-worker/production/worker/production.tfvars
 account_id  = "0123456789abcdef0123456789abcdef"
 zone_id     = "abcdef0123456789abcdef0123456789"
 project     = "example-worker"
@@ -949,10 +955,10 @@ environment = "production"
 hostname    = "example.com"
 ```
 
-Run the environment from its directory:
+Run the leaf from its directory:
 
 ```shell
-cd infra/environments/production
+cd infra/example-worker/production/worker
 tofu init
 tofu plan -var-file=production.tfvars
 ```
