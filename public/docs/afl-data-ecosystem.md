@@ -783,3 +783,40 @@ package.json
 For Cloudflare Workers projects, add `hono` (web framework), `drizzle-orm`
 (database ORM), and `wrangler` (dev server + deploy CLI). See the full style
 guide for Hono routing, Drizzle schema, and Workers deployment patterns.
+
+## Tipper Trial Work, 2026-09-05
+
+Tipper's Task 41 integrates two CLI commands from the approved adviser work.
+`tipper export-tips --season 2026 --round 24` formats round predictions in
+Squiggle's read-API shape. `tipper monitor --season 2026` compares the primary
+model and two historical shadows with the Squiggle field on correct tips.
+`--log` writes the monitor CSV under tipper's `analysis/` directory.
+
+The promoted model remains `predha-080`. The existing Worker continues to
+publish primary predictions into `match_predictions`. The trial archive,
+shadow publishing, and scorer now have implementations under release review.
+The tips route serves only the promoted model
+through the existing Worker hostname.
+
+The draft AFL-MCP migration adds `prediction_archive`. Each match/model/capture
+row retains named lineups, home-oriented published values, full-precision rating
+inputs, and every available Squiggle source for that game. Capture times and
+archived kickoff times identify the final eligible pre-lock prediction.
+Forecast weather stays in `match_weather` with its existing provenance.
+
+`tipper trial --season 2027` scores the last eligible capture for each match
+and model. It reports paired tips, close games, archived field consensus,
+team bias, and both probability heads. The frozen challenger is `t40-od`.
+Shadows append only to `prediction_archive`. They never replace primary rows.
+The 2027 promotion bar lives in tipper's `docs/trial-2027-adjudication.md`.
+
+`GET https://tipper.jackemcpherson.workers.dev/tips?year=2026&round=24`
+serves primary tips with canonical Squiggle game ids and GWS name mapping.
+Without parameters, it selects the next published round or the most recent
+one. Game lookups use a one-hour cache. Squiggle outages leave primary tips
+available without invented ids. The new bundle still needs a manual deploy.
+
+Tipper's weekly GitHub monitor runs Monday at 22:00 UTC. It records its score
+in `analysis/monitor-log.csv` and distinguishes credential failures, Squiggle
+outages, and market-gap alerts. Competition acceptance and submission remain
+Jack's separate decisions. No contact with Squiggle has occurred.
