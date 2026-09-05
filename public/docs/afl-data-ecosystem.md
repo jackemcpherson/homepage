@@ -579,8 +579,9 @@ Prediction home advantage is 80, margin multiplier is 0.07, and sigma is 36.
 The model clamps standard-normal probabilities to 0.01 through 0.99.
 The full-precision margin selects the winner. An exact zero selects home.
 
-For each competition, Elo rebuilds chronologically from completed matches since
-2020. PAV preserves cumulative league totals from completed seasons since 2021.
+For each competition, Elo rebuilds completed matches chronologically, starting
+in the 2020 season. PAV preserves cumulative league totals from completed seasons
+since 2021.
 The rebuild processes player statistics only for the target season and loads
 only the immediately previous season's final player PAV as its prior.
 Only `Complete` matches with valid final scores update ratings. Live scores,
