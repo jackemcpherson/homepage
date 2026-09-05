@@ -19,10 +19,10 @@ AFL API / FootyWire / AFL Tables / Squiggle / Fryzigg RDS
                     /         \
             MCP endpoint    Cloudflare D1 (afl-stats)
           (LLM tools)            \
-                                tipper (prediction CLI)
+                                tipper (prediction Worker)
 
 Consumers:
-  tipper      -- D1 (native binding from its Worker; D1 REST API from the CLI)
+  tipper      -- D1 (native Worker binding)
   footyBot    -- fitzroy (live feed) + MCP endpoint (LLM tool-use)
 
 rds-js (npm) -- used by fitzroy for parsing R data files
@@ -33,7 +33,7 @@ rds-js (npm) -- used by fitzroy for parsing R data files
 | fitzroy  | `fitzroy`                | Library + CLI                   | jackemcpherson/fitzRoy-ts |
 | AFL-MCP  | private                  | Cloudflare Worker               | jackemcpherson/AFL-MCP    |
 | rds-js   | `@jackemcpherson/rds-js` | Library                         | jackemcpherson/rds-js     |
-| tipper   | `@jackemcpherson/tipper` | CLI + Cloudflare Worker         | jackemcpherson/tipper     |
+| tipper   | private                  | Cloudflare Worker               | jackemcpherson/tipper     |
 | footyBot | private                  | Cloudflare Worker (Discord bot) | jackemcpherson/footyBot   |
 
 OpenTofu manages the Cloudflare resources in the `cloudflare-infra` repository.
@@ -99,7 +99,6 @@ AFL-MCP's cron sync populates the `afl-stats` D1 database. The database contains
 match results, player statistics (~70 columns), PAV ratings, and lineups for
 four competitions: AFLM (1990+), AFLW (2017+), VFL (2021+), and VFLW (2021+).
 Tipper reads from this database. Its scheduled Worker uses a native D1 binding.
-Its local CLI uses the Cloudflare D1 REST API.
 
 To query D1 from a Cloudflare Worker, bind to the database in wrangler.toml:
 
@@ -336,6 +335,13 @@ The following tables contain match, weather, prediction, player, and lineup data
 
 Each row contains one match. Identity columns include `season_id`,
 `round_number`, `round_type`, `date`, `local_time`, and the venue and team IDs.
+
+The nullable `kickoff_at` column records the canonical UTC source instant.
+Unknown kickoff times remain null. Prediction deadlines use this column.
+Never combine `date` and Melbourne `local_time` to reconstruct a deadline.
+The nullable `lineups_observed_at` column records the last validated lineup
+snapshot observation.
+
 The `round` column contains a long label such as `Round 1` or `Grand Final`.
 The `round_abbreviation` column contains AFL short codes from `OR` through
 `GF`. Pre-2020 AFLM data can also use `EF` and `QF`. Finals round names
@@ -376,17 +382,40 @@ venues excluded). Weather data by
 
 #### `match_predictions`
 
-Each row contains one match prediction from tipper. The primary key
-is `match_id`. Regeneration overwrites the row, so the table holds only the
-latest prediction. The `home_win_prob` and `predicted_margin` columns use the
-home team's perspective. Other columns record the model version and generation
-time. The tipper Worker writes these rows through a native D1 binding.
+Each row contains one current match prediction from Tipper. The primary key
+is `match_id`. The Worker replaces eligible rows through a native D1 binding.
+The `home_win_prob` and one-decimal `predicted_margin` columns use the home
+team's perspective. `model_version` records the complete model identity, and
+`generated_at` records publication time. FootyBot and AFL-MCP retain these
+existing field meanings.
 
-Rows
-refresh until the first match in the round starts.
+The nullable `tipper_run_id` links new predictions to their retained capture.
+Older rows can have no capture link. A new deployment does not hide predictions
+issued by earlier model revisions.
 
-Coverage starts in 2026 and
-is sparse. Use `LEFT JOIN` and treat absence as unpublished.
+Each match can refresh strictly before its recorded kickoff while it remains
+upcoming. A changed schedule cannot reopen a match after its previous deadline.
+Fixture identity, venue, or kickoff corrections invalidate current rows while
+preserving historical captures. Use `LEFT JOIN` and treat absence as unpublished.
+
+#### Tipper Publication Records
+
+AFL-MCP owns migrations for the shared schema, including these Tipper tables.
+
+| Table                | Purpose                                                 |
+| -------------------- | ------------------------------------------------------- |
+| `tipper_runs`        | Ordered publication attempts and committed coverage.    |
+| `tipper_predictions` | Append-only prediction captures for each run and match. |
+| `tipper_game_ids`    | Validated local-to-Squiggle match identities.           |
+| `tipper_reports`     | Weekly scoring attempts, observations, and results.     |
+| `tipper_status`      | Activation timestamp and scheduler/reporting heartbeat. |
+
+Captures retain fixture identity, UTC kickoff, consumed lineups, and rating
+inputs. They also retain full-precision and issued predictions, provisional
+status, model revision, and observation/publication timestamps. A capture records
+the evidence consumed for an issued prediction, not a complete database snapshot.
+The existing Task 41 archive remains separate. Historical or reconstructed rows
+are not prospective captures.
 
 #### `player_match_stats`
 
@@ -411,6 +440,12 @@ needs.
 This table contains announced team selections. The `is_emergency` and
 `is_substitute` columns are flags. Coverage starts with AFLM 2015 and AFLW 2017.
 VFL and VFLW coverage is best-effort.
+
+AFL-MCP replaces each validated current snapshot atomically and removes omitted
+players. Invalid or incomplete source responses preserve the last valid snapshot.
+The match's `lineups_observed_at` records its observation time. Lineup refreshes
+continue for unlocked matches after their round starts, including the final
+90 minutes before kickoff.
 
 ### Coverage Contract
 
@@ -521,52 +556,123 @@ Release 3.4.0 also added the annual, dry-run-first
 `POST /mcp/admin/backfill-brownlow` operation and aggregate-only
 `GET /mcp/admin/status`. Both require the existing admin bearer token.
 
-## Tipper: Prediction CLI + Worker
+## Tipper: Production Prediction Worker
 
-Tipper forecasts AFLM results with a hybrid model. The model combines
-margin-of-victory Elo with a calibrated PAV lineup rating. Elo has 60% weight,
-and PAV has 40% weight. A local CLI supports model development through the D1
-REST API. A Cloudflare Worker publishes scheduled predictions. Both interfaces
-use the same runtime-independent engine.
+Tipper forecasts AFLM and AFLW results with one Elo/PAV model. The Worker uses
+native D1 through three modules. Prediction rebuilds ratings and calculates tips.
+Publication owns input capture, scheduling, deadlines, and atomic writes.
+Competition evidence serves and scores recorded predictions.
 
-The main commands are:
+The production identity is `elo-pav-normal-v1@<full-source-revision>`.
+The build embeds the complete source revision. This identity distinguishes the
+corrected normal probability calculation from earlier predictions. Model work
+happens on branches and lands through reviewed pull requests. The preserved
+research revision supports reproduction of the retired CLI and experiments.
 
-- `tipper predict --season Y --round R` generates predictions.
-- `tipper publish [--season Y --round R --comp AFLM|AFLW]` writes predictions
-  to D1. It defaults to the next unplayed round.
-- `tipper backtest [--season S] [--config ID]` runs a backtest.
-- `tipper compare --config-a ID --config-b ID` runs a bootstrap hypothesis
-  test.
-- `tipper calibrate [--config ID]` derives the PAV calibration slope.
-- `tipper config {list,show,current,promote,diff,create}` manages configuration
-  lifecycle.
+Elo starts at 1500, uses K 25 and update home advantage 160, and regresses by
+0.1 between seasons. The model retains the incumbent margin-of-victory multiplier.
 
-Configurations use SHA-256 content hashes. Promotion requires backtest results
-that match the configuration hash. A challenger cannot reduce tip accuracy
-against the incumbent in pooled 2021-2025 backtests. A recent three-season tip
-deficit disqualifies a challenger regardless of LogLoss gains. The shipped
-configuration has a 73.3% tip rate through round 14 of the 2026 sample.
+PAV retains the HPN formulas, zone pool 100, previous-season prior weight 15,
+and missing-player default 5. Elo has weight 0.6. PAV uses calibration slope 6.986.
+Prediction home advantage is 80, margin multiplier is 0.07, and sigma is 36.
 
-Scheduled publishing runs as a tipper Cloudflare Worker. Version 3.4 restored
-the Worker after its version 3.2 removal. The Worker uses the same GitOps
-delivery process as the other Workers. A `*/15 * * * *` cron drives an in-code
-gate for AFLM and AFLW. The Worker
-republishes rounds with matches that start within seven days. It publishes
-daily by default and hourly on match days.
+The model clamps standard-normal probabilities to 0.01 through 0.99.
+The full-precision margin selects the winner. An exact zero selects home.
 
-During the Thursday team-announcement window, it publishes every 15 minutes.
-This schedule gives footyBot current
-numbers for its round preview.
+For each competition, Elo rebuilds completed matches chronologically, starting
+in the 2020 season. PAV preserves cumulative league totals from completed seasons
+since 2021.
+The rebuild processes player statistics only for the target season and loads
+only the immediately previous season's final player PAV as its prior.
+Only `Complete` matches with valid final scores update ratings. Live scores,
+target-match statistics, and future results cannot enter predictions.
+An earlier completed match can inform later unlocked matches in its round.
 
-A round freezes when its first match starts. The Worker uses a native read-write
-D1 binding
-without an API token. The build embeds the promoted configuration in the
-artefact. The pinned SHA therefore identifies the deployed model.
+Both teams need valid announced lineups before PAV contributes. Validation checks
+unique players, team ownership, and non-emergency team size. The initial sizes
+are 23 for AFLM and 21 for AFLW. Review published 2027 rules before launch.
+Otherwise, both lineup contributions are zero and the capture is `provisional`.
+Elo retains its 0.6 weight and prediction home advantage.
 
-`GET https://tipper.jackemcpherson.workers.dev/health` returns 200/503
-derived from `match_predictions` freshness against the fixture window.
-It is also the blocking post-deployment check. The CLI `tipper publish` command
-through the D1 REST API remains the manual emergency path.
+### Publication and Locks
+
+The existing Worker runs every five minutes. Matches first become eligible
+within seven days of kickoff. Predictions refresh daily outside 24 hours,
+hourly inside 24 hours, and every five minutes inside 90 minutes.
+
+Each match freezes at its own recorded kickoff. A reschedule can change that
+deadline while the previous deadline remains future. Later schedule corrections
+cannot reopen it. Missing locked predictions remain missed.
+
+A publication allocates an ordered run before reading a consistent input batch.
+It computes the complete currently eligible set for one round. One D1 transaction
+appends captures, replaces current predictions, and checks finalisation.
+Changed fixtures, elapsed deadlines, incomplete output, and stale overlapping
+runs reject the entire batch. Previous committed tips survive rejection.
+After an ambiguous response, the publisher reads the original run before retrying.
+
+The guarantee is database admission before the recorded deadline. It cannot
+ensure Squiggle has fetched a tip or detect changes not yet synced into D1.
+Activation starts prospective coverage and health checks. Old research-era gaps
+do not become operational failures.
+
+### HTTP Operations
+
+| Operation                 | Behaviour                                                           |
+| ------------------------- | ------------------------------------------------------------------- |
+| `GET /tips`               | Stored AFLM tips in the existing Squiggle payload format.           |
+| `GET /health`             | Publication, input, and reporting diagnostics.                      |
+| `GET /performance?year=Y` | Latest retained AFLM weekly report, coverage, and observation time. |
+| `POST /admin/refresh`     | Authenticated publication for one competition, season, and round.   |
+
+`/tips` accepts optional `year` and `round` parameters. Unknown rounds return 404.
+Known rounds without a complete valid feed return 503. Responses retain CORS,
+issued precision, and the recorded model identity. Download `/tips` to export
+the published predictions.
+
+Scheduled work resolves and stores canonical Squiggle identities. Feed requests
+make no external fetches. Existing mappings survive upstream outages. Missing
+or ambiguous mappings make the feed unavailable while prediction storage for
+FootyBot continues. Squiggle delivery remains AFLM-only.
+
+Manual refresh requires the `ADMIN_TOKEN` Worker secret as a bearer token.
+The Worker uses the platform's timing-safe comparison. Its request accepts only
+competition, season, and round. Manual refresh follows the same publication
+locks and cannot change model parameters or historical observation times.
+
+Health checks individual expected matches, capture links, fixture consistency,
+freshness, and scheduler heartbeat. Reporting diagnostics expose stale reports
+separately. Performance alerts do not fail the deployment health check.
+
+### Retained Weekly Reports
+
+After Monday 22:00 UTC, the Worker scores captures selected at each match's lock.
+It preserves the issued winner, precision, and model identity. Reports retain
+the result and field observations used for scoring. Failed collection retries
+hourly, and the previous successful report remains available with staleness.
+
+Reports include winner accuracy, draws, MAE, log loss, and Brier score.
+They retain field ranking, the close-band diagnostic, and paired comparison
+against Punters. Field comparisons identify their common match sets and report
+missing predictions and field data. The absolute three-tip market-gap threshold
+raises an alert after the Worker retains the evidence.
+
+The weekly GitHub workflow checks the stored report and attaches an artefact.
+It has no D1 credentials, runs no model, and makes no commits to main.
+
+### Deployment and Recovery
+
+Apply the additive AFL-MCP migrations before enabling the new publisher.
+Refresh upcoming fixtures and lineups, configure `ADMIN_TOKEN`, and record
+activation before deploying the pinned artefact through the existing GitOps
+process. Verify both competitions, captures, feed identities, locked matches,
+and the first retained report before launch.
+
+Keep old artefacts and the additive schema for recovery. Once the publisher is
+active, recovery must use a version that understands its locks and records.
+Do not restore the legacy direct writer. Squiggle ingestion agreement and
+end-to-end acceptance remain launch dependencies. Contact and submission
+require separate authorization.
 
 ## footyBot: Discord Consumer
 
@@ -664,6 +770,9 @@ competition: AEST (UTC+10) during winter and AEDT (UTC+11) during daylight
 saving (October to April). It intentionally discards venue-native time and adds
 no venue-time columns. Fitzroy's public `Match` type still exposes
 the upstream `venueLocalDate`. AFL-MCP does not persist that field.
+
+Use nullable `matches.kickoff_at` for the canonical UTC instant. Unknown source
+times remain unavailable. Local display fields cannot establish deadlines.
 
 Round labels mirror the AFL API and the R fitzRoy package: no
 cross-competition normalisation. The `round` column contains the long form,
