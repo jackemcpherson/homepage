@@ -1,267 +1,243 @@
-# Infrastructure Style Guide
+# Infrastructure style guide
 
-Design principles and default architecture for infrastructure, deployment
-pipelines, and GitOps. Git is the system of record. Declare every resource in
-Git and let the pipeline reconcile the live estate. The
-[authoring guide](./infrastructure-authoring-guide.md) defines the HCL and
-workflow syntax beneath these decisions. The [Python](./python-style-guide.md)
-and [TypeScript](./typescript-style-guide.md) guides share the same preference
-for fast, single-purpose tools.
+This guide explains how we manage services through Git. The same ideas apply to
+DNS, source repositories, application releases, and other managed resources.
+Read the [authoring guide](./infrastructure-authoring-guide.md) when building or
+changing an implementation.
 
 ---
 
-## Scope
+## Start with the change
+
+A person should be able to answer four questions without tracing scripts:
 
-This guide serves a solo operator. Every selected pattern must extend to a
-small team without restructure. The guide selects OpenTofu, GitHub Actions,
-and object-storage state. Its principles transfer to other tools, but the
-defaults target one operator with a small number of projects.
+- What do we want the service to look like?
+- What needs to change?
+- What happened when we tried?
+- What needs attention now?
 
-## The Retrofit Rule
+Git records the configuration we want. The service shows what exists. OpenTofu
+compares the two and performs changes through its providers. Its state file
+connects configuration addresses to service objects. State helps manage those
+objects, but does not prove that the service still matches Git.
+
+Use OpenTofu, GitHub Actions, and remote state as the default tools. Keep an
+existing working backend, such as R2. Add a tool when it removes enough recurring
+work to justify maintaining it.
+
+## Three operations
 
-The retrofit rule is the primary design principle. Test every requirement
-against the cost of a later retrofit:
+Use these names in workflows, pull requests, instructions, and results.
+
+| Operation | Purpose                                    | Behaviour                                                               |
+| --------- | ------------------------------------------ | ----------------------------------------------------------------------- |
+| Plan      | Understand a proposed Git revision.        | Read the service and show the proposed changes.                         |
+| Apply     | Bring the service into agreement with Git. | Make a fresh plan, check permission, perform it, and verify the result. |
+| Drift     | Find differences from main.                | Compare and report differences, including unmanaged resources.          |
 
-- Keep a requirement in the default when a later retrofit is expensive.
-  State layout, repository layout, naming, and credential architecture are
-  expensive retrofits.
-- Defer a requirement when a team can add it later without restructure.
-  Review requirements, apply permissions, and alert rules are cheap
-  additions.
+Plan and Drift leave the managed service unchanged. Apply is the normal path
+for changing it. A plan inside Apply is part of that operation.
 
-The [growth table](#growth-moves) records each deferred requirement and its
-trigger. The [do not build list](#the-do-not-build-list) names the apparatus
-that a default project must not carry.
+```text
+Pull request -> Plan -> review -> merge
+                                  |
+                                  v
+                        Apply: fresh plan -> changes -> verification
 
----
+main + live service -> Drift -> report
+                                 |
+                 correct Git -> Apply
+                   wrong Git -> pull request
+```
 
-## Tech Stack
+We deliberately keep Drift read-only and repair differences through Apply.
+[OpenGitOps](https://opengitops.dev/) also calls for continuous attempts to apply
+the desired state. Our operating model makes that repair a deliberate choice.
 
-| Tool               | Role                          | Why                                                        |
-| ------------------ | ----------------------------- | ---------------------------------------------------------- |
-| **OpenTofu**       | Infrastructure-as-code engine | One declarative tool for each provider. Open governance.   |
-| **HCL**            | Configuration language        | Declarative configuration without imperative operations.   |
-| **GitHub Actions** | Deployment pipeline           | The pipeline applies each infrastructure change.           |
-| **Object storage** | State backend                 | Remote and locked R2, S3, or GCS storage.                  |
+## Targets give changes a home
 
-### OpenTofu Selection
+A Target is a named group of resources that we operate on together. Each Target
+has one directory, one OpenTofu root, and one state. Its name stays the same in
+configuration, Plan, Apply, and Drift results.
 
-OpenTofu and Terraform use HCL and the same provider protocol. OpenTofu can
-read Terraform state. The Linux Foundation governs the MPL-licensed OpenTofu
-project. Terraform uses the Business Source Licence. Use OpenTofu for new
-work. Use Terraform only when a HashiCorp-specific product requires it.
+For example, a DNS Target might hold a zone's records. A repositories Target
+might hold a GitHub repository fleet. A Worker and its dedicated storage might
+share a Target when we normally operate on them together.
 
----
+Create another Target when resources need independent operation. A difference
+in resource type alone does not require a separate Target. Add environment
+names only when there are separate environments to manage.
 
-## Repositories
+Targets are independent by default. Record a dependency when one Target needs
+another Target's change to succeed first. Show that relationship in Plan. If
+creating a database fails, explain why the Worker cannot proceed.
 
-Projects sit at the top of every hierarchy. Environments sit inside each
-project. Each application repository carries its own infrastructure in an
-`infra` directory. An application change and its infrastructure change then
-travel in one pull request.
+## Six operations within a plan
 
-One shared foundation repository holds the account-level resources: the state
-storage, the deploy identities (OIDC roles or scoped API tokens), and the DNS
-zones. The foundation repository has no pipeline. Apply foundation changes by
-hand from a workstation. The foundation README records the procedure.
+These verbs describe changes to managed objects. Always name the affected
+object and explain its relevant before and after values.
 
-Each leaf directory `infra/<project>/<env>/<type>/` holds its own backend and
-credentials. The leaf is the credential boundary and the change-scope
-boundary, so both stay visible in the path.
+| Operation | Meaning                                                          |
+| --------- | ---------------------------------------------------------------- |
+| Import    | Bring an existing object under management without recreating it. |
+| Create    | Create an object that does not exist.                            |
+| Update    | Change an existing object's settings in place.                   |
+| Move      | Change the OpenTofu address used to track an existing object.    |
+| Replace   | Replace an existing object with a new object.                    |
+| Destroy   | Remove an existing object from the managed service.              |
 
-A repository must still rebuild its estate in an empty account. The foundation
-procedure plus the project module satisfy that requirement. The
-[authoring guide](./infrastructure-authoring-guide.md#repository-layout)
-shows the directory tree.
+Import and Update can appear together. Move and Update can also appear together.
+Moving a repository's OpenTofu address does not rename the repository in GitHub.
+The plan must show both actions when its address and service settings change.
 
----
+Show the actual effect of Replace, including the order of removal and creation.
+Some provider resources describe a version or an ownership record. Replacing
+that record does not necessarily destroy the application. Explain that distinction.
 
-## State
+OpenTofu also supports giving up ownership while retaining the service object.
+That action falls outside the six operations above. Stop automatic Apply and
+require an explicit ownership decision rather than hiding or mislabelling it.
+[OpenTofu plan format](https://opentofu.org/docs/internals/json-format/)
 
-Each leaf directory has one state file. The state is remote and locked. Never
-commit state to Git. Rely on the bucket's server-side encryption.
+## A merge authorises Apply
 
-The foundation repository creates the state storage before any project
-pipeline runs. This order resolves the bootstrap sequence.
+A pull request proposes configuration and presents a Plan. Review the intended
+configuration, the proposed changes, and any permission to destroy or replace.
+Merging authorises Apply to bring the affected Targets into agreement with Git.
 
-Split a state into components only when a trigger in the
-[growth table](#growth-moves) is true. When you split, record the migration
-path with the `tofu state mv` command, so the deferred cost stays visible.
+The pull request Plan is a preview. The service may change before Apply starts.
+Apply therefore creates a fresh plan and executes that saved plan in the same
+run. The merge authorises the desired configuration, subject to the permission
+rules below. Report the revision and the changes that Apply actually used.
 
----
+Run one Apply at a time for each Target. Let a running Apply finish. Independent
+Targets can run concurrently. A newer merge can make queued work unnecessary.
+Skip that older work only when the newer run covers its outstanding changes.
+Record the older result as superseded and identify the replacement run.
 
-## Modules and Environments
+An older run must never overwrite a newer revision. Skipping a run must also
+preserve any permission still needed for its changes, or stop for renewed
+permission. Skipping intermediate runs does not mean dropping intended changes.
 
-Each repository contains one project module. Leaf directories under
-`infra/<project>/<env>/<type>/` are thin callers of that module. The
-environment is the second path segment, never the first, so a project's
-environments sit together. A thin caller contains a backend block, a module
-call with a local path, and a `.tfvars` file.
+## Permission to destroy or replace
 
-Resources live in the project module. Extract a sub-module only when a second
-project shares the pattern. Do not create a separate module repository, and do
-not reference modules by Git tag in the default. A later move to tags changes
-one source string.
+Destroy and Replace need explicit permission for named objects in the change.
+A normal merge does not grant permission to destroy every object in a Target.
+Stop that Target's Apply if the fresh plan includes an operation without permission.
 
-Keep the parity principle: environments run the same code and differ only in
-validated inputs.
+Permission belongs to a specific change. It can support a retry only when there
+is evidence that the permitted operation remains unfinished. Completed work
+must not gain another destructive attempt from an old permission record.
 
-### Environments and Promotion
+For example, replacing a bucket might succeed before another update fails.
+A retry must not use the old permission to replace the new bucket again. If the
+result is uncertain, stop and obtain renewed permission through a pull request.
+There is no additional approval click after merging that request.
 
-The default project has one environment. The pull request plan reviews the
-infrastructure change. Platform preview deployments review the application
-change. A staging environment is a growth move.
+## Results must explain what happened
 
-When a project adds staging, apply these rules:
+A short Plan summary names each Target, the proposed operations, and any
+missing permission. Link to the full plan for attribute details.
 
-- Staging tracks the main branch and applies on each merge.
-- Production promotes through a manually triggered workflow.
-- The promote workflow plans production and prints the plan summary on the
-  run page.
-- An environment approval sits between the production plan and the apply.
-  The click then approves a plan that the operator has read.
-- The operator approves alone today. A team adds required reviewers and
-  self-review prevention later.
+Apply succeeds when there is enough evidence that the intended change worked.
+Use provider confirmation where it is sufficient. Add a direct check where
+necessary, such as confirming the intended application version is running.
 
-Do not attach a production gate to every merge. Parked approval runs create
-noise and expire as failures.
+Report changes and verification separately when their outcomes differ. A useful
+failure says that deployment completed but the health check failed. It identifies
+the uncertain result and the next check or repair.
 
----
+A failed Target blocks changes that need its success. Independent Targets can
+continue. A later pull request can fix the cause and attempt Apply again. A
+failure does not permanently lock the Target.
 
-## The Pipeline
+## Make every human-facing surface legible
 
-The default repository has three workflows. The
-[authoring guide](./infrastructure-authoring-guide.md#the-three-workflows)
-contains the complete files.
+Treat repository paths, workflow names, PR checks, inputs, logs, summaries, and
+instructions as one interface. Use the same operation names, Target names, and
+outcome words throughout. A person should not need to translate internal script
+names into the GitOps model.
 
-| Workflow     | Trigger            | Behaviour                                                                             |
-| ------------ | ------------------ | ------------------------------------------------------------------------------------- |
-| `ci.yml`     | Each pull request  | Run the application checks and the infrastructure checks. Post the plan as a comment. |
-| `deploy.yml` | Each merge to main | Plan and apply the infrastructure, then deploy the application.                       |
-| `drift.yml`  | A weekly schedule  | Plan each environment. A non-empty plan fails the run.                                |
+Checks prove that the repository is ready. They support Plan, Apply, and Drift
+without adding another GitOps operation. Name checks for what they establish,
+such as valid configuration or passing helper tests. Explain failures with the
+affected file or object, the cause, and the next useful action.
 
-Apply these pipeline rules:
+The workflow graph should show selected Targets and real dependencies. Opening
+a Target job should reveal planning, permission, changes, and verification as
+named steps. Keep those stages visible even when helpers perform the work.
 
-- The pull request plan is a preview. The pipeline plans again after the
-  merge and applies the fresh plan. Do not carry a plan artefact between
-  workflows. Artefacts do not cross workflows, and a pull request plan goes
-  stale.
-- Where a promotion gate exists, the plan and the gated apply share one run.
-- A concurrency group serialises applies. An apply job never cancels.
-- Set a timeout on every job. Pin the runner image to a release name.
-- Path filters select the jobs that each change runs.
-- A rollback is a revert pull request through the same path.
-- The operator can apply from a workstation. Keep the pipeline as the
-  default path.
-  A team later revokes workstation credentials without restructure.
+A green PR result must mean all required work completed successfully. Explain
+why work did not run. Missing results and failed discovery cannot mean success.
+Keep the short answer in checks and summaries, with detailed evidence in linked
+plans and logs. Do not require a reader to assemble the outcome from raw output.
 
-A failed `drift.yml` run and the notification email are the complete drift
-response. Reconcile the drift through a pull request before the next apply.
+## Drift includes the gaps in ownership
 
----
+Compare the service against a recorded revision of main. Show each Target's
+Apply status beside its differences, including waiting and failed runs. A
+partly completed Apply still needs comparison against the intended configuration.
 
-## Secrets
+Also report resources that no Target owns. Record deliberate exclusions and
+why they exist. Discovery reports resources without importing or deleting them.
 
-Do not store secret values in Git. OpenTofu stores a secret reference, not the
-secret value. Store each value in the system that consumes it:
+Say what Drift inspected: service accounts, resource types, and any limits on
+access. A failed or incomplete read is an incomplete result. It is never proof
+that the account is empty or everything matches Git.
 
-| Secret class                                  | Lives in                                          |
-| --------------------------------------------- | ------------------------------------------------- |
-| Pipeline credentials (what the pipeline uses) | GitHub environments, scoped per environment       |
-| Runtime secrets (what the deployed app reads) | The platform's native store, set outside OpenTofu |
+If Git is correct, invoke Apply for the Target against main. If the service
+change should remain, edit Git through a pull request. Drift itself makes
+neither choice.
 
-The default model holds no desired-state secrets, so no encryption tooling
-guards the repository.
+## Ownership includes releases and secrets
 
----
+Each GitOps repository owns the desired configuration for its managed service.
+Application repositories own source code and publish versioned builds. The
+GitOps repository selects the build to run and the settings that go with it.
+Use immutable build references and verify their contents before deployment.
 
-## Security Floor
+Prefer one owner for an object. When two systems manage different parts, record
+exactly which settings each system owns. Each setting has one writer.
 
-The floor contains the controls below. Each control is one-time setup, a few
-lines of configuration, or a habit. The
-[authoring guide](./infrastructure-authoring-guide.md#part-2-github-actions-yaml)
-shows each implementation.
+Keep secret values in an appropriate secret store. Git records the required
+secret names, references, and ownership. A secret update that also deploys an
+application belongs in the Apply path or a documented emergency procedure.
 
-| Control         | Form                                                                                                                 |
-| --------------- | -------------------------------------------------------------------------------------------------------------------- |
-| Pipeline auth   | Use OIDC where the provider supports it. Use a scoped rotated token elsewhere.                                       |
-| Permissions     | Set `permissions: {}` at the workflow level. Grant each job its own scopes.                                          |
-| Untrusted input | Bind event values to environment variables. Never interpolate them into run scripts.                                 |
-| State           | Keep state remote and locked. Rely on the bucket's server-side encryption.                                           |
-| Secrets         | Store references only. Pipeline credentials live in GitHub environments. Runtime secrets live in the platform store. |
-| Variables       | Give every variable a type, a description, and validation where rules exist.                                         |
-| Dependencies    | Commit the provider lock file. Let Dependabot update action versions weekly.                                         |
+Some release work sits outside an OpenTofu resource plan, such as database
+migrations. Show the intended steps and their outcomes within the Target's
+Plan and Apply results. A list of SQL files does not prove their effects are
+safe. Define review, ordering, and recovery for those changes explicitly.
 
----
+## Recovery and the machinery underneath
 
-## Accepted Risks
+Undo configuration changes through a revert pull request. Plan explains what
+returning to that configuration requires. Merge uses the normal Apply path.
+Restoring lost data requires a separate recovery decision and procedure.
 
-Each decision below accepts a named risk. Build the mitigation, not the
-removed control.
+Keep state remote, locked, encrypted, and recoverable. Retain the keys and
+backups needed to restore it. Rehearse recovery before relying on those backups.
 
-### Version Tags Instead of Commit Pins
+State storage and deployment identities follow the same operating model for
+ongoing changes. Document the small initial setup needed to start the system.
+Document emergency access for when the system cannot operate. Record emergency
+changes and reconcile them with Git through the normal workflow.
 
-A moved action tag can run code that nobody has audited. Reference actions by
-version tag anyway. Do not pin commit SHAs in the default.
+## Keep the implementation small
 
-Mitigation: OIDC removes long-lived keys where the provider supports it.
-Elsewhere, scoped rotated tokens limit a hijacked run to one project.
-Dependabot keeps versions current.
+Use provider features before writing another implementation of them. Keep
+custom code for a specific missing capability and test the behaviour it protects.
+Recheck workarounds when the provider changes.
 
-### A Merge Applies Without a Later Human Step
+Use the existing workflow interface before building a dashboard or mandatory
+command-line wrapper. Share code when several places repeat the same behaviour.
+Keep service-specific details in their implementation, with a clear reason for
+any departure from these operating rules.
 
-A merge applies to production with no later human step. The pull request plan
-is the only review.
-
-Mitigation: the revert path restores the prior state through the same
-pipeline.
-
----
-
-## Growth Moves
-
-Add an item only when its trigger is true.
-
-| Addition                                            | Trigger                                                              |
-| --------------------------------------------------- | -------------------------------------------------------------------- |
-| Staging environment and promote workflow            | The project has real users or performs risky data migrations.        |
-| Component state split                               | Plans run slowly, blast radius needs separation, or applies collide. |
-| SHA pins for actions                                | A credential's blast radius grows beyond one personal project.       |
-| Module repository with version tags                 | A second repository consumes the module.                             |
-| Required reviewers and self-review prevention       | A second person joins.                                               |
-| Workstation credential removal                      | A second person joins.                                               |
-| Tag enforcement checks                              | An organisation needs cost attribution.                              |
-| Client-side state encryption                        | State must hold a secret value.                                      |
-| A workflow linter                                   | The workflow count or the contributor count grows.                   |
-| Version-lagged releases through a production branch | The team needs production to trail staging.                          |
-
----
-
-## The Do Not Build List
-
-Build no item below unless its growth trigger is true:
-
-- A staging environment or any promotion gate.
-- A component state split.
-- OPA, Conftest, SOPS, or a workflow linter.
-- Break-glass procedures.
-- A reusable workflow or a composite action.
-- A separate module repository or version-pinned promotion.
-- Client-side state encryption.
-- Tag enforcement checks.
-- SHA pins for actions.
-
----
+The [authoring guide](./infrastructure-authoring-guide.md) turns these rules into
+repository structure, execution requirements, and checks for a new implementation.
 
 ## References
 
-Consult a reference when a question exists. The `defuddle.md` prefix returns
-Markdown.
-
-- [OpenTofu documentation](https://defuddle.md/opentofu.org/docs/)
-- [OpenTofu state locking](https://defuddle.md/opentofu.org/docs/language/state/locking/)
-- [OpenTofu module sources](https://defuddle.md/opentofu.org/docs/language/modules/sources/)
-- [Cloudflare Terraform/OpenTofu provider](https://defuddle.md/developers.cloudflare.com/terraform/)
-- [GitHub Actions: OpenID Connect](https://defuddle.md/docs.github.com/en/actions/deployment/security-hardening-your-deployments/about-security-hardening-with-openid-connect)
-- [GitHub Actions: environments & secrets](https://defuddle.md/docs.github.com/en/actions/deployment/targeting-different-environments/using-environments-for-deployment)
-- [OpenGitOps principles (CNCF)](https://defuddle.md/opengitops.dev/)
+- [OpenGitOps principles](https://opengitops.dev/)
+- [OpenTofu state](https://opentofu.org/docs/language/state/)
+- [OpenTofu plan format](https://opentofu.org/docs/internals/json-format/)

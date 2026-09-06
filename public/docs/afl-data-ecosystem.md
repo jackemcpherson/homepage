@@ -153,7 +153,12 @@ returns a contract error. For example, `includeObserved` requires both
 `competition` and `season`.
 
 `GET /mcp/health` reports sync freshness. It returns 503 when no sync occurred
-for more than three hours. Bearer-token admin routes trigger manual syncs and
+for more than three hours or a recent critical sync error remains unresolved.
+A later successful sync clears errors for that competition. Unrelated syncs
+and sub-tasks cannot clear them. Fatal errors retain a three-hour window, and
+all error records remain available.
+
+Bearer-token admin routes trigger manual syncs and
 PAV rebuilds. These routes are `/mcp/admin/sync`, `/mcp/admin/backfill`,
 `/mcp/admin/recalculate-pav`, and `/mcp/admin/recalculate-all-pav`.
 Release 3.4.0 added two authenticated operations.
@@ -418,6 +423,20 @@ status, model revision, and observation/publication timestamps. A capture record
 the evidence consumed for an issued prediction, not a complete database snapshot.
 The existing Task 41 archive remains separate. Historical or reconstructed rows
 are not prospective captures.
+
+#### Historical Prediction Backfills
+
+`match_predictions` contains the 2026 historical backfill alongside real-time
+tips. The backfill covers 213 completed AFLM and 31 completed AFLW matches,
+using Elo and PAV rebuilt from eligible earlier matches and source matchday
+lineups. FootyBot and AFL-MCP read both through the same table.
+
+The `tipping_performance` schema recipe reports completed-match coverage,
+correct winners, draws, accuracy excluding draws, and margin MAE.
+Backfilled rows retain their actual generation timestamp and have no publication
+run link. Migration `0023` removes the temporary reconstruction tables after
+consolidating their predictions. Detailed replay evidence remains archived
+locally.
 
 #### `player_match_stats`
 
