@@ -417,21 +417,19 @@ the evidence consumed for an issued prediction, not a complete database snapshot
 The existing Task 41 archive remains separate. Historical or reconstructed rows
 are not prospective captures.
 
-#### Tipper 2026 Reconstructions
+#### Historical Prediction Backfills
 
-A one-time replay stores historical model estimates in
-`tipper_reconstruction_batches` and `tipper_reconstructions`, under AFL-MCP
-migration ownership. Read only batches with a non-null `completed_at`.
-The batch retains model identity, policy, actual collection times, coverage,
-and checksums. Match rows retain outputs, fixture identity, rating inputs,
-source lineup observations, and a simulated pre-kickoff cutoff.
+`match_predictions` contains the 2026 historical backfill alongside real-time
+tips. The backfill covers 213 completed AFLM and 31 completed AFLW matches,
+using Elo and PAV rebuilt from eligible earlier matches and source matchday
+lineups. FootyBot and AFL-MCP read both through the same table.
 
-The replay uses current source matchday rosters as historical proxies and
-completed results from earlier Melbourne calendar days. It excludes same-day
-results because completion timestamps are unavailable. Source corrections to
-scores, statistics, priors, or fixtures may postdate the simulated cutoff.
-These records carry the label `reconstructed`. They do not enter current
-predictions, Squiggle feeds, prospective coverage, or weekly competition reports.
+The `tipping_performance` schema recipe reports completed-match coverage,
+correct winners, draws, accuracy excluding draws, and margin MAE.
+Backfilled rows retain their actual generation timestamp and have no publication
+run link. Migration `0023` removes the temporary reconstruction tables after
+consolidating their predictions. Detailed replay evidence remains archived
+locally.
 
 #### `player_match_stats`
 
