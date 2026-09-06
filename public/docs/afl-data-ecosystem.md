@@ -417,6 +417,22 @@ the evidence consumed for an issued prediction, not a complete database snapshot
 The existing Task 41 archive remains separate. Historical or reconstructed rows
 are not prospective captures.
 
+#### Tipper 2026 Reconstructions
+
+A one-time replay stores historical model estimates in
+`tipper_reconstruction_batches` and `tipper_reconstructions`, under AFL-MCP
+migration ownership. Read only batches with a non-null `completed_at`.
+The batch retains model identity, policy, actual collection times, coverage,
+and checksums. Match rows retain outputs, fixture identity, rating inputs,
+source lineup observations, and a simulated pre-kickoff cutoff.
+
+The replay uses current source matchday rosters as historical proxies and
+completed results from earlier Melbourne calendar days. It excludes same-day
+results because completion timestamps are unavailable. Source corrections to
+scores, statistics, priors, or fixtures may postdate the simulated cutoff.
+These records carry the label `reconstructed`. They do not enter current
+predictions, Squiggle feeds, prospective coverage, or weekly competition reports.
+
 #### `player_match_stats`
 
 Each row contains one player and one match. Approximately 70 columns contain
