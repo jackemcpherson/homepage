@@ -153,7 +153,12 @@ returns a contract error. For example, `includeObserved` requires both
 `competition` and `season`.
 
 `GET /mcp/health` reports sync freshness. It returns 503 when no sync occurred
-for more than three hours. Bearer-token admin routes trigger manual syncs and
+for more than three hours or a recent critical sync error remains unresolved.
+A later successful sync clears errors for that competition. Unrelated syncs
+and sub-tasks cannot clear them. Fatal errors retain a three-hour window, and
+all error records remain available.
+
+Bearer-token admin routes trigger manual syncs and
 PAV rebuilds. These routes are `/mcp/admin/sync`, `/mcp/admin/backfill`,
 `/mcp/admin/recalculate-pav`, and `/mcp/admin/recalculate-all-pav`.
 Release 3.4.0 added two authenticated operations.
