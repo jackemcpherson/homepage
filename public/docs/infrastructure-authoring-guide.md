@@ -1,989 +1,490 @@
-# Infrastructure Authoring Guide
+# Infrastructure authoring guide
 
-This guide defines how to write HCL modules and GitHub Actions workflows. It
-supplies the syntax layer beneath the
-[infrastructure style guide](./infrastructure-style-guide.md), which records
-the design decisions and their reasons.
-
-Part 1 covers OpenTofu and HCL. Part 2 covers GitHub Actions. Part 3 contains
-the worked example. The final section contains references.
+Use this guide to build a GitOps repository with OpenTofu and GitHub Actions.
+Read the [style guide](./infrastructure-style-guide.md) first for the operating
+rules. This document defines the implementation requirements beneath those rules.
 
 ---
 
-## Part 1: OpenTofu (HCL)
+## Establish the management boundary
 
-Part 1 defines conventions for the project module and its leaf callers.
+Before writing resources, inspect the provider and the service's own tools.
+Verify the behaviour of the provider version the repository will use.
 
-### Formatting and Tooling
+Record the following in the repository README or a linked inventory:
 
-Run the same gate in pre-commit and CI. Unformatted HCL fails the build.
+- The service accounts and resource types this repository manages.
+- Each Target's resources and any dependencies on another Target.
+- The settings another system owns and the reason for that split.
+- Deliberate exclusions from management and discovery limits.
+- The credentials each operation needs, without recording their values.
+- The evidence that confirms a successful change and the recovery procedure.
 
-| Command               | Purpose                                       |
-| --------------------- | --------------------------------------------- |
-| `tofu fmt -recursive` | Format every file. CI runs `tofu fmt -check`. |
-| `tofu validate`       | Schema and reference validation.              |
-| `tflint`              | Provider-aware lint and naming rules.         |
+Check provider behaviour with concrete cases: importing an object, changing a
+setting, replacing a resource, and observing an external change. A resource
+schema alone does not prove that the provider detects the change we care about.
 
-`fmt` handles two-space indentation and alignment. Do not align HCL manually.
-Use the formatter so a diff shows content changes.
-
-Two tools are optional. `terraform-docs` generates README input and output
-tables when a module gains external readers. Write a `tofu test` suite only
-when a module contains logic worth testing. Variable validation stays required
-everywhere.
-
-### Repository Layout
-
-Each application repository carries its infrastructure in an `infra`
-directory. The [style guide](./infrastructure-style-guide.md#repositories)
-records the reasons. One file per concern, so a reader knows where to look
-before opening anything.
+## Use a small repository structure
 
 ```text
-example-worker/
-├── src/                          # application code
-├── infra/
-│   ├── modules/                  # shared resource modules, extracted on second use
-│   │   └── project/              # every resource lives here
-│   │       ├── main.tf           # resources and data sources
-│   │       ├── variables.tf      # the typed input interface - written first
-│   │       ├── outputs.tf        # the public interface
-│   │       ├── versions.tf       # required_version + pinned providers
-│   │       └── locals.tf         # derived values (omit if there are none)
-│   └── example-worker/           # <project>
-│       └── production/           # <env>
-│           └── worker/           # <type>: one state root per leaf
-│               ├── backend.tf        # remote, locked state
-│               ├── providers.tf      # provider configuration
-│               ├── main.tf           # one local-path module call
-│               ├── variables.tf      # declarations for the tfvars values
-│               └── production.tfvars # validated inputs; values only
-└── .github/
-    └── workflows/
+service-infra/
+  targets/
+    <target>/
+      main.tf
+      backend.tf
+      versions.tf
+      .terraform.lock.hcl
+  .github/workflows/
+    plan.yml
+    apply.yml
+    drift.yml
+  README.md
 ```
 
-Each leaf is one state root and one pipeline Target. The path reads project,
-then environment, then resource type. Single-environment estates may flatten
-to `<project>/` and record the deviation in an architecture decision record.
+This tree is the starting structure. Add `variables.tf`, `outputs.tf`, local modules,
+helpers, tests, or release files when they have content that belongs there.
+Avoid empty files and mandatory modules that only pass through their inputs.
 
-`versions.tf` pins the toolchain and providers. Commit the
-`.terraform.lock.hcl` lock file. It has the same role as `uv.lock` and
-`bun.lock`. It makes each run resolve the same provider builds.
+The directories under `targets/` are the Target registry. Use lowercase names
+with hyphens. Discover the directories rather than maintaining another complete
+list. Store only additional information, such as dependencies, outside that list.
 
-```hcl
-# versions.tf
-terraform {
-  required_version = ">= 1.10"
+Configure providers in the root. Child modules declare their provider
+requirements and accept configuration from the caller. Give variables explicit
+types and descriptions. Validate actual constraints and define what null means.
+Expose outputs only when another part of the system uses them.
 
-  required_providers {
-    cloudflare = {
-      source  = "cloudflare/cloudflare"
-      version = "~> 5.0" # pin the major, allow patch/minor
-    }
-  }
-}
-```
+Use `snake_case` for HCL names. Use stable keys with `for_each` for collections.
+Keep provider object identifiers separate from the Target's name. Commit import
+and moved blocks for adoption and address changes. Preserve the required
+refactoring history until every affected state has used it.
+[Import](https://opentofu.org/docs/language/import/),
+[refactoring](https://opentofu.org/docs/language/modules/develop/refactoring/)
 
-A module never declares a `provider` block. The environment directory
-configures providers and calls the module. The caller can therefore select any
-account.
+Give each root a unique backend key. Keep existing keys during directory
+cleanups unless the change includes an explicit state migration. Removing a
+Target directory must not silently abandon its state or service resources.
+Verify an empty state or complete an explicit ownership transfer first.
 
-### Naming Conventions
+Use references for dependencies within a root. Use `depends_on` for a real hidden
+dependency. Run the whole Target root. Reserve OpenTofu's `-target` option for
+exceptional recovery. [Resource dependencies](https://opentofu.org/docs/language/resources/behavior/#resource-dependencies),
+[planning options](https://opentofu.org/docs/cli/commands/plan/)
 
-Everything is `snake_case`. Names describe the resource role. The address
-already contains the resource type. Use `cloudflare_r2_bucket.media`.
+## Keep three visible workflows
 
-| Construct                                              | Convention               | Example                                                   |
-| ------------------------------------------------------ | ------------------------ | --------------------------------------------------------- |
-| Resources, data sources                                | `snake_case`, role-named | `cloudflare_r2_bucket.media`, `cloudflare_dns_record.www` |
-| The single primary resource of a single-purpose module | `this`                   | `cloudflare_r2_bucket.this`                               |
-| Variables                                              | `snake_case`             | `zone_id`, `enable_log_bucket`                            |
-| Outputs                                                | `snake_case`             | `media_bucket_name`, `hostname`                           |
-| Locals                                                 | `snake_case`             | `name_prefix`, `common_tags`                              |
-| Modules (calls)                                        | `snake_case`, role-named | `module.project`                                          |
-| Files                                                  | `snake_case.tf`          | `main.tf`, `variables.tf`                                 |
+Use the workflow names Plan, Apply, and Drift, with these entry points:
 
-- Boolean variables start with `enable_`, `is_`, or `has_`:
-  `enable_log_bucket`, `is_public`.
-- Collections are plural and keyed names singular: `alias_records`, and a
-  `for_each` over `var.alias_records`.
-- Name resources with a `{project}-{environment}-{purpose}` pattern. Compose
-  the prefix once in a local and reuse it.
-- Key state as `{project}/{environment}/terraform.tfstate` in the shared
-  state bucket. The path identifies the project and the environment.
-- Tags are a convention, not a gate. Where a provider supports tags, compose
-  them once in a `common_tags` local. No check enforces them.
+| File        | Trigger                          | Required behaviour                                                    |
+| ----------- | -------------------------------- | --------------------------------------------------------------------- |
+| `plan.yml`  | Pull request                     | Validate and show proposed changes for affected Targets.              |
+| `apply.yml` | Merge to main or manual dispatch | Reconcile affected Targets, or the explicitly selected repair Target. |
+| `drift.yml` | Schedule or manual dispatch      | Inspect declared Targets and the documented discovery scope.          |
 
-```hcl
-# locals.tf
-locals {
-  name_prefix = "${var.project}-${var.environment}"
+Repository checks support these operations. Start with a `Check repository` job
+inside Plan. A separate Checks workflow needs an independent trigger or a clear
+benefit to the PR interface. Do not repeat the same checks in both places.
 
-  common_tags = {
-    owner       = var.owner
-    environment = var.environment
-    managed-by  = "opentofu"
-  }
-}
-```
-
-### Variables: the Typed Boundary
-
-Every variable has a `type`, a `description`, and a `validation` block when
-rules apply. The variable interface is the boundary contract. Validation
-rejects bad input before it causes a confusing plan error.
-
-```hcl
-# variables.tf
-variable "environment" {
-  type        = string
-  description = "Deployment environment. Drives naming."
-
-  validation {
-    condition     = contains(["production", "staging"], var.environment)
-    error_message = "environment must be 'production' or 'staging'."
-  }
-}
-
-variable "account_id" {
-  type        = string
-  description = "Cloudflare account that holds the project resources."
-
-  validation {
-    condition     = can(regex("^[0-9a-f]{32}$", var.account_id))
-    error_message = "account_id must be a 32-character hex account ID."
-  }
-}
-
-variable "alias_records" {
-  type        = map(string)
-  description = "Proxied CNAME records keyed by record name."
-  default     = {}
-}
-```
-
-Rules:
-
-- Declare a type for every variable. A bare `variable "x" {}` accepts any
-  value. Use `object(...)` for structured input.
-- Add a description to every variable. Descriptions appear in editor
-  tooltips.
-- Set `nullable = false` unless the absence of a value has a defined
-  meaning.
-- Set `sensitive = true` for secret values. This setting redacts the values
-  from plan output.
-- Remove unused variables. `tflint` identifies them.
-
-### Outputs: the Public Interface
-
-`outputs.tf` is the module's public API. Expose only the values that
-consumers need, and document each value.
-
-```hcl
-# outputs.tf
-output "media_bucket_name" {
-  value       = cloudflare_r2_bucket.media.name
-  description = "Name of the R2 bucket that stores media assets."
-}
-```
-
-### Resources and Logic
-
-Use these rules to keep resource addresses stable and dependencies explicit.
-
-#### `for_each` Over `count`
-
-Default to `for_each` because it addresses resources by a stable key.
-Removing one item then deletes only that item. In contrast, `count` addresses
-by index. A removal can renumber later resources and force unnecessary
-replacement.
-
-Write:
-
-```hcl
-resource "cloudflare_dns_record" "alias" {
-  for_each = var.alias_records
-  zone_id  = var.zone_id
-  name     = each.key
-  type     = "CNAME"
-  content  = each.value
-  proxied  = true
-  ttl      = 1
-}
-```
-
-Use `count` only for one optional resource:
-
-```hcl
-resource "cloudflare_r2_bucket" "logs" {
-  count      = var.enable_log_bucket ? 1 : 0
-  account_id = var.account_id
-  name       = "${local.name_prefix}-logs"
-}
-```
-
-#### Refactor with `moved`, Never by Silent Rename
-
-Renaming a resource is a destroy-and-recreate unless you tell the engine the
-address moved. Use a `moved` block so the refactor is a no-op apply.
-
-```hcl
-moved {
-  from = cloudflare_dns_record.www_alias
-  to   = cloudflare_dns_record.alias
-}
-```
-
-#### Other Resource Rules
-
-- Prefer implicit dependencies through references. Use `depends_on` only
-  when no reference can express the dependency.
-- Use `dynamic` blocks only for variable-length nested blocks. They make the
-  plan more difficult to read.
-- Do not use `local-exec` or `remote-exec` to connect resources. Use a
-  provider or a separate tool for an imperative operation.
-- Do not put fixed account IDs, zone IDs, or hostnames in a module. Supply
-  them through variables or data sources.
-
-### Checks and Tests
-
-Variable validation is the workhorse and stays required everywhere. Use a
-`check` block only for a real module invariant that validation cannot
-express. Write a `tofu test` suite only when a module contains logic worth
-testing, such as conditional resources or derived values. The
-[retrofit rule](./infrastructure-style-guide.md#the-retrofit-rule) explains
-this demotion: a team can add tests later without restructure.
-
-When a test suite exists, store it beside the module, use fixture inputs, and
-name tests as sentences. Never test against real shared state.
-
-### Documentation
-
-- Add a description to every variable and output. Add a one-line purpose
-  comment at the top of each module.
-- Use comments to explain a decision or constraint. For example, use
-  `# capture price at order time so historical values stay stable`. Do not
-  add a comment that restates the code, such as `# create the bucket`.
-
-### HCL Anti-Patterns
-
-| Do not                                    | Do                                              |
-| ----------------------------------------- | ----------------------------------------------- |
-| Untyped `variable "x" {}`                 | Constrain the type. `object(...)` for structure |
-| `count` for a keyed set                   | `for_each` over a map                           |
-| Renaming a resource in place              | A `moved` block                                 |
-| `provider` block inside a module          | Configure in the environment directory          |
-| Hardcoded account IDs, zone IDs, or hosts | Variables and data sources                      |
-| Secrets in plaintext or in state          | References to a secret store                    |
-| One 600-line `main.tf`                    | Split the module files by concern               |
-
----
-
-## Part 2: GitHub Actions (YAML)
-
-Every workflow in the repository follows these conventions. The default
-repository has exactly three workflows plus the Dependabot configuration. Do
-not add a reusable workflow or a composite action in the default. The
-[do not build list](./infrastructure-style-guide.md#the-do-not-build-list)
-records that decision.
-
-### File Layout
+Use this default job graph:
 
 ```text
-.github/
-├── workflows/
-│   ├── ci.yml         # each pull request: app checks + infra checks + plan comment
-│   ├── deploy.yml     # each merge to main: apply infra, then deploy the app
-│   └── drift.yml      # weekly: plan; a non-empty plan fails the run
-└── dependabot.yml     # weekly github-actions version updates
+Plan
+  Check repository ------------------------> Plan result
+  Select Targets -> Plan / <target> --------> Plan result
+
+Apply
+  Select Targets -> Apply / <target>
+
+Drift
+  Select Targets -> Drift / <target>
+  Discover unmanaged resources
 ```
 
-Add `name:` to every workflow, job, and step that runs a script. A clear name
-identifies a failure in the log.
+Each `<target>` expands into independent jobs. Discovery covers its declared
+service scope and may run inside a Target job when that scope matches.
+Add dependency edges only when work actually needs another job's result.
+A job earns its place through independent execution, credentials, dependencies,
+or a required result. Keep ordinary command sequencing in steps.
+[Workflow graph](https://docs.github.com/en/actions/how-tos/monitor-workflows/use-the-visualization-graph)
 
-### Triggers, Path Filters, and Concurrency
+Name every workflow, job, and substantive step explicitly. Use these patterns:
 
-Declare `on:` explicitly. Path filters select the jobs that each change runs.
-The workflows below use a `changes` job so one workflow file serves both the
-application and the infrastructure.
+| Surface               | Pattern or example                                                       |
+| --------------------- | ------------------------------------------------------------------------ |
+| Run title             | `Plan PR #42`, `Apply merged changes`, `Apply dns`, `Drift all Targets`  |
+| Target job            | `Plan / dns`, `Apply / dns`, `Drift / dns`                               |
+| Repository check step | `Check formatting`, `Validate workflows`, `Test helpers`                 |
+| Operator input        | `Target`, described as a Target name or the supported all-Targets choice |
+| Result                | Operation, Target, actual revision, outcome, reason, details link        |
 
-Plan and apply require different concurrency behaviour:
+Keep required check names stable and unique across workflows. Keep changing
+identifiers in run titles and results. GitHub's `run-name` accepts `github` and
+`inputs` contexts, so discovered Targets belong in job names and summaries.
+An Apply title must not imply that its trigger revision is the attempted revision.
+[Workflow names](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#run-name)
+
+Avoid generic names such as `CI`, `Run`, or `Execute pipeline`. Use tool names
+inside steps and logs when they help diagnosis. Keep the same Target spelling
+in directories, inputs, job names, PR results, and repair instructions.
+
+### Explain Target selection
+
+Select Targets conservatively. A Target-local edit selects that Target.
+A shared module or execution change selects its consumers, or all Targets
+until narrower selection earns its complexity. Include rename and deletion
+information from Git. Cover outstanding changes from superseded runs.
+
+Select once for routing and report each selected Target with its reason.
+Distinguish a successful empty selection from a selection failure. Preserve
+the revision checks inside Apply after a Target acquires its execution slot.
+
+Plan and Drift should also support inspecting the whole repository. Validate
+manual Target input against the discovered directories. Keep the state key,
+provider addresses, and shell fragments out of operator input.
+
+Use descriptive, typed dispatch inputs with safe defaults. Explain their scope
+and where results appear. GitHub's branch selector does not grant permission to
+deploy another branch. Enforce Apply against main in the workflow.
+
+### Expose the execution steps
+
+Use these visible stages within each Target job. Setup can contain several
+named steps when failures need different remedies.
+
+| Operation | Ordered stages after checkout and setup                                                                                                |
+| --------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| Plan      | Validate configuration, create preview plan, check permission, report result.                                                          |
+| Apply     | Check revision and prerequisites, prepare inputs, create saved plan, check permission, apply saved plan, verify result, report result. |
+| Drift     | Record revision, compare with main, report result.                                                                                     |
+
+Show the six plan verbs in the plan summary. Give migrations, release activation,
+and ownership discovery their own named steps at their actual execution point.
+Do not hide permission, mutation, or verification inside one generic command.
+
+Keep triggers, selection, dependencies, permissions, concurrency, and step order
+visible in workflow YAML. Helpers may parse plans or call service APIs.
+They must not become another scheduler or secretly choose the operation.
+
+Start with direct jobs. Extract a reusable workflow when substantial repetition
+justifies it, with one direct call from the operation workflow. Deeper reuse
+needs a documented reason. Prefer short repeated setup over a trivial wrapper.
+
+Composite actions may share setup, but must not hide the operation's stages.
+GitHub exposes reusable workflow jobs and steps separately in logs. A composite
+appears as one caller step.
+[Workflow reuse](https://docs.github.com/en/actions/concepts/workflows-and-actions/reusing-workflow-configurations)
+
+Keep Plan, Apply, and Drift execution paths explicit. Avoid a shared executor
+whose command input switches most steps on or off. Do not chain workflows using
+events merely to continue the same operation. An external event or trust boundary
+can justify a separate workflow, with its reason recorded beside the trigger.
+
+### Make CI checks prove readiness
+
+Group checks that share setup and failure handling into named steps within
+`Check repository`. Separate jobs when checks need independent status, execution,
+or credentials. Do not create one job per tool by default.
+
+Use the repository's configured formatting, validation, lint, and test commands.
+Validate workflow files with a workflow-aware checker, such as `actionlint`.
+Keep Target-specific validation in its Plan job. Run credential-free checks
+without service credentials. Document the same commands for local use.
+[Workflow validation](https://github.com/rhysd/actionlint)
+
+Make `Plan result` the stable required PR check when Target selection varies.
+It must depend on repository checks, selection, and all Plan execution jobs.
+Use a bounded, non-mutating job with `if: ${{ always() }}` to inspect their results.
+Reject failed, cancelled, missing, or unexpectedly skipped work. Accept no Targets
+only after successful selection explains why none need a Plan.
+
+Run the required workflow for every PR targeting the protected branch. Select
+work inside the run. Whole-workflow path filters can leave required checks
+pending. Skipped jobs can count as successful, and failed dependencies can skip
+a dependent result job.
+If using merge queues, also handle `merge_group` for required checks.
+[Required checks](https://docs.github.com/en/pull-requests/how-tos/merge-and-close-pull-requests/troubleshooting-required-status-checks)
+
+The final check should name the failed check or Target and link to its details.
+Do not rerun tools or invent another verdict system in that job. For a fixed,
+small set of unconditional jobs, requiring those checks directly can avoid
+the extra gate. Add aggregate Apply or Drift jobs only when combined results
+serve a clear need.
+
+Preserve command failures. Do not use `continue-on-error` or `|| true` to make
+required work green. Handle expected nonzero results explicitly, including
+OpenTofu's detailed plan exit codes. Keep mutation steps conditional on success.
+For ordinary reporting after failure, use `if: ${{ !cancelled() }}`. Reserve
+`always()` for bounded result handling, not setup or service changes.
+[Status expressions](https://docs.github.com/en/actions/reference/workflows-and-actions/expressions#status-check-functions)
+
+Use the repository's dependency updater to maintain exact tool versions and
+provider lock files. Pin third-party actions to full commit identifiers and
+pin the runner image to a release name. Set a timeout for every job.
+
+## Implement Apply as one controlled sequence
+
+Acquire the Target's execution slot before planning or changing the service.
+Use the same slot for merge-triggered Apply, manual repair, migrations, and
+other release steps. Keep the backend lock as protection against other clients.
+
+A per-Target matrix job can use this concurrency setting:
 
 ```yaml
-# ci.yml - cancel a superseded plan
 concurrency:
-  group: ci-${{ github.ref }}
-  cancel-in-progress: true
-
-# deploy.yml - never cancel a half-finished apply; serialise instead
-concurrency:
-  group: deploy-production
+  group: apply-${{ matrix.target }}
   cancel-in-progress: false
+  queue: max
 ```
 
-Cancelling an active apply can make the state differ from the infrastructure.
-Queue apply jobs. Do not interrupt an apply job.
+GitHub's queue orders arrival at the concurrency group, not Git merges. Its
+capacity is finite. Concurrency settings alone do not prevent stale deployment.
+[GitHub concurrency](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/control-workflow-concurrency)
 
-Do not use `pull_request_target` for a workflow that checks out and runs pull
-request code.
+Implement this sequence:
 
-### Permissions: Least Privilege
+1. Fetch current main after acquiring the slot and record that immutable revision.
+2. Ensure the run cannot overwrite a newer revision. Skip superseded work only
+   when its replacement covers the outstanding changes and permissions.
+3. Check Target prerequisites and prepare the pinned inputs.
+4. Create a fresh saved plan and produce its human summary.
+5. Check every planned operation against the change's permission.
+6. Perform the saved plan and any declared release steps in their required order.
+7. Verify the result and record what changed, what failed, and what remains.
 
-Set workflow permissions to `{}` and grant the minimum permissions to each
-job. Add write scopes only to the job that uses them.
+Use configuration, release inputs, and permission decisions from the recorded
+revision. Execute through trusted workflow code. If a newer main revision arrives
+after the checks, let this Apply finish and leave the newer work pending.
 
-```yaml
-permissions: {} # workflow-level default: nothing
+Store the actual attempted revision and result for each Target using existing
+workflow records where sufficient. Guard old reruns as well as new workflow
+starts. A failed newer attempt can leave partial changes that an older run
+must not overwrite. An intentional revert arrives through a new pull request.
 
-jobs:
-  infra:
-    permissions:
-      contents: read       # read the repository
-      pull-requests: write # post the plan summary as a PR comment
-```
+Create and consume the saved plan within the same job. A typical command pair
+is `tofu plan -out=plan.bin` followed by `tofu apply plan.bin`. Put the permission
+check between them. Use non-interactive execution and a bounded lock wait.
+Keep the pull request's preview separate from the executable Apply plan.
+[Saved-plan Apply](https://opentofu.org/docs/cli/commands/apply/)
 
-Where a provider supports OIDC, grant `id-token: write` only to the job that
-mints the token.
+Prefer native resource ordering. For a few cross-Target dependencies, explicit
+workflow jobs and `needs` are sufficient. Check prerequisites even when the
+upstream Target has no change in this run. Detect dependency cycles before
+any write. Use `strategy.fail-fast: false` for independent matrix jobs, preserving
+failed job status. `continue-on-error` would hide the failure.
 
-### Untrusted Input
+## Check destructive permission
 
-Treat all pull request metadata, including titles, branch names, and bodies,
-as untrusted input. Never interpolate untrusted input into a `run:` script.
-Values from `${{ github.event.* }}` can carry shell injection. Bind them to
-`env:` and reference the variable instead.
+Define one machine-readable permission format for the repository. Each entry
+identifies a Target, an exact object address, Destroy or Replace, and an
+immutable change identity. Show that permission during pull request review.
+A mutable label or permanent permission list cannot establish that authority.
 
-Write:
+Read permission from the reviewed change and compare it with the fresh plan.
+An earlier merged change may still have unfinished work after a newer run takes
+over.
+Carry its permission only when its origin and unfinished operation are clear.
+Otherwise require renewed permission through a pull request.
 
-```yaml
-- env:
-    PR_TITLE: ${{ github.event.pull_request.title }}
-  run: echo "$PR_TITLE"
-```
+A retry needs evidence that the permitted operation has not already completed.
+If a timeout, crash, or partial failure makes completion uncertain, stop.
+Require renewed permission instead of constructing an automatic recovery guess.
+Manual Drift repair must not inherit completed grants from old files.
 
-Do not write:
+Keep permission separate from force-replacement input. The `-replace` option asks
+OpenTofu to replace an object. An allowance merely permits a replacement that
+the fresh plan proposes. `prevent_destroy` can protect selected resources, but
+removing the resource block removes that protection.
+[Planning options](https://opentofu.org/docs/cli/commands/plan/),
+[resource lifecycle](https://opentofu.org/docs/language/resources/behavior/)
 
-```yaml
-- run: echo "${{ github.event.pull_request.title }}"
-```
+Test the gate with small fixtures covering denied deletion, allowed replacement,
+completed replacement followed by another failure, stale retries, and newer runs
+taking over.
+Reject unsupported destructive actions before any release step writes to the service.
 
-### Action Versions
+## Present the same results everywhere
 
-Reference each third-party action by its major version tag:
+Use OpenTofu's JSON plan for classification. Inspect import and move metadata
+before skipping a no-op action. [Plan JSON](https://opentofu.org/docs/internals/json-format/)
 
-```yaml
-- uses: actions/checkout@v5
-```
+| Display | JSON evidence                                                             |
+| ------- | ------------------------------------------------------------------------- |
+| Import  | `change.importing` is present.                                            |
+| Create  | `change.actions` is `["create"]`.                                         |
+| Update  | `change.actions` is `["update"]`.                                         |
+| Move    | `previous_address` is present.                                            |
+| Replace | `change.actions` contains both `create` and `delete`, in execution order. |
+| Destroy | `change.actions` is `["delete"]`.                                         |
 
-Do not pin commit SHAs in the default. The
-[accepted risks](./infrastructure-style-guide.md#accepted-risks) section
-records this decision and the mitigation. Dependabot keeps the version tags
-current through a weekly pull request:
+Retain combined operations, old and new addresses, unknown values, and actual
+replacement effects. A read or unchanged attribute needs no extra plan verb.
+Reject unsupported format versions. Stop on `forget` or another unsupported
+ownership change rather than treating it as a clean or destructive plan.
 
-```yaml
-# dependabot.yml
-version: 2
-updates:
-  - package-ecosystem: "github-actions"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-```
+Every result must identify the operation, Target, Git revision, outcome, reason,
+and link to details. Use consistent outcome words:
 
-### Authentication and Secrets
+| Operation | Outcomes                                                 |
+| --------- | -------------------------------------------------------- |
+| Plan      | Ready, Blocked, Failed                                   |
+| Apply     | Pending, Running, Succeeded, Failed, Blocked, Superseded |
+| Drift     | Clean, Different, Incomplete                             |
 
-Use OIDC to assume a role when the provider supports it. The Cloudflare API
-has no OIDC path, so the default uses scoped tokens:
+Use Blocked when a prerequisite or permission prevents execution. Use Failed
+when an attempted operation or its verification fails. A superseded result
+identifies the run that takes responsibility for its outstanding work.
 
-- Store the pipeline credentials in the `production` GitHub environment.
-  Only jobs that name the environment can read them. Scope the Cloudflare
-  API token to this project's zone and R2 storage, and rotate it.
-- Store runtime secrets in the platform store with `wrangler secret put`.
-  OpenTofu never contains the values.
+Use GitHub job summaries and pull request checks as the default interface.
+The PR check gives the verdict and links to details. The run summary explains
+selection and Target outcomes. Logs supply detailed evidence. Start with these
+native surfaces. Add a PR comment only when it closes a demonstrated reading gap.
 
-### The Three Workflows
+Write one concise summary per Target. Include discovery coverage in Drift.
+Explain blocked dependencies and missing results at run level when the Target
+job could not report. A skipped job alone does not explain why work stopped.
+Do not assume that summaries appear in Target order or that a summary upload
+failure fails the job. Preserve the execution verdict independently.
 
-The three files below are complete. They serve the worked example in Part 3.
+When collecting matrix results, retain a distinct result for each Target.
+Do not let jobs overwrite the same output or treat missing results as success.
+[Matrix outputs](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#using-job-outputs-in-a-matrix-job)
 
-#### `ci.yml`
-
-The pull request plan is a preview. `deploy.yml` plans again after the merge
-and applies the fresh plan. Do not upload the plan as an artefact for a later
-workflow. Artefacts do not cross workflows, and a pull request plan goes
-stale.
-
-```yaml
-name: CI
-
-on:
-  pull_request:
-
-concurrency:
-  group: ci-${{ github.ref }}
-  cancel-in-progress: true
-
-permissions: {}
-
-jobs:
-  changes:
-    name: Detect changes
-    runs-on: ubuntu-24.04
-    timeout-minutes: 5
-    permissions:
-      contents: read
-      pull-requests: read
-    outputs:
-      app: ${{ steps.filter.outputs.app }}
-      infra: ${{ steps.filter.outputs.infra }}
-    steps:
-      - name: Filter changed paths
-        uses: dorny/paths-filter@v3
-        id: filter
-        with:
-          filters: |
-            app:
-              - "src/**"
-              - "test/**"
-              - "package.json"
-              - "bun.lock"
-              - "wrangler.jsonc"
-            infra:
-              - "infra/**"
-              - ".github/workflows/**"
-
-  app:
-    name: Application checks
-    needs: changes
-    if: needs.changes.outputs.app == 'true'
-    runs-on: ubuntu-24.04
-    timeout-minutes: 10
-    permissions:
-      contents: read
-    steps:
-      - uses: actions/checkout@v5
-      - uses: oven-sh/setup-bun@v2
-      - name: Install dependencies
-        run: bun install --frozen-lockfile
-      - name: Lint
-        run: bun run check
-      - name: Type-check
-        run: bun run typecheck
-      - name: Test
-        run: bun run test
-
-  infra:
-    name: Infrastructure checks
-    needs: changes
-    if: needs.changes.outputs.infra == 'true'
-    runs-on: ubuntu-24.04
-    timeout-minutes: 15
-    environment: production
-    permissions:
-      contents: read
-      pull-requests: write
-    env:
-      AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
-      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-    defaults:
-      run:
-        working-directory: infra/example-worker/production/worker
-    steps:
-      - uses: actions/checkout@v5
-      - uses: opentofu/setup-opentofu@v1
-      - uses: terraform-linters/setup-tflint@v6
-      - name: Check formatting
-        run: tofu fmt -check -recursive ../../..
-      - name: Init
-        run: tofu init -input=false
-      - name: Validate
-        run: tofu validate
-      - name: Lint
-        run: tflint --chdir=../../../modules/project
-      - name: Plan
-        run: tofu plan -input=false -no-color -out=tfplan
-      - name: Render the plan
-        run: tofu show -no-color tfplan > plan.txt
-      - name: Post the plan comment
-        uses: actions/github-script@v8
-        with:
-          script: |
-            const fs = require("fs");
-            const plan = fs.readFileSync(
-              "infra/example-worker/production/worker/plan.txt",
-              "utf8",
-            );
-            const marker = "## Infrastructure plan";
-            const body = marker + "\n\n```text\n" + plan + "\n```";
-            const { data: comments } = await github.rest.issues.listComments({
-              ...context.repo,
-              issue_number: context.issue.number,
-            });
-            const previous = comments.find((c) => c.body.startsWith(marker));
-            if (previous) {
-              await github.rest.issues.updateComment({
-                ...context.repo,
-                comment_id: previous.id,
-                body,
-              });
-            } else {
-              await github.rest.issues.createComment({
-                ...context.repo,
-                issue_number: context.issue.number,
-                body,
-              });
-            }
-```
-
-#### `deploy.yml`
-
-The apply job replans and applies in one run. The application deploys after
-the infrastructure apply succeeds, so a new binding target exists before the
-Worker references it.
-
-```yaml
-name: Deploy
-
-on:
-  push:
-    branches: [main]
-
-concurrency:
-  group: deploy-production
-  cancel-in-progress: false
-
-permissions: {}
-
-jobs:
-  changes:
-    name: Detect changes
-    runs-on: ubuntu-24.04
-    timeout-minutes: 5
-    permissions:
-      contents: read
-    outputs:
-      app: ${{ steps.filter.outputs.app }}
-      infra: ${{ steps.filter.outputs.infra }}
-    steps:
-      - uses: actions/checkout@v5
-      - name: Filter changed paths
-        uses: dorny/paths-filter@v3
-        id: filter
-        with:
-          filters: |
-            app:
-              - "src/**"
-              - "test/**"
-              - "package.json"
-              - "bun.lock"
-              - "wrangler.jsonc"
-            infra:
-              - "infra/**"
-              - ".github/workflows/**"
-
-  infra:
-    name: Apply infrastructure
-    needs: changes
-    if: needs.changes.outputs.infra == 'true'
-    runs-on: ubuntu-24.04
-    timeout-minutes: 30
-    environment: production
-    permissions:
-      contents: read
-    env:
-      AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
-      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-    defaults:
-      run:
-        working-directory: infra/example-worker/production/worker
-    steps:
-      - uses: actions/checkout@v5
-      - uses: opentofu/setup-opentofu@v1
-      - name: Init
-        run: tofu init -input=false
-      - name: Plan
-        run: tofu plan -input=false -out=tfplan
-      - name: Apply
-        run: tofu apply -input=false tfplan
-
-  app:
-    name: Deploy application
-    needs: [changes, infra]
-    if: >-
-      !failure() && !cancelled() &&
-      needs.changes.outputs.app == 'true'
-    runs-on: ubuntu-24.04
-    timeout-minutes: 10
-    environment: production
-    permissions:
-      contents: read
-    steps:
-      - uses: actions/checkout@v5
-      - uses: oven-sh/setup-bun@v2
-      - name: Install dependencies
-        run: bun install --frozen-lockfile
-      - name: Deploy the Worker
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-```
-
-The `app` job condition uses `!failure() && !cancelled()`, so an
-application-only merge still deploys when the pipeline skips the `infra` job.
-
-#### `drift.yml`
-
-`-detailed-exitcode` returns exit code 2 for a non-empty plan, which fails
-the run. GitHub emails the operator about the failed scheduled run. That
-email is the complete alerting model. The workflow shares the
-`deploy-production` concurrency group, so a drift plan never runs during an
-apply.
-
-```yaml
-name: Drift
-
-on:
-  schedule:
-    - cron: "0 19 * * 0" # weekly, Monday 05:00 Melbourne
-  workflow_dispatch:
-
-concurrency:
-  group: deploy-production
-  cancel-in-progress: false
-
-permissions: {}
-
-jobs:
-  plan:
-    name: Detect drift
-    runs-on: ubuntu-24.04
-    timeout-minutes: 15
-    environment: production
-    permissions:
-      contents: read
-    env:
-      AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
-      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-    defaults:
-      run:
-        working-directory: infra/example-worker/production/worker
-    steps:
-      - uses: actions/checkout@v5
-      - uses: opentofu/setup-opentofu@v1
-      - name: Init
-        run: tofu init -input=false
-      - name: Plan
-        run: tofu plan -input=false -detailed-exitcode
-```
-
-### Workflow Anti-Patterns
-
-| Do not                                   | Do                                               |
-| ---------------------------------------- | ------------------------------------------------ |
-| `permissions: write-all`                 | `permissions: {}` then grant per job             |
-| `id-token: write` at workflow level      | Only on the job that mints a token               |
-| `${{ github.* }}` inside `run:`          | Bind to `env:` and quote the variable            |
-| `cancel-in-progress: true` on apply      | Serialise applies. Never cancel one              |
-| `runs-on: ubuntu-latest`                 | Pin the runner image                             |
-| A plan artefact passed between workflows | Plan again after the merge. Apply the fresh plan |
-| CI checks that differ from pre-commit    | Run the identical gate in both                   |
-| Cache keyed on a date or commit          | Key the cache on the lock file                   |
-
----
-
-## Part 3: Worked Example
-
-The example is one Cloudflare Worker project named `example-worker`. The
-foundation repository already exists. It holds the R2 state bucket, the DNS
-zone, and the scoped API tokens. The
-[style guide](./infrastructure-style-guide.md#repositories) records the
-foundation procedure.
-
-The example applies a one-writer rule: each resource has exactly one writer.
-OpenTofu manages the resources that `wrangler deploy` never writes, which are
-the media bucket and the `www` alias record. Wrangler owns the Worker script,
-its bindings, its runtime secrets, and the custom domain. Two writers on one
-resource create permanent drift.
+Use the tools' existing diagnostics. Include a file and line for configuration
+errors, or a Target and object for service errors. Add a short next action and
+local reproduction command where applicable. For example:
 
 ```text
-example-worker/
-├── src/
-│   └── index.ts
-├── test/
-│   └── index.test.ts
-├── package.json
-├── bun.lock
-├── tsconfig.json
-├── wrangler.jsonc
-├── infra/
-│   ├── modules/
-│   │   └── project/
-│   │       ├── main.tf
-│   │       ├── variables.tf
-│   │       ├── outputs.tf
-│   │       ├── versions.tf
-│   │       └── locals.tf
-│   └── example-worker/
-│       └── production/
-│           └── worker/
-│               ├── backend.tf
-│               ├── providers.tf
-│               ├── main.tf
-│               ├── variables.tf
-│               ├── production.tfvars
-│               └── .terraform.lock.hcl
-├── .github/
-│   ├── workflows/
-│   │   ├── ci.yml
-│   │   ├── deploy.yml
-│   │   └── drift.yml
-│   └── dependabot.yml
-├── .pre-commit-config.yaml
-└── README.md
+Check formatting failed: targets/dns/main.tf
+Run tofu fmt targets/dns, commit the result, and update the PR.
+
+Apply / dns: Blocked
+Destroy cloudflare_dns_record.legacy lacks permission in this change.
+Add permission for this object through a PR, or correct the configuration.
 ```
 
-The three workflow files appear in
-[Part 2](#the-three-workflows). The remaining files follow.
+Use native file annotations when available. An error annotation alone does not
+fail a job. Keep the command's failing exit status. Group lengthy logs by their
+named step and keep the cause visible without expanding unrelated output.
+[Annotations and log groups](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-commands)
 
-### `wrangler.jsonc`
+Keep full human-readable plans and relevant logs accessible. Raw JSON can
+contain sensitive values. Limit it and executable plans to trusted processing
+and deliberate retention. [Job summaries](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-commands#adding-a-job-summary),
+[plan output](https://opentofu.org/docs/cli/commands/show/)
 
-The custom domain and the bucket binding live here, because wrangler is their
-writer. The binding references the module-created bucket by name.
+## Implement Drift with honest coverage
 
-```jsonc
-{
-  "name": "example-worker",
-  "main": "src/index.ts",
-  "compatibility_date": "2026-08-01",
-  "routes": [{ "pattern": "example.com", "custom_domain": true }],
-  "r2_buckets": [
-    { "binding": "MEDIA", "bucket_name": "example-worker-production-media" }
-  ]
-}
-```
+Record the main revision and observation time. Run a normal refreshing plan,
+not refresh-only, for each selected Target. Handle detailed exit codes explicitly:
+0 means no plan differences, 2 means differences, and 1 means failure.
+[Plan modes](https://opentofu.org/docs/cli/commands/plan/)
 
-### The Project Module
+Show Apply status alongside differences. If Apply overlaps observation, report
+that uncertainty or repeat the observation after Apply finishes. Preserve
+read-only operation and handle state access without stranding a write lock.
 
-```hcl
-# infra/modules/project/versions.tf
-terraform {
-  required_version = ">= 1.10"
+List the accounts, resource types, pagination, and permissions covered by
+discovery. Compare service object identifiers with managed state and exclusions.
+Include configuration awaiting Import when explaining ownership status.
+Keep one explicit exclusion list with reasons.
 
-  required_providers {
-    cloudflare = {
-      source  = "cloudflare/cloudflare"
-      version = "~> 5.0"
-    }
-  }
-}
-```
+Incomplete access, failed reads, or missing pages produce Incomplete. Retain any
+differences already found. A service that hides secret values permits checking
+presence or references only. Document that limit.
 
-```hcl
-# infra/modules/project/variables.tf
-variable "account_id" {
-  type        = string
-  description = "Cloudflare account that holds the project resources."
+Fail the Drift job on Different or Incomplete, preserving the result details.
+Only Clean passes, after both Target checks and discovery complete successfully.
 
-  validation {
-    condition     = can(regex("^[0-9a-f]{32}$", var.account_id))
-    error_message = "account_id must be a 32-character hex account ID."
-  }
-}
+Choose a schedule and use the existing workflow notification channel first.
+Document who receives failures and how they run Apply or propose a correction.
 
-variable "zone_id" {
-  type        = string
-  description = "DNS zone that serves the project hostname."
+## Add only necessary service-specific steps
 
-  validation {
-    condition     = can(regex("^[0-9a-f]{32}$", var.zone_id))
-    error_message = "zone_id must be a 32-character hex zone ID."
-  }
-}
+Use native provider behaviour when it covers the required change. Keep a small
+helper when it covers a verified gap. Record the reason and the condition for
+removing it.
 
-variable "project" {
-  type        = string
-  description = "Project name. Drives resource naming."
+For application delivery, select immutable builds and verify their digests.
+Keep the deployment settings under the declared owner's control. Check whether
+native version uploads include settings that would cross that ownership boundary.
 
-  validation {
-    condition     = can(regex("^[a-z][a-z0-9-]*$", var.project))
-    error_message = "project must be lowercase kebab-case."
-  }
-}
+For migrations or other changes outside the OpenTofu plan, show their pinned
+inputs, proposed work, ordering, verification, and recovery procedure.
+Review destructive data changes explicitly. The infrastructure permission check
+cannot infer the effects of arbitrary SQL. Keep mutation and verification
+outcomes separate when only part of the release succeeds.
 
-variable "environment" {
-  type        = string
-  description = "Deployment environment. Drives resource naming."
+A post-Apply check should prove a specific requirement. Ordinary OpenTofu check
+blocks only warn. Use a blocking condition or an explicit failing verification
+step when success depends on the result.
+[Checks and conditions](https://opentofu.org/docs/language/checks/)
 
-  validation {
-    condition     = contains(["production", "staging"], var.environment)
-    error_message = "environment must be 'production' or 'staging'."
-  }
-}
+## Protect credentials and recovery
 
-variable "hostname" {
-  type        = string
-  description = "Apex hostname that the Worker serves."
-}
-```
+Give Plan and Drift read-only service credentials where supported. Allow only
+trusted code to access state or readable plans. Untrusted pull requests can
+run credential-free validation, with the missing live Plan clearly visible.
+Never execute untrusted pull request code with deployment credentials.
 
-```hcl
-# infra/modules/project/locals.tf
-locals {
-  name_prefix = "${var.project}-${var.environment}"
-}
-```
+Set workflow `permissions` to `{}` and grant each job the scopes it needs. Use
+short-lived identities where supported and scoped credentials otherwise.
+Bind event data through environment variables and validate it before use.
+Protect workflow code, permission checks, and merge rules together.
+[GitHub secure use](https://docs.github.com/en/actions/reference/security/secure-use)
 
-```hcl
-# infra/modules/project/main.tf
-# Resources that wrangler never writes: storage and zone records.
+Keep state remote, locked, encrypted, and outside Git. Commit backend settings
+without credentials. Keep sensitive values out of ordinary output and store
+runtime secrets in the service's secret store where practical. When a provider
+must retain a secret in state, protect and document that state access.
 
-resource "cloudflare_r2_bucket" "media" {
-  account_id = var.account_id
-  name       = "${local.name_prefix}-media"
-  location   = "APAC"
-}
+Document initial setup and emergency access. Rehearse restoring state and
+recovering the encryption keys. Verify the backend's actual locking and backup
+behaviour instead of assuming compatibility from its name.
+[State locking](https://opentofu.org/docs/language/state/locking/),
+[state encryption](https://opentofu.org/docs/language/state/encryption/)
 
-resource "cloudflare_dns_record" "www" {
-  zone_id = var.zone_id
-  name    = "www.${var.hostname}"
-  type    = "CNAME"
-  content = var.hostname
-  proxied = true
-  ttl     = 1
-}
-```
+## Prove the implementation
 
-```hcl
-# infra/modules/project/outputs.tf
-output "media_bucket_name" {
-  value       = cloudflare_r2_bucket.media.name
-  description = "Name of the R2 bucket that stores media assets."
-}
-```
+Run `tofu fmt -check`, `tofu validate`, and the configured linter. Pin the toolchain
+and commit provider lock files. Test meaningful module logic and custom control
+flow. Reuse the repository's tools and keep fixtures isolated from shared state.
 
-The module has no `check` blocks and no test suite. It contains no logic
-worth testing. Variable validation carries the policy.
+Review the actual PR checks panel, run graph, expanded Target job, summaries,
+manual form, and README instructions. Without opening helper implementations,
+a reader must be able to identify:
 
-### The Production Environment
+- The operation, trigger, selected Targets, and selection reasons.
+- The purpose of each check and how to reproduce a failure locally.
+- The permission check, first mutation, and verification steps.
+- The attempted revision, completed work, and remaining or blocked work.
+- The failure cause and the next useful action or detail link.
 
-The backend uses R2 through the S3-compatible API. R2 supports conditional
-writes, so `use_lockfile` provides state locking. R2 encrypts objects at
-rest, which satisfies the
-[security floor](./infrastructure-style-guide.md#security-floor). The R2
-credentials arrive as `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`
-environment variables and never appear in the file.
+Inspect successful and failing runs, including no selected Targets, denied
+permission, blocked dependencies, and missing results. Confirm that selection
+failures and unexpected skips cannot produce a green required check.
+Workflow syntax validation alone does not prove these behaviours.
 
-```hcl
-# infra/example-worker/production/worker/backend.tf
-terraform {
-  backend "s3" {
-    bucket = "acme-tfstate"
-    key    = "example-worker/production/terraform.tfstate"
-    region = "auto"
+Before calling the repository complete, demonstrate these cases:
 
-    endpoints = {
-      s3 = "https://0123456789abcdef0123456789abcdef.r2.cloudflarestorage.com"
-    }
+- A PR shows a Plan and merging applies its configuration.
+- Import with Update and Move with Update remain visible.
+- Destroy or Replace without permission stops before any mutation.
+- An ambiguous destructive retry requires renewed permission.
+- Two nearby merges and an old rerun cannot regress a Target's revision.
+- A newer run covers earlier changes and preserves or renews needed permission.
+- A failed Target leaves independent Targets running and explains blocked ones.
+- Drift reports a managed difference, an unmanaged object, and incomplete access.
+- Manual Apply repairs drift through the same permission checks.
+- A failed verification reports any changes that already occurred.
+- Target removal preserves ownership, and recovery restores usable state.
 
-    use_path_style              = true
-    use_lockfile                = true
-    skip_credentials_validation = true
-    skip_metadata_api_check     = true
-    skip_region_validation      = true
-    skip_requesting_account_id  = true
-    skip_s3_checksum            = true
-  }
-}
-```
-
-```hcl
-# infra/example-worker/production/worker/providers.tf
-# The provider reads CLOUDFLARE_API_TOKEN from the environment.
-provider "cloudflare" {}
-```
-
-```hcl
-# infra/example-worker/production/worker/main.tf
-module "project" {
-  source = "../../../modules/project"
-
-  account_id  = var.account_id
-  zone_id     = var.zone_id
-  project     = var.project
-  environment = var.environment
-  hostname    = var.hostname
-}
-```
-
-```hcl
-# infra/example-worker/production/worker/variables.tf
-# Declarations for the tfvars values. The module validates them.
-
-variable "account_id" {
-  type        = string
-  description = "Cloudflare account that holds the project resources."
-}
-
-variable "zone_id" {
-  type        = string
-  description = "DNS zone that serves the project hostname."
-}
-
-variable "project" {
-  type        = string
-  description = "Project name. Drives resource naming."
-}
-
-variable "environment" {
-  type        = string
-  description = "Deployment environment. Drives resource naming."
-}
-
-variable "hostname" {
-  type        = string
-  description = "Apex hostname that the Worker serves."
-}
-```
-
-```hcl
-# infra/example-worker/production/worker/production.tfvars
-account_id  = "0123456789abcdef0123456789abcdef"
-zone_id     = "abcdef0123456789abcdef0123456789"
-project     = "example-worker"
-environment = "production"
-hostname    = "example.com"
-```
-
-Run the leaf from its directory:
-
-```shell
-cd infra/example-worker/production/worker
-tofu init
-tofu plan -var-file=production.tfvars
-```
-
-The pipeline is the default apply path. A workstation apply through the same
-commands stays permitted while the operator works alone.
-
----
+Add release and migration cases only where that repository performs those
+operations. Keep the proof commands and expected results in the repository so
+another agent can repeat them. Record provider limits as explicit exceptions.
 
 ## References
 
-Consult a reference when a question exists. The `defuddle.md` prefix returns
-Markdown.
-
-- [OpenTofu language reference](https://defuddle.md/opentofu.org/docs/language/)
-- [OpenTofu style conventions](https://defuddle.md/opentofu.org/docs/language/syntax/style/)
-- [OpenTofu variable validation](https://defuddle.md/opentofu.org/docs/language/values/variables/)
-- [OpenTofu S3 backend](https://defuddle.md/opentofu.org/docs/language/settings/backends/s3/)
-- [Cloudflare Terraform/OpenTofu provider](https://defuddle.md/developers.cloudflare.com/terraform/)
-- [Cloudflare R2 as a state backend](https://defuddle.md/developers.cloudflare.com/terraform/advanced-topics/remote-backend/)
-- [Wrangler configuration](https://defuddle.md/developers.cloudflare.com/workers/wrangler/configuration/)
-- [tflint](https://defuddle.md/github.com/terraform-linters/tflint)
-- [terraform-docs](https://defuddle.md/terraform-docs.io/)
-- [pre-commit-terraform](https://defuddle.md/github.com/antonbabenko/pre-commit-terraform)
-- [GitHub Actions workflow syntax](https://defuddle.md/docs.github.com/en/actions/writing-workflows/workflow-syntax-for-github-actions)
-- [GitHub Actions secure use reference](https://defuddle.md/docs.github.com/en/actions/reference/security/secure-use)
-- [GitHub Actions environments](https://defuddle.md/docs.github.com/en/actions/deployment/targeting-different-environments/using-environments-for-deployment)
-- [Dependabot for Actions](https://defuddle.md/docs.github.com/en/code-security/dependabot/working-with-dependabot/keeping-your-actions-up-to-date-with-dependabot)
+- [OpenTofu language](https://opentofu.org/docs/language/)
+- [GitHub workflow syntax](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax)
+- [GitHub concurrency](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/control-workflow-concurrency)
+- [GitHub secure use](https://docs.github.com/en/actions/reference/security/secure-use)

@@ -88,3 +88,8 @@ style = "aligned"
 
 [MD063]
 style = "title-case"
+
+# These GitOps guides use sentence case under the requested unslop style.
+[per-file-ignores]
+"public/docs/infrastructure-style-guide.md" = ["MD063"]
+"public/docs/infrastructure-authoring-guide.md" = ["MD063"]
