@@ -28,6 +28,42 @@ npx wrangler@4 deploy
 The `wrangler.jsonc` file defines the asset directory, URL handling, the
 not-found page, and custom domains.
 
+## Immutable Build Publication
+
+The publisher packages committed assets and configuration into a versioned
+archive, file manifest, and release marker. It preserves headers, redirects,
+and explicit Worker modules. Publishing creates immutable objects in the
+`worker-artifacts` R2 bucket. It does not deploy a Worker or change traffic.
+
+Use Bun 1.4.0 to test and package a commit locally:
+
+```bash
+bunx @biomejs/biome@2.5.11 check --indent-style=space --indent-width=2 scripts
+bun test scripts/publish-build.test.mjs
+bun scripts/publish-build.mjs package FULL_COMMIT /tmp/homepage-build
+```
+
+Replace `FULL_COMMIT` with the complete Git revision and choose a new output
+directory. The package command needs no credentials. To include Worker modules,
+append their committed paths after the output directory.
+
+The Publish homepage build workflow checks every PR. On main, it publishes the
+selected commit. Manual dispatch accepts an earlier commit from main history.
+The `artifact-publish` environment must restrict deployment branches to `main`.
+Configure `CLOUDFLARE_ACCOUNT_ID` as an environment variable and these secrets:
+
+- `R2_ARTIFACTS_ACCESS_KEY_ID`
+- `R2_ARTIFACTS_SECRET_ACCESS_KEY`
+
+The publisher credential needs object access only to `worker-artifacts`.
+It must not access state or deploy Workers. A retry verifies existing objects
+and creates only missing objects. Conflicting bytes stop publication.
+The release marker follows successful archive and manifest readback.
+
+Select the resulting publication in `cloudflare-infra`, then review its Plan.
+Workers Builds retains current deployment ownership until the migration freeze.
+Do not treat successful publication as deployment or health verification.
+
 ## Project Layout
 
 | Path                 | Purpose                                            |
