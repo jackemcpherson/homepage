@@ -1,0 +1,101 @@
+name: Publish homepage build
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      revision:
+        description: Full main-history commit to publish, or empty for current main
+        type: string
+        required: false
+
+permissions: {}
+
+jobs:
+  check:
+    name: Check homepage publisher
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - name: Check out committed source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Install Bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: 1.4.0
+      - name: Check publisher source
+        run: bunx @biomejs/biome@2.5.11 check --indent-style=space --indent-width=2 scripts
+      - name: Test publication boundaries
+        run: bun test scripts/publish-build.test.mjs
+      - name: Package current committed assets
+        run: bun scripts/publish-build.mjs package "$GITHUB_SHA" "$RUNNER_TEMP/homepage-check"
+
+  publish:
+    name: Publish immutable homepage objects
+    needs: check
+    if: ${{ github.repository == 'jackemcpherson/homepage' && github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch') }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    environment: artifact-publish
+    permissions:
+      contents: read
+    concurrency:
+      group: publish-homepage
+      cancel-in-progress: false
+    steps:
+      - name: Check out trusted publisher
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Install Bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: 1.4.0
+      - name: Select committed main history
+        id: revision
+        env:
+          REVISION: ${{ inputs.revision || github.sha }}
+          GIT_NO_REPLACE_OBJECTS: "1"
+        run: |
+          [[ "$REVISION" =~ ^[a-f0-9]{40}$ ]]
+          git merge-base --is-ancestor "$REVISION" "$GITHUB_SHA"
+          printf 'revision=%s\n' "$REVISION" >> "$GITHUB_OUTPUT"
+      - name: Publish archive, manifest and release marker
+        env:
+          REVISION: ${{ steps.revision.outputs.revision }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+          R2_ARTIFACTS_ACCESS_KEY_ID: ${{ secrets.R2_ARTIFACTS_ACCESS_KEY_ID }}
+          R2_ARTIFACTS_SECRET_ACCESS_KEY: ${{ secrets.R2_ARTIFACTS_SECRET_ACCESS_KEY }}
+        run: bun scripts/publish-build.mjs publish "$REVISION" "$RUNNER_TEMP/homepage-publish"
+      - name: Report immutable publication
+        run: |
+          bun - <<'JS'
+          const result=await Bun.file(`${process.env.RUNNER_TEMP}/homepage-publish/publication.json`).json();
+          await Bun.write(process.env.GITHUB_STEP_SUMMARY,[
+            '## Homepage build published','',`Revision: ${result.release.version}`,'',
+            `Archive SHA-256: ${result.release.archive_sha256}`,
+            `Manifest SHA-256: ${result.release.manifest_sha256}`,'',
+            `${result.created.length} objects created; ${result.verified.length} objects verified.`,'',
+            'Select this publication in cloudflare-infra and review its Plan before deployment.','',
+          ].join('\n'));
+          JS
+      - name: Retain build references
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: homepage-publication-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/homepage-publish/manifest.json
+            ${{ runner.temp }}/homepage-publish/release.json
+            ${{ runner.temp }}/homepage-publish/publication.json
+          retention-days: 14
+          if-no-files-found: ignore
