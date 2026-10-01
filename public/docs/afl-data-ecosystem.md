@@ -459,9 +459,9 @@ needs.
 
 This table contains announced team selections. The `is_emergency` and
 `is_substitute` columns are flags. Coverage starts with AFLM 2015. AFLW, VFL,
-and VFLW coverage starts 2023: the AFL API only publishes announced teams for
-earlier seasons of those competitions, so the sync's `MIN_LINEUP_SYNC_YEAR`
-guard excludes them.
+and VFLW coverage starts 2023. The AFL API only publishes announced teams from
+that year for those competitions, and the sync's `MIN_LINEUP_SYNC_YEAR` guard
+excludes earlier seasons.
 
 AFL-MCP replaces each validated current snapshot atomically and removes omitted
 players. Invalid or incomplete source responses preserve the last valid snapshot.
