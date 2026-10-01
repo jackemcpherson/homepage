@@ -171,7 +171,8 @@ integrity, and 24-hour degradation
 diagnostics without exposing raw errors or identifiers. Brownlow ingestion,
 cron, and manual sync share the same ten-minute operation lease, so they cannot
 overlap.
-All public endpoints are rate-limited to 60 requests/minute per IP.
+The health and `/mcp` endpoints are rate-limited to 60 requests/minute per IP.
+Admin routes are bearer-token gated but not separately rate-limited.
 
 ## Fitzroy Library Reference
 
@@ -326,7 +327,7 @@ without the `nodejs_compat` compatibility flag.
 
 ## D1 Database Schema
 
-The `afl-stats` database has 12 tables and five integrity views. It covers AFL
+The `afl-stats` database has 18 tables and five integrity views. It covers AFL
 Men's, AFL Women's, VFL, and VFLW. Always filter queries by competition.
 Join `seasons` to `competitions`, then use `WHERE c.code = ?`. Without
 the filter, results silently mix competitions. Teams with the same name in
@@ -457,8 +458,10 @@ needs.
 #### `match_lineups`
 
 This table contains announced team selections. The `is_emergency` and
-`is_substitute` columns are flags. Coverage starts with AFLM 2015 and AFLW 2017.
-VFL and VFLW coverage is best-effort.
+`is_substitute` columns are flags. Coverage starts with AFLM 2015. AFLW, VFL,
+and VFLW coverage starts 2023. The AFL API only publishes announced teams from
+that year for those competitions, and the sync's `MIN_LINEUP_SYNC_YEAR` guard
+excludes earlier seasons.
 
 AFL-MCP replaces each validated current snapshot atomically and removes omitted
 players. Invalid or incomplete source responses preserve the last valid snapshot.
@@ -563,9 +566,10 @@ PAV when new AFLM or AFLW player statistics arrive.
 
 The top-of-hour pipeline also runs a weather stage. It refreshes seven-day
 forecasts daily and match-day forecasts hourly. It writes a fast observation
-after each match and upgrades the provenance to ERA5 after six days. Each pass
-permits 25 fetches and records failures in `sync_log`. A local script performed
-the initial historical weather backfill.
+after each match and upgrades the provenance to ERA5 after six days. Each of
+the three per-pass queries (forecast, fast-observed, final-observed) permits
+25 fetches, up to 75 total, and records failures in `sync_log`. A local script
+performed the initial historical weather backfill.
 
 `POST /mcp/admin/backfill` exposes the backfill operation. Its parameters are
 `competitions`, `fromYear`, `toYear`, `skipShouldRunNow`, and `skipPav`. A request
@@ -700,9 +704,12 @@ consumes the rest of the ecosystem two ways:
 
 - The `/ask <question>` command uses a manual MCP tool-use loop against
   `https://afl.jackemcpherson.com/mcp`. It routes the question through the
-  configured LLM. `gemini-3-flash-preview` is the default through Google AI
-  Studio's `v1beta` endpoint. `claude-sonnet-4-5` runs when
-  `LLM_PROVIDER="anthropic"`.
+  configured LLM. `openai/gpt-6-luna` is the deployed default
+  (`LLM_PROVIDER="openai"`), run through the Cloudflare Workers AI binding.
+  `google/gemini-3-flash` remains available for rollback with
+  `LLM_PROVIDER="gemini"`, also through Workers AI. `claude-sonnet-4-5` is
+  the code-level fallback when `LLM_PROVIDER` is unset, calling the AI
+  Gateway's Anthropic endpoint directly.
   All LLM traffic is proxied through Cloudflare AI Gateway with
   Authenticated Gateway enabled so Unified Billing covers it. A `/help`
   command posts usage examples.
