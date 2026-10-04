@@ -246,7 +246,10 @@ remain unknown. Legacy weather windows may retain a local clock. That alone does
 not prove their model window was wrong.
 
 Weather windows measure elapsed hours across daylight-saving changes.
-Ambiguous repeated hours and missing samples leave the affected metric null.
+Provider requests use UTC epoch timestamps to distinguish repeated hours.
+Legacy local captures keep ambiguous repeated hours unknown. Missing samples
+leave the affected metric null. Existing daily retry deadlines remain unchanged.
+
 The legacy weather script only generates review artefacts.
 `POST /mcp/admin/retry-weather` previews and queues a targeted retry.
 
