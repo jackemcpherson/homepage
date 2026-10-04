@@ -132,12 +132,11 @@ a 30-second timeout, a 1 MB result cap, and 60 requests per minute per IP.
 
 The `schema` tool accepts three parameter shapes. A no-argument call returns
 static expectations for all four competitions in
-`database.coverage_contract` version 2, without reading D1.
+`database.coverage_contract` version 4, without reading D1.
 
-In version 2, each table declares a default (`range`, `expected`, `source`)
+Each table declares a default (`range`, `expected`, `source`)
 that applies to every column, and `columns` lists only exceptions that
 deviate from it. A `how_to_read` key in the response explains the encoding.
-The full response is about 29 KB, down from 126 KB under version 1.
 
 The `competition` parameter filters `database.competitions` and
 `coverage_contract.by_competition`. It does not change tables, notes, or join
@@ -160,7 +159,7 @@ all error records remain available.
 
 Bearer-token admin routes trigger manual syncs and
 PAV rebuilds. These routes are `/mcp/admin/sync`, `/mcp/admin/backfill`,
-`/mcp/admin/recalculate-pav`, and `/mcp/admin/recalculate-all-pav`.
+and `/mcp/admin/recalculate-pav`.
 Release 3.4.0 added two authenticated operations.
 
 `POST /mcp/admin/backfill-brownlow` is a dry-run-first annual AFLM Brownlow vote
@@ -172,6 +171,88 @@ diagnostics without exposing raw errors or identifiers. Brownlow ingestion,
 cron, and manual sync share the same ten-minute operation lease, so they cannot
 overlap.
 All public endpoints are rate-limited to 60 requests/minute per IP.
+
+## Explicit Seasons and Reviewed Remediation
+
+Fitzroy 6.0.0 introduces canonical season keys. Production now runs AFL-MCP 4,
+Tipper 4 and
+footyBot 0.12 with compatible readers. Ordinary seasons use keys
+such as `2026`. AFLW
+season six uses `2022-S6` and season seven uses `2022-S7`. Competition remains a
+separate selector.
+
+A bare AFLW `2022` request is ambiguous and fails with the two valid selectors.
+Numeric years remain accepted for unambiguous seasons.
+
+Fitzroy's `fetchSeasons(competition)` returns each canonical key, calendar year,
+display name and provider season ID. Its CLI exposes the same discovery through
+`seasons`. Returned match and statistics records retain numeric calendar years
+and include `seasonKey`. Match-ID requests verify membership in the selected
+competition and season. Coverage contract v4 uses these explicit selectors.
+If provider chronology is unavailable, callers must select a season explicitly.
+
+The database expansion preserves existing season IDs and adds `season_key`,
+`display_name` and `season_provider_ids`. The existing AFLW 2022 row represents
+season six. The separate schema transition removes competition/year uniqueness
+before ingestion can add season seven. Exact-season queries join through
+`season_id`. Calendar-year reports must deliberately aggregate both seasons.
+Tipper's previous-season PAV for AFLW 2023 comes from season seven.
+
+Authenticated `POST /mcp/admin/refresh-statistics` previews an exact match or
+season scope, then accepts its manifest digest and operation ID for bounded
+batches that can resume after interruption. Each pass fetches at most 20 due
+matches. Recent completed matches refresh hourly through 48 hours, daily through
+day 14, and once at day 30. Failed fetches delay retries by up to 24 hours.
+Partial responses preserve known values and do not remove participants without
+completeness evidence.
+
+Authenticated `POST /mcp/admin/repair-player-identity` requires a verified
+identity group and recorded source evidence. Exact-match appearance reassignment
+keeps separate people and their historical records distinct. Its preview lists
+conflicting appearance values. Unresolved conflicts block application. An
+approved digest
+binds the repair to the reviewed rows. Changed inputs invalidate it.
+
+Provider crosswalks and retired-ID redirects retain identity history. The
+operation rebuilds affected PAV without changing issued prediction archives.
+Interrupted repairs retain their public write marker and require explicit
+resume.
+
+Authenticated `POST /mcp/admin/recalculate-pav` requires one competition and
+canonical season plus a reviewed preview digest. Replacement is atomic and
+interrupted operations require explicit resume. The former unbounded
+`recalculate-all-pav` route returns HTTP 410. Missing required inputs leave
+derived season values null. Cancelled and live matches do not contribute.
+
+Each pass rebuilds at most 20 queued seasons. Remaining derived work retains
+the public write marker until explicit recovery finishes it.
+
+The Bears repair preview includes exact match IDs and a digest. Apply requires
+that digest, and interrupted repairs resume with their matching operation
+marker. Coaching imports follow the Bears repair.
+
+Native readers check `public_input_revision` before and after reading inputs,
+and reject active or stale write markers. Transactional repairs verify lease
+ownership before committing. Admin status includes pending identity repairs, PAV
+rebuilds, overdue statistics, unresolved weather and active input writes.
+It also identifies the operation to resume. An hourly read-only audit rotates
+through competition seasons and records up to 100 specific findings per pass.
+The GitOps `SYNC_PAUSED` setting suspends scheduled writes during deployment.
+
+Weather observations with missing metrics retry daily even when their source
+label is final. After an initial failure and three unsuccessful daily retries,
+the stored nulls retain an unavailable diagnostic. Unknown kickoff times remain
+unknown. Neither the live stage nor historical backfill substitutes a kickoff
+time.
+
+Weather windows measure elapsed hours across daylight-saving changes.
+Ambiguous repeated hours and missing samples leave the affected metric null.
+The legacy weather script only generates review artefacts.
+`POST /mcp/admin/retry-weather` previews and queues a targeted retry.
+
+Lineups distinguish interchange (`INT`) from substitute (`SUB`) positions. The
+January 2022 Fryzigg AFLW snapshot cannot supply season seven, so that source
+rejects `2022-S7`.
 
 ## Fitzroy Library Reference
 
@@ -326,8 +407,9 @@ without the `nodejs_compat` compatibility flag.
 
 ## D1 Database Schema
 
-The `afl-stats` database has 12 tables and five integrity views. It covers AFL
-Men's, AFL Women's, VFL, and VFLW. Always filter queries by competition.
+The `afl-stats` database stores match facts, derived values, provider identities
+and operation checkpoints. It covers AFL Men's, AFL Women's, VFL, and VFLW.
+Always filter queries by competition.
 Join `seasons` to `competitions`, then use `WHERE c.code = ?`. Without
 the filter, results silently mix competitions. Teams with the same name in
 different competitions have distinct `team_id` values.
