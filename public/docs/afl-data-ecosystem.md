@@ -483,9 +483,8 @@ exactly three MCP tools.
 
 - The `competitions` table contains `AFLM`, `AFLW`, `VFL`, and `VFLW`.
 - The `teams` table has a unique `(name, competition_id)` key. The same name across
-  competitions yields distinct rows. Legacy names and nicknames are
-  normalised to canonical names in code during ingest (there is no alias
-  table).
+  competitions yields distinct rows. Ingestion code normalises legacy names
+  and nicknames to canonical names. No alias table exists.
 - The `venues` table contains normalised venue names shared across competitions.
   It contains `latitude`, `longitude`, `timezone` (IANA), `roof`
   (`retractable` | `none`: Marvel Stadium is the only retractable roof),
@@ -911,3 +910,42 @@ package.json
 For Cloudflare Workers projects, add `hono` (web framework), `drizzle-orm`
 (database ORM), and `wrangler` (dev server + deploy CLI). See the full style
 guide for Hono routing, Drizzle schema, and Workers deployment patterns.
+
+## Match Coaching Release
+
+fitzroy 5.0.0 adds opt-in `fetchMatchCoaches` for AFLM from 1990, with
+AFL Tables as the default source. Ordinary match requests remain unchanged.
+Assignments retain the credited club, provider coach and match keys, scores,
+date and evidence URLs. Unknown credit remains absent.
+
+Requests may fetch up to five profile pages using `batch.limit` and an opaque `batch.cursor`.
+Completeness metadata distinguishes a finished page batch from a season.
+FootyWire season-wide coaching remains unsupported.
+
+Version 5 separates Brisbane Bears from Brisbane Lions. Existing consumers
+must review historical joins and stored mappings before ingesting these rows.
+Fitzroy remains separate. Downstream consumers own any rating continuity.
+
+AFL-MCP 3.8.0 adds canonical `match_coaches`, retained source observations,
+verified coach mappings, authenticated coaching operations with checkpoints,
+and `public_input_revision` for consistent native snapshots. Historical repair
+and backfill remain separate operator actions after deployment.
+
+The migration cleanup follows two reviewed GitOps stages. Version 3.8.1 adds
+guarded adoption. Version 3.8.2 installs the verified `0027_baseline.sql`.
+Fresh databases receive
+schema and reference seeds, including venue coordinates and canonical aliases.
+Existing databases retain their rows and IDs and skip the adopted baseline.
+CI checks schema parity and both real D1 migration paths.
+
+fitzroy 5.0.0 has npm provenance and verified package contents. Its release
+includes Linux x64, Linux ARM64 and macOS ARM64 binaries. AFL-MCP deployment
+verification covers the pinned Worker, required bindings, cron, health,
+production schema parity, integrity counts and native coaching reads.
+
+Read the [fitzroy 5 migration guide](https://github.com/jackemcpherson/fitzRoy-ts/blob/v5.0.0/docs/migration-v5.md)
+and [AFL-MCP operator guide](https://github.com/jackemcpherson/AFL-MCP/blob/main/docs/coaching-release-operations.md)
+before historical writes. The
+[pre-baseline tag](https://github.com/jackemcpherson/AFL-MCP/tree/migrations-pre-baseline/src/db/migrations)
+retains incident repairs and old migration references. AFL ELO deployment
+remains a separate task.
