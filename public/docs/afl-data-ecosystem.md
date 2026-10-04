@@ -132,12 +132,11 @@ a 30-second timeout, a 1 MB result cap, and 60 requests per minute per IP.
 
 The `schema` tool accepts three parameter shapes. A no-argument call returns
 static expectations for all four competitions in
-`database.coverage_contract` version 2, without reading D1.
+`database.coverage_contract` version 4, without reading D1.
 
-In version 2, each table declares a default (`range`, `expected`, `source`)
+Each table declares a default (`range`, `expected`, `source`)
 that applies to every column, and `columns` lists only exceptions that
 deviate from it. A `how_to_read` key in the response explains the encoding.
-The full response is about 29 KB, down from 126 KB under version 1.
 
 The `competition` parameter filters `database.competitions` and
 `coverage_contract.by_competition`. It does not change tables, notes, or join
@@ -160,7 +159,7 @@ all error records remain available.
 
 Bearer-token admin routes trigger manual syncs and
 PAV rebuilds. These routes are `/mcp/admin/sync`, `/mcp/admin/backfill`,
-`/mcp/admin/recalculate-pav`, and `/mcp/admin/recalculate-all-pav`.
+and `/mcp/admin/recalculate-pav`.
 Release 3.4.0 added two authenticated operations.
 
 `POST /mcp/admin/backfill-brownlow` is a dry-run-first annual AFLM Brownlow vote
@@ -248,8 +247,8 @@ time.
 
 Weather windows measure elapsed hours across daylight-saving changes.
 Ambiguous repeated hours and missing samples leave the affected metric null.
-The legacy weather script only generates review artefacts. `POST
-/mcp/admin/retry-weather` previews and queues a targeted retry.
+The legacy weather script only generates review artefacts.
+`POST /mcp/admin/retry-weather` previews and queues a targeted retry.
 
 Lineups distinguish interchange (`INT`) from substitute (`SUB`) positions. The
 January 2022 Fryzigg AFLW snapshot cannot supply season seven, so that source
@@ -408,8 +407,9 @@ without the `nodejs_compat` compatibility flag.
 
 ## D1 Database Schema
 
-The `afl-stats` database has 12 tables and five integrity views. It covers AFL
-Men's, AFL Women's, VFL, and VFLW. Always filter queries by competition.
+The `afl-stats` database stores match facts, derived values, provider identities
+and operation checkpoints. It covers AFL Men's, AFL Women's, VFL, and VFLW.
+Always filter queries by competition.
 Join `seasons` to `competitions`, then use `WHERE c.code = ?`. Without
 the filter, results silently mix competitions. Teams with the same name in
 different competitions have distinct `team_id` values.
