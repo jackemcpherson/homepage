@@ -241,17 +241,36 @@ The GitOps `SYNC_PAUSED` setting suspends scheduled writes during deployment.
 
 Weather observations with missing metrics retry daily even when their source
 label is final. After an initial failure and three unsuccessful daily retries,
-the stored nulls retain an unavailable diagnostic. Unknown kickoff times remain
-unknown. Neither the live stage nor historical backfill substitutes a kickoff
-time.
+the stored nulls retain an unavailable diagnostic. Unverified UTC kickoff times
+remain unknown. Legacy weather windows may retain a local clock. That alone does
+not prove their model window was wrong.
 
 Weather windows measure elapsed hours across daylight-saving changes.
 Ambiguous repeated hours and missing samples leave the affected metric null.
 The legacy weather script only generates review artefacts.
 `POST /mcp/admin/retry-weather` previews and queues a targeted retry.
 
-Lineups distinguish interchange (`INT`) from substitute (`SUB`) positions. The
-January 2022 Fryzigg AFLW snapshot cannot supply season seven, so that source
+Authenticated `POST /mcp/admin/refresh-weather` previews one reviewed fixture's
+context and existing weather. Apply its digest to recompute that exact window.
+Interrupted writes require explicit recovery. Fixture and canonical venue
+context changes invalidate cached model weather. Provider failures retain
+unknown metrics, diagnostics and daily retry deadlines.
+
+Lineups distinguish interchange (`INT`) from substitute (`SUB`) positions.
+Migration `0041` corrects legacy interchange flags and preserves genuine
+substitute flags.
+AFLW season-seven rosters require exact agreement with all 42 recorded
+player-team appearances. Other pre-2023 announced-team safeguards remain.
+
+Player `is_retired` remains null without verified source evidence. The
+`legacy_is_retired` column preserves imported or defaulted bits but cannot
+establish current availability.
+
+Source-backed coaching assignments cover every completed AFLM match from 1990
+through 2026.
+Issued predictions retain their original inputs and recorded kickoff deadlines.
+
+The January 2022 Fryzigg AFLW snapshot cannot supply season seven, so that source
 rejects `2022-S7`.
 
 ## Fitzroy Library Reference
