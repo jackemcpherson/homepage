@@ -790,3 +790,11 @@ Kardinia
 Optus
 (?i)tuning'?s?
 (?i)overcommit(?:ment|ting)?
+Foldkit
+Oxlint
+Oxfmt
+tsgo
+Oxc
+(?i)Alchemy
+Miniflare
+Wrangler
