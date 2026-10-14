@@ -26,8 +26,9 @@ Use the runtime, frameworks, and tools in this section.
 
 | Tool                     | Role                                                        |
 | ------------------------ | ----------------------------------------------------------- |
-| **Vite+ (`vp`)**         | Unified CLI: task runner, `rolldown` bundler, checks, tests |
-| **Bun**                  | Package manager (`bun.lock`) and local script runtime       |
+| **Vite+ (`vp`)**         | Unified CLI: environment, installs, tasks, checks, builds   |
+| **Node.js 24 LTS**       | Local runtime for tools, tests, and scripts (`vp env`)      |
+| **pnpm**                 | Package manager (`pnpm-lock.yaml`) driven by `vp install`   |
 | **Oxlint + `anti-slop`** | Linter and AST guardrail plugins (`oxlint` via `vp check`)  |
 | **Oxfmt**                | Code formatter (`oxfmt` via `vp check`)                     |
 | **tsgo**                 | TypeScript type checker (`tsgo` via `vp check`)             |
@@ -38,10 +39,10 @@ Use the runtime, frameworks, and tools in this section.
 
 Write application code for the Cloudflare Workers runtime (`workerd`).
 
-- Never use Bun-specific APIs such as `Bun.file()` or `Bun.serve()` in
-  application or Worker code.
 - Use Web Standard APIs such as `fetch`, `Request`, `Response`, and `crypto`.
-- Use `@effect/platform` abstractions for platform services.
+- Use Effect platform modules such as `effect/http` for platform services.
+- Do not use Node.js built-ins such as `node:fs` or `process` in application
+  or Worker code. Node.js runs only the tools, tests, and scripts.
 
 ### The Minimal-Worker Exception
 
@@ -82,27 +83,65 @@ Define these scripts in `package.json`:
 ```
 
 - Always gate `build` on `vp check && vp test --run`.
+- Run a script with `vp run <name>`, such as `vp run types`.
 - Do not add a `deploy` script. Continuous integration publishes the build
   artefact, and `cloudflare-infra` deploys it.
-- Commit `bun.lock` to version control.
+
+### Environment and Dependencies
+
+Vite+ manages the Node.js version and the package manager for each project.
+Use pnpm as the package manager.
+
+- Pin both with `vp env pin node@24 pnpm@11`. Commit the `.node-version` file
+  and the `packageManager` field that the command writes.
+- Install dependencies with `vp install`. Add or remove them with `vp add`,
+  `vp add -D`, and `vp remove`. Do not edit dependency versions by hand.
+- Commit `pnpm-lock.yaml` to version control.
+- Run each one-off command from a local package with `vp exec <command>`.
+- Run local TypeScript scripts directly with `node scripts/<name>.ts`.
+  Node.js 24 removes the types and runs the result without a build step.
+
+### Continuous Integration
+
+Set up each GitHub Actions job with `voidzero-dev/setup-vp`. The action
+installs Vite+, Node.js, and pnpm, then runs `vp install` with a cache. Do not
+add separate `setup-node` or package-manager steps.
+
+```yaml
+- uses: voidzero-dev/setup-vp@<exact-release>
+  with:
+    node-version: "24"
+    cache: true
+- run: vp check
+- run: vp test --run
+- run: vp build
+```
+
+Pin the action to an exact release or a commit SHA. Do not use the `v1` tag,
+because it no longer receives updates.
 
 ### Project Setup
 
 Use these commands to start a new project:
 
 ```shell
-# Scaffold project and install dependencies
-mkdir <project-name> && cd <project-name>
-bun init -y
-bun add effect @effect/platform drizzle-orm hono
-bun add -d vite @cloudflare/workers-types vitest @effect/vitest drizzle-kit wrangler
+# Scaffold the project with pnpm and the pre-commit hook
+vp create vite:library --directory <project-name> --package-manager pnpm --hooks
+cd <project-name>
 
-# Vendor the anti-slop Oxlint ruleset
-bunx skills add dmmulroy/anti-slop
+# Pin Node.js and pnpm, then add dependencies
+vp env pin node@24 pnpm@11
+vp add effect drizzle-orm hono
+vp add -D @cloudflare/workers-types @effect/vitest drizzle-kit wrangler
 
 # Verify formatting, lint rules, and types
 vp check
 ```
+
+Vendor the `anti-slop` Oxlint plugin from
+[dmmulroy/anti-slop](https://github.com/dmmulroy/anti-slop) at a pinned commit
+into `tools/oxlint/anti-slop/`. Change its plugin imports to
+`vite-plus/lint/plugins`, and record the commit in `vite.config.ts`.
 
 ---
 
@@ -124,46 +163,57 @@ Use strict mode in all projects. Do not weaken compiler flags.
     "exactOptionalPropertyTypes": true,
     "forceConsistentCasingInFileNames": true,
     "verbatimModuleSyntax": true,
+    "erasableSyntaxOnly": true,
     "skipLibCheck": true,
     "types": ["@cloudflare/workers-types", "./worker-configuration.d.ts"]
   }
 }
 ```
 
+The `erasableSyntaxOnly` flag rejects syntax that Node.js cannot remove
+without a build step, such as `enum`, `namespace`, and constructor parameter
+properties.
+
 ---
 
 ## Vite+, Oxlint, and `anti-slop` Configuration
 
-Configure linting, formatting, and testing in `vite.config.ts`. Vendor
-`anti-slop` and `anti-slop-effect` inside `tools/oxlint/`.
+Configure linting, formatting, and testing in `vite.config.ts`. Import
+`defineConfig` from `vite-plus`. Load the vendored `anti-slop` plugin and its
+Effect rules from `tools/oxlint/anti-slop/`.
 
 ```typescript
 // vite.config.ts
-import { defineConfig } from "vite";
+import { defineConfig } from "vite-plus";
 
 export default defineConfig({
   lint: {
+    options: {
+      typeAware: true,
+      typeCheck: true,
+    },
     jsPlugins: [
-      "./tools/oxlint/anti-slop/mod.ts",
-      "./tools/oxlint/anti-slop-effect/mod.ts",
+      { name: "anti-slop", specifier: "./tools/oxlint/anti-slop/index.ts" },
+      { name: "anti-slop-effect", specifier: "./tools/oxlint/anti-slop/effect/index.ts" },
     ],
     rules: {
       "typescript/no-explicit-any": "error",
       "typescript/no-non-null-assertion": "error",
       "anti-slop/no-chained-type-assertions": "error",
-      "anti-slop/require-safety-comment-on-assertion": "error",
+      "anti-slop/require-safety-comment-for-type-assertion": "error",
       "anti-slop/no-known-value-widening": "error",
       "anti-slop/no-runtime-typeof": "error",
       "anti-slop/no-unknown-parameters": "error",
       "anti-slop/no-module-mocking": "error",
-      "anti-slop-effect/prefer-match-over-tag-switch": "error",
-      "anti-slop-effect/no-inline-layer-construction": "error",
+      "anti-slop-effect/no-manual-tag-comparison": "error",
+      "anti-slop-effect/no-manual-effect-error-tag": "error",
+      "anti-slop-effect/no-manual-tagged-construction": "error",
+      "anti-slop-effect/no-service-constructor-imports": "error",
+      "anti-slop-effect/prefer-effect-match": "error",
     },
   },
   fmt: {
-    indentStyle: "space",
-    indentWidth: 2,
-    lineWidth: 100,
+    printWidth: 100,
   },
   test: {
     globals: true,
@@ -179,10 +229,12 @@ The configured rules enforce these requirements:
 | Requirement                   | Rule                                                                  |
 | ----------------------------- | --------------------------------------------------------------------- |
 | No unjustified assertions     | Never write `x as unknown as Foo`. Justify one `as` with `// SAFETY:` |
-| No internal runtime narrowing | Decode with `Schema.decodeUnknown` at the boundary only               |
+| No internal runtime narrowing | Decode with `Schema.decodeUnknownEffect` at the boundary only         |
 | No known-value widening       | Never widen a typed value to `Record<string, unknown>` or `string`    |
 | No module mocking             | Never use `vi.mock()`. Inject test services with `Layer`              |
 | No manual `_tag` switches     | Use `Match.value`, `Match.type`, or `Effect.catchTag`                 |
+| No manual `_tag` values       | Build tagged values and errors with their constructors                |
+| No service constructor import | Provide services through layers, not imported `make*` functions       |
 
 Put each unavoidable single `as` assertion at a foreign function interface
 boundary. Write `// SAFETY: <reason>` on the line before it.
@@ -258,7 +310,7 @@ export const AflMatchResponseSchema = Schema.Struct({
 
 export type AflMatchResponse = typeof AflMatchResponseSchema.Type;
 
-export const parseMatchResponse = Schema.decodeUnknown(AflMatchResponseSchema);
+export const parseMatchResponse = Schema.decodeUnknownEffect(AflMatchResponseSchema);
 ```
 
 ### Tagged Unions and `Match`
@@ -359,7 +411,7 @@ export class AflApiError extends Schema.TaggedError<AflApiError>()(
 export class StaleDataError extends Schema.TaggedError<StaleDataError>()(
   "StaleDataError",
   {
-    lastUpdate: Schema.DateFromSelf,
+    lastUpdate: Schema.Date,
     thresholdDays: Schema.Number,
   },
 ) {}
@@ -367,18 +419,16 @@ export class StaleDataError extends Schema.TaggedError<StaleDataError>()(
 export const fetchWithFallback = (season: number) =>
   fetchFromAflApi(season).pipe(
     Effect.retry(
-      Schedule.exponential("200 millis").pipe(
-        Schedule.compose(Schedule.recurs(3)),
-      ),
+      Schedule.exponential("200 millis").pipe(Schedule.upTo({ times: 3 })),
     ),
     Effect.catchTags({
       AflApiError: (err) =>
         Effect.logWarning(`AFL API failed (${err.endpoint}), falling back`).pipe(
-          Effect.zipRight(fetchFromFootywire(season)),
+          Effect.andThen(fetchFromFootywire(season)),
         ),
       StaleDataError: (err) =>
         Effect.logWarning(`AFL API stale (${err.lastUpdate.toISOString()}), falling back`).pipe(
-          Effect.zipRight(fetchFromFootywire(season)),
+          Effect.andThen(fetchFromFootywire(season)),
         ),
     }),
   );
@@ -396,7 +446,7 @@ Use TanStack Start for web applications, server rendering, and interactive
 dashboards on Cloudflare Workers.
 
 - Validate router parameters and server function inputs with
-  `Schema.standardSchemaV1(MyEffectSchema)`.
+  `Schema.toStandardSchemaV1(MyEffectSchema)`.
 - Run Effect workflows inside `createServerFn` with `Effect.runPromise` or
   `ManagedRuntime`.
 - Agree a release procedure in `cloudflare-infra` before the first deployment.
@@ -413,7 +463,7 @@ import { AppLayer } from "../layers";
 const SeasonInput = Schema.Struct({ year: Schema.Number });
 
 export const fetchLadderFn = createServerFn({ method: "GET" })
-  .inputValidator(Schema.standardSchemaV1(SeasonInput))
+  .inputValidator(Schema.toStandardSchemaV1(SeasonInput))
   .handler(async ({ data }) => {
     return Effect.runPromise(
       getLadderForSeason(data.year).pipe(Effect.provide(AppLayer)),
@@ -443,7 +493,7 @@ src/
   layers.ts             # Effect Layer composition (Live vs Test bindings)
   db/
     schema.ts           # Drizzle SQLite table definitions
-    service.ts          # Drizzle wrapped as an Effect Context.Tag service
+    service.ts          # Drizzle wrapped as an Effect Context.Service
   etl/
     afl-api.ts          # AFL official API Effect service & layer
     footywire.ts        # FootyWire fallback Effect service & layer
@@ -463,7 +513,7 @@ migrations/             # Generated Drizzle SQL, published with each release
 tools/
   oxlint/
     anti-slop/          # Vendored anti-slop AST rules
-    anti-slop-effect/   # Vendored Effect AST rules
+      effect/           # Vendored Effect AST rules
 
 test/
   etl/
@@ -477,11 +527,13 @@ test/
     footywire-results-2027.html
 
 wrangler.jsonc             # Local bindings for vp dev, Miniflare, and wrangler types
-worker-configuration.d.ts  # Generated Env type (bun run types)
+worker-configuration.d.ts  # Generated Env type (vp run types)
 vite.config.ts             # Vite+, Oxlint, Oxfmt, and Vitest configuration
 drizzle.config.ts          # Drizzle Kit migration config
+.node-version              # Node.js version pinned by vp env pin
 tsconfig.json
 package.json
+pnpm-lock.yaml
 ```
 
 ---
@@ -523,19 +575,19 @@ export const runEtlPipeline = (currentYear: number) =>
 ### Services and Layers
 
 Do not pass raw `env: Env` objects through domain functions. Define services
-with `Context.Tag` and construct implementations with `Layer`. Read bindings
+with `Context.Service` and construct implementations with `Layer`. Read bindings
 from `Env` only in the entry point and in `Layer` constructors.
 
 ```typescript
 import { Context, Effect, Layer } from "effect";
 
-export class AflApi extends Context.Tag("AflApi")<
+export class AflApi extends Context.Service<
   AflApi,
   {
     readonly getSeasonId: (year: number) => Effect.Effect<number, AflApiError>;
     readonly fetchMatchResults: (seasonId: number) => Effect.Effect<ReadonlyArray<Match>, AflApiError>;
   }
->() {}
+>()("AflApi") {}
 
 export const AflApiLive = Layer.succeed(AflApi, {
   getSeasonId: (year) => /* live implementation */,
@@ -557,7 +609,7 @@ const [results, stats, ladder] = yield* Effect.all(
   { concurrency: "unbounded" },
 );
 
-const [failures, successes] = yield* Effect.partition(
+const [successes, failures] = yield* Effect.partition(
   roundIds,
   (id) => afl.fetchRoundResults(id),
   { concurrency: 5 },
@@ -605,7 +657,7 @@ not create, change, or deploy Cloudflare resources.
   only.
 - Copy the binding names from `worker.json` into `wrangler.jsonc`. Local
   development, Miniflare, and `wrangler types` then match production.
-- Generate `Env` with `bun run types`. Do not write `interface Env` by hand.
+- Generate `Env` with `vp run types`. Do not write `interface Env` by hand.
 - Set Worker secrets with `wrangler secret put`. Never commit or print a
   secret value.
 
@@ -631,7 +683,7 @@ another binding type, such as Vectorize.
 
 Continuous integration publishes each release from `main`:
 
-1. Run `bun run build` to produce one ES module bundle.
+1. Run `vp run build` to produce one ES module bundle.
 2. Upload the bundle to R2 as `worker-artifacts/<app>/<git-sha>.js`.
 3. If the Worker uses D1, upload the migration archive to R2.
 
@@ -668,16 +720,16 @@ export class DatabaseError extends Schema.TaggedError<DatabaseError>()(
   { message: Schema.String, cause: Schema.optional(Schema.Unknown) },
 ) {}
 
-export class Database extends Context.Tag("Database")<
+export class Database extends Context.Service<
   Database,
   {
     readonly query: <A>(
       fn: (db: DrizzleD1Database<typeof schema>) => Promise<A>,
     ) => Effect.Effect<A, DatabaseError>;
   }
->() {}
+>()("Database") {}
 
-export const makeDatabaseLayer = (d1: D1Database) => {
+export const DatabaseLive = (d1: D1Database) => {
   const client = drizzle(d1, { schema });
   return Layer.succeed(Database, {
     query: (fn) =>
@@ -690,11 +742,11 @@ export const makeDatabaseLayer = (d1: D1Database) => {
 };
 ```
 
-Generate migrations into `migrations/` with `bunx drizzle-kit generate`. Do
+Generate migrations into `migrations/` with `vp exec drizzle-kit generate`. Do
 not write migration SQL by hand. Apply migrations to the local database only:
 
 ```shell
-bunx wrangler d1 migrations apply <database-name> --local
+vp exec wrangler d1 migrations apply <database-name> --local
 ```
 
 The `apply-prod` pipeline applies remote migrations from the pinned release.
@@ -775,7 +827,7 @@ HTTP, database, and AI operations inside Effect `Layer` services.
 
 Track all expected failures in the Effect `E` channel with
 `Schema.TaggedError`. Track all capabilities in the `R` channel with
-`Context.Tag`.
+`Context.Service`.
 
 ### 5. Pass `vp check`
 
@@ -808,12 +860,12 @@ Markdown.
 - [Google TypeScript Style Guide](https://defuddle.md/google.github.io/styleguide/tsguide.html)
 - [TSDoc specification](https://defuddle.md/tsdoc.org/)
 - [Vite+ documentation](https://defuddle.md/viteplus.dev/guide/)
+- [pnpm documentation](https://defuddle.md/pnpm.io/)
 - [Oxc documentation](https://defuddle.md/oxc.rs/docs/guide/introduction.html)
 - [dmmulroy/anti-slop Oxlint rules](https://defuddle.md/github.com/dmmulroy/anti-slop)
 - [Effect documentation](https://defuddle.md/effect.website/docs/)
 - [TanStack Start documentation](https://defuddle.md/tanstack.com/start/latest/docs/framework/react/overview)
 - [Foldkit documentation](https://defuddle.md/foldkit.dev/)
-- [Bun documentation](https://defuddle.md/bun.sh/docs)
 - [Hono documentation](https://defuddle.md/hono.dev/)
 - [Drizzle ORM documentation](https://defuddle.md/orm.drizzle.team/)
 - [Cloudflare Workers documentation](https://defuddle.md/developers.cloudflare.com/workers/)
