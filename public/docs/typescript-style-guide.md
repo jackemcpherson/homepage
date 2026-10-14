@@ -92,7 +92,7 @@ Define these scripts in `package.json`:
 Vite+ manages the Node.js version and the package manager for each project.
 Use pnpm as the package manager.
 
-- Pin both with `vp env pin node@24 pnpm@11`. Commit the `.node-version` file
+- Pin both with `vp env pin node@24 pnpm@12`. Commit the `.node-version` file
   and the `packageManager` field that the command writes.
 - Install dependencies with `vp install`. Add or remove them with `vp add`,
   `vp add -D`, and `vp remove`. Do not edit dependency versions by hand.
@@ -130,7 +130,7 @@ vp create vite:library --directory <project-name> --package-manager pnpm --hooks
 cd <project-name>
 
 # Pin Node.js and pnpm, then add dependencies
-vp env pin node@24 pnpm@11
+vp env pin node@24 pnpm@12
 vp add effect drizzle-orm hono
 vp add -D @cloudflare/workers-types @effect/vitest drizzle-kit wrangler
 
