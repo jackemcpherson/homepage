@@ -170,8 +170,8 @@ export default defineConfig({
       denyWarnings: true,
     },
     jsPlugins: [
-      "./tools/oxlint/anti-slop/mod.ts",
-      "./tools/oxlint/anti-slop-effect/mod.ts",
+      "./tools/oxlint/anti-slop/index.ts",
+      "./tools/oxlint/anti-slop/effect/index.ts",
     ],
     rules: {
       "typescript/no-explicit-any": "error",
@@ -181,17 +181,17 @@ export default defineConfig({
       "typescript/no-unnecessary-condition": "error",
       "typescript/no-unnecessary-type-assertion": "error",
       "anti-slop/no-chained-type-assertions": "error",
-      "anti-slop/require-safety-comment-on-assertion": "error",
+      "anti-slop/require-safety-comment-for-type-assertion": "error",
       "anti-slop/no-known-value-widening": "error",
       "anti-slop/no-runtime-typeof": "error",
       "anti-slop/no-unknown-parameters": "error",
       "anti-slop/no-module-mocking": "error",
-      "anti-slop-effect/prefer-match-over-tag-switch": "error",
-      "anti-slop-effect/no-inline-layer-construction": "error",
+      "anti-slop-effect/no-manual-tag-comparison": "error",
     },
     overrides: [
       {
-        files: ["src/worker.ts", "src/mcp/**", "test/**"],
+        // List the project's real entry and boundary files.
+        files: ["src/index.ts", "src/mcp/**", "test/**"],
         rules: {
           "anti-slop/no-unknown-parameters": "off",
         },
@@ -220,7 +220,6 @@ export default defineConfig({
 | No speculative fallback | Do not apply `??` or `||` fallback values to values that cannot be nullish.                                      |
 | No module mocking       | Do not call `vi.mock()` in tests. Inject test dependencies with `Effect.Service` and `Layer`.                    |
 | No manual tag switches  | Use `Match.value`, `Match.type`, or `Effect.catchTags` instead of `switch (val._tag)`.                           |
-| No inline layers        | Build `Layer` graphs and `ManagedRuntime` instances at module scope in `src/layers.ts`.                          |
 
 ## Naming Conventions
 
@@ -504,7 +503,7 @@ src/
 tools/
   oxlint/
     anti-slop/          # Vendored anti-slop AST rules
-    anti-slop-effect/   # Vendored Effect AST rules
+      effect/           # Vendored Effect AST rules
 
 test/
   etl/
