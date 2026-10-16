@@ -1,74 +1,68 @@
 # TypeScript Development Style Guide
 
-This guide defines the tools, code conventions, and delivery rules for
-TypeScript projects on Cloudflare Workers.
+This guide defines tools, project structure, and code conventions for TypeScript
+projects. Use these rules for human-authored and AI-authored TypeScript code.
 
 ---
 
 ## Tech Stack
 
-Use the runtime, frameworks, and tools in this section.
+Use the runtime, frameworks, and development tools in this section.
 
 ### Core Runtime and Frameworks
 
-| Tool                      | Role                                                       |
-| ------------------------- | ---------------------------------------------------------- |
-| **TypeScript**            | Language (`strict: true`, type-checked via `tsgo`)         |
-| **Effect**                | Typed errors, concurrency, dependency injection, schedules |
-| **effect/Schema**         | Boundary validation, codecs, and inferred domain types     |
-| **TanStack Start**        | Primary full-stack and UI framework with server rendering  |
-| **Foldkit**               | Secondary UI framework (Elm Architecture on Effect)        |
-| **Hono / Effect HttpApi** | Headless API routing on Cloudflare Workers                 |
-| **D1**                    | Cloudflare SQLite database                                 |
-| **Drizzle ORM**           | Type-safe SQL schema and query builder in Effect services  |
+| Tool                | Role                                                                      |
+| ------------------- | ------------------------------------------------------------------------- |
+| `TypeScript`        | Language with `strict: true`, checked with `tsgo`                         |
+| `Effect`            | Typed errors, concurrency, dependency injection (`Layer`), and `Schedule` |
+| `effect/Schema`     | Boundary validation, codecs, and inferred domain types                    |
+| `TanStack Start`    | Primary web framework for SSR, Server Functions, and routing              |
+| `Foldkit`           | Secondary user interface framework using Model-View-Update on Effect      |
+| `Hono` or `HttpApi` | HTTP routing on Cloudflare Workers                                        |
+| `D1`                | Cloudflare SQLite database                                                |
+| `Drizzle ORM`       | Type-safe SQL schema and query builder inside Effect services             |
 
 ### Tooling
 
-| Tool                     | Role                                                        |
-| ------------------------ | ----------------------------------------------------------- |
-| **Vite+ (`vp`)**         | Unified CLI: environment, installs, tasks, checks, builds   |
-| **Node.js 24 LTS**       | Local runtime for tools, tests, and scripts (`vp env`)      |
-| **pnpm**                 | Package manager (`pnpm-lock.yaml`) driven by `vp install`   |
-| **Oxlint + `anti-slop`** | Linter and AST guardrail plugins (`oxlint` via `vp check`)  |
-| **Oxfmt**                | Code formatter (`oxfmt` via `vp check`)                     |
-| **tsgo**                 | TypeScript type checker (`tsgo` via `vp check`)             |
-| **Vitest**               | Test runner (`@effect/vitest` and Miniflare via `vp test`)  |
-| **Wrangler**             | Local bindings, `Env` type generation, and artefact upload  |
+| Tool           | Role                                                                    |
+| -------------- | ----------------------------------------------------------------------- |
+| `Vite+` (`vp`) | Unified CLI for tasks, bundling (`rolldown`), checks, and tests         |
+| `Bun`          | Package manager (`bun.lock`) and local script runtime                   |
+| `Oxlint`       | Type-aware linter and `anti-slop` AST plugins (`vp check`)              |
+| `Oxfmt`        | Code formatter (`vp check`)                                             |
+| `tsgo`         | TypeScript type checker (`vp check`)                                    |
+| `Vitest`       | Test runner with `@effect/vitest` and Miniflare (`vp test`)             |
+| `Alchemy`      | TypeScript infrastructure definitions and deployment (`alchemy.run.ts`) |
 
 ### Runtime Rules
 
-Write application code for the Cloudflare Workers runtime (`workerd`).
-
+- Target the Cloudflare Workers runtime (`workerd`).
+- Do not use Bun-specific APIs such as `Bun.file()` or `Bun.serve()` in
+  Worker code.
 - Use Web Standard APIs such as `fetch`, `Request`, `Response`, and `crypto`.
-- Use Effect platform modules such as `effect/http` for platform services.
-- Do not use Node.js built-ins such as `node:fs` or `process` in application
-  or Worker code. Node.js runs only the tools, tests, and scripts.
+- Use `@effect/platform` abstractions for platform operations.
 
 ### The Minimal-Worker Exception
 
-Default to Effect, Drizzle, and TanStack Start or Hono. Use the Minimal-Worker
-Exception only when a project meets all of these conditions:
+Use the full stack of Effect, Alchemy, Drizzle, and TanStack or Hono by default.
+Apply the Minimal-Worker Exception only when a project meets all of these
+conditions:
 
-- The project has three or fewer routes.
-- The project has few SQL statements.
-- The project has one maintainer.
+- The Worker has three or fewer routes.
+- The database layer uses few SQL statements.
+- One person maintains the project.
 
-Under this exception, apply these rules:
+Follow these rules when you apply the Minimal-Worker Exception:
 
-- Use Web Standard routing and parameterised SQL instead of Effect `Layer`
-  services.
-- Validate all external inputs at boundaries with `effect/Schema` or Zod.
-- Run `vp check` before every commit.
-- Record the exception in the project's `CLAUDE.md` file.
-- State the threshold for a migration to full Effect and Hono in the same
-  file, such as routes that exceed one conditional chain.
-
-The exception changes application code only. The Worker still uses the
-[Cloudflare delivery](#cloudflare-delivery) path.
+- Use Web Standard routing, parameterised SQL, and `wrangler`.
+- Omit Effect `Layer` composition and Alchemy.
+- Validate all external inputs at boundaries with `effect/Schema`.
+- Run `vp check` on every change.
+- Record the exception and the migration threshold in `CLAUDE.md`.
 
 ### Package Scripts
 
-Define these scripts in `package.json`:
+Configure these scripts in `package.json`:
 
 ```json
 {
@@ -76,81 +70,35 @@ Define these scripts in `package.json`:
     "dev": "vp dev",
     "check": "vp check",
     "test": "vp test",
-    "types": "wrangler types --include-runtime=false",
-    "build": "vp check && vp test --run && vp build"
+    "deploy": "vp check && vp test --run && bun run alchemy.run.ts --deploy"
   }
 }
 ```
 
-- Always gate `build` on `vp check && vp test --run`.
-- Run a script with `vp run <name>`, such as `vp run types`.
-- Do not add a `deploy` script. Continuous integration publishes the build
-  artefact, and `cloudflare-infra` deploys it.
-
-### Environment and Dependencies
-
-Vite+ manages the Node.js version and the package manager for each project.
-Use pnpm as the package manager.
-
-- Pin both with `vp env pin node@24 pnpm@12`. Commit the `.node-version` file
-  and the `packageManager` field that the command writes.
-- Install dependencies with `vp install`. Add or remove them with `vp add`,
-  `vp add -D`, and `vp remove`. Do not edit dependency versions by hand.
-- Commit `pnpm-lock.yaml` to version control.
-- Run each one-off command from a local package with `vp exec <command>`.
-- Run local TypeScript scripts directly with `node scripts/<name>.ts`.
-  Node.js 24 removes the types and runs the result without a build step.
-
-### Continuous Integration
-
-Set up each GitHub Actions job with `voidzero-dev/setup-vp`. The action
-installs Vite+, Node.js, and pnpm, then runs `vp install` with a cache. Do not
-add separate `setup-node` or package-manager steps.
-
-```yaml
-- uses: voidzero-dev/setup-vp@<exact-release>
-  with:
-    node-version: "24"
-    cache: true
-- run: vp check
-- run: vp test --run
-- run: vp build
-```
-
-Pin the action to an exact release or a commit SHA. Do not use the `v1` tag,
-because it no longer receives updates.
+- Run `vp check` and `vp test --run` before every deployment.
+- Commit `bun.lock` to version control.
 
 ### Project Setup
 
-Use these commands to start a new project:
+Run these commands to create a new project:
 
 ```shell
-# Scaffold the project with pnpm and the pre-commit hook
-vp create vite:library --directory <project-name> --package-manager pnpm --hooks
-cd <project-name>
-
-# Pin Node.js and pnpm, then add dependencies
-vp env pin node@24 pnpm@12
-vp add effect drizzle-orm hono
-vp add -D @cloudflare/workers-types @effect/vitest drizzle-kit wrangler
-
-# Verify formatting, lint rules, and types
+mkdir project-name && cd project-name
+bun init -y
+bun add effect @effect/platform drizzle-orm hono
+bun add -d vite @cloudflare/workers-types @types/bun vitest @effect/vitest   drizzle-kit alchemy
+bunx skills add dmmulroy/anti-slop
 vp check
 ```
 
-Vendor the `anti-slop` Oxlint plugin from
-[dmmulroy/anti-slop](https://github.com/dmmulroy/anti-slop) at a pinned commit
-into `tools/oxlint/anti-slop/`. Change its plugin imports to
-`vite-plus/lint/plugins`, and record the commit in `vite.config.ts`.
-
----
-
 ## TypeScript Configuration
 
-Use strict mode in all projects. Do not weaken compiler flags.
+Use strict mode in all projects. Split Worker runtime types from Node and Bun
+tooling configs so ambient globals do not leak across boundaries.
+
+Configure the root `tsconfig.json` file with project references:
 
 ```jsonc
-// tsconfig.json
 {
   "compilerOptions": {
     "strict": true,
@@ -161,59 +109,99 @@ Use strict mode in all projects. Do not weaken compiler flags.
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "exactOptionalPropertyTypes": true,
+    "noImplicitOverride": true,
+    "noPropertyAccessFromIndexSignature": true,
     "forceConsistentCasingInFileNames": true,
     "verbatimModuleSyntax": true,
-    "erasableSyntaxOnly": true,
-    "skipLibCheck": true,
-    "types": ["@cloudflare/workers-types", "./worker-configuration.d.ts"]
-  }
+    "isolatedDeclarations": true,
+    "skipLibCheck": true
+  },
+  "references": [
+    { "path": "./tsconfig.app.json" },
+    { "path": "./tsconfig.node.json" }
+  ],
+  "files": []
 }
 ```
 
-The `erasableSyntaxOnly` flag rejects syntax that Node.js cannot remove
-without a build step, such as `enum`, `namespace`, and constructor parameter
-properties.
+Configure `tsconfig.app.json` for Cloudflare Workers and user interface code:
 
----
+```jsonc
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "types": ["@cloudflare/workers-types"]
+  },
+  "include": ["src/**/*", "test/**/*"]
+}
+```
 
-## Vite+, Oxlint, and `anti-slop` Configuration
+Configure `tsconfig.node.json` for Alchemy, Vite+, and Drizzle configuration
+files:
 
-Configure linting, formatting, and testing in `vite.config.ts`. Import
-`defineConfig` from `vite-plus`. Load the vendored `anti-slop` plugin and its
-Effect rules from `tools/oxlint/anti-slop/`.
+```jsonc
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "types": ["bun"]
+  },
+  "include": [
+    "alchemy.run.ts",
+    "vite.config.ts",
+    "drizzle.config.ts",
+    "tools/**/*"
+  ]
+}
+```
+
+## Vite+, Oxlint, and Anti-Slop Configuration
+
+Configure linting, formatting, and testing in `vite.config.ts`. Enable
+`typeAware: true` so `vp check` runs semantic rules alongside the vendored
+`anti-slop` plugins in `tools/oxlint/`.
 
 ```typescript
-// vite.config.ts
-import { defineConfig } from "vite-plus";
+import { defineConfig } from "vite";
 
 export default defineConfig({
   lint: {
     options: {
       typeAware: true,
-      typeCheck: true,
+      denyWarnings: true,
     },
     jsPlugins: [
-      { name: "anti-slop", specifier: "./tools/oxlint/anti-slop/index.ts" },
-      { name: "anti-slop-effect", specifier: "./tools/oxlint/anti-slop/effect/index.ts" },
+      "./tools/oxlint/anti-slop/mod.ts",
+      "./tools/oxlint/anti-slop-effect/mod.ts",
     ],
     rules: {
       "typescript/no-explicit-any": "error",
       "typescript/no-non-null-assertion": "error",
+      "typescript/no-floating-promises": "error",
+      "typescript/no-misused-promises": "error",
+      "typescript/no-unnecessary-condition": "error",
+      "typescript/no-unnecessary-type-assertion": "error",
       "anti-slop/no-chained-type-assertions": "error",
-      "anti-slop/require-safety-comment-for-type-assertion": "error",
+      "anti-slop/require-safety-comment-on-assertion": "error",
       "anti-slop/no-known-value-widening": "error",
       "anti-slop/no-runtime-typeof": "error",
       "anti-slop/no-unknown-parameters": "error",
       "anti-slop/no-module-mocking": "error",
-      "anti-slop-effect/no-manual-tag-comparison": "error",
-      "anti-slop-effect/no-manual-effect-error-tag": "error",
-      "anti-slop-effect/no-manual-tagged-construction": "error",
-      "anti-slop-effect/no-service-constructor-imports": "error",
-      "anti-slop-effect/prefer-effect-match": "error",
+      "anti-slop-effect/prefer-match-over-tag-switch": "error",
+      "anti-slop-effect/no-inline-layer-construction": "error",
     },
+    overrides: [
+      {
+        files: ["src/worker.ts", "src/mcp/**", "test/**"],
+        rules: {
+          "anti-slop/no-unknown-parameters": "off",
+        },
+      },
+    ],
   },
   fmt: {
-    printWidth: 100,
+    indentStyle: "space",
+    indentWidth: 2,
+    lineWidth: 100,
   },
   test: {
     globals: true,
@@ -224,69 +212,66 @@ export default defineConfig({
 
 ### Linter Rules
 
-The configured rules enforce these requirements:
-
-| Requirement                   | Rule                                                                  |
-| ----------------------------- | --------------------------------------------------------------------- |
-| No unjustified assertions     | Never write `x as unknown as Foo`. Justify one `as` with `// SAFETY:` |
-| No internal runtime narrowing | Decode with `Schema.decodeUnknownEffect` at the boundary only         |
-| No known-value widening       | Never widen a typed value to `Record<string, unknown>` or `string`    |
-| No module mocking             | Never use `vi.mock()`. Inject test services with `Layer`              |
-| No manual `_tag` switches     | Use `Match.value`, `Match.type`, or `Effect.catchTag`                 |
-| No manual `_tag` values       | Build tagged values and errors with their constructors                |
-| No service constructor import | Provide services through layers, not imported `make*` functions       |
-
-Put each unavoidable single `as` assertion at a foreign function interface
-boundary. Write `// SAFETY: <reason>` on the line before it.
-
----
+| Rule                    | Requirement                                                                                                      |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| No chained assertions   | Do not write `x as unknown as Foo`. Add `// SAFETY: reason` before an FFI assertion.                             |
+| No internal narrowing   | Decode external inputs at the boundary with `Schema.decodeUnknown`. Do not pass `unknown` into domain functions. |
+| No type widening        | Do not widen a union or `Schema.Struct` to `Record<string, unknown>` or `string`.                                |
+| No speculative fallback | Do not apply `??` or `||` fallback values to values that cannot be nullish.                                      |
+| No module mocking       | Do not call `vi.mock()` in tests. Inject test dependencies with `Effect.Service` and `Layer`.                    |
+| No manual tag switches  | Use `Match.value`, `Match.type`, or `Effect.catchTags` instead of `switch (val._tag)`.                           |
+| No inline layers        | Build `Layer` graphs and `ManagedRuntime` instances at module scope in `src/layers.ts`.                          |
 
 ## Naming Conventions
 
-Use these names for each construct:
+Follow the Google TypeScript Style Guide naming rules, adapted for Effect.
 
-| Construct                     | Convention                   | Example                                        |
-| ----------------------------- | ---------------------------- | ---------------------------------------------- |
-| Variables, functions, methods | `camelCase`                  | `fetchMatchResults`, `seasonId`                |
-| Types, interfaces, classes    | `PascalCase`                 | `Match`, `PlayerMatchStats`, `AflApi`          |
-| Effect Schemas, TaggedErrors  | `PascalCase`                 | `MatchSchema`, `AflApiError`, `StaleDataError` |
-| Effect Services and Layers    | `PascalCase` + `Live`/`Test` | `AflApi`, `AflApiLive`, `AflApiTest`           |
-| Constants (true constants)    | `SCREAMING_SNAKE`            | `MAX_RETRY_COUNT`, `DEFAULT_PAGE_SIZE`         |
-| Enum-like unions              | `PascalCase` values          | `type RoundType = "HomeAndAway" \| "Finals"`   |
-| File names                    | `kebab-case`                 | `afl-api.ts`, `player-stats.ts`                |
-| Test files                    | `*.test.ts`                  | `afl-api.test.ts`                              |
-| Type and schema files         | `*.types.ts` or `schema.ts`  | `types.ts`, `schema.ts`                        |
-| Private class members         | `private` keyword            | No underscore prefix                           |
+| Construct                       | Convention                  | Example                                        |
+| ------------------------------- | --------------------------- | ---------------------------------------------- |
+| Variables, functions, methods   | `camelCase`                 | `fetchMatchResults`, `seasonId`                |
+| Types, interfaces, classes      | `PascalCase`                | `Match`, `PlayerMatchStats`, `AflApi`          |
+| Effect Schemas and TaggedErrors | `PascalCase`                | `MatchSchema`, `AflApiError`, `StaleDataError` |
+| Effect Services and Layers      | `PascalCase`                | `AflApi`, `AflApi.Default`, `AflApiTest`       |
+| True constants                  | `SCREAMING_SNAKE`           | `MAX_RETRY_COUNT`, `DEFAULT_PAGE_SIZE`         |
+| Enum-like unions                | `PascalCase` values         | `type RoundType = "HomeAndAway" \| "Finals"`   |
+| File names                      | `kebab-case`                | `afl-api.ts`, `player-stats.ts`                |
+| Test files                      | `*.test.ts`                 | `afl-api.test.ts`                              |
+| Type or Schema files            | `*.types.ts` or `schema.ts` | `types.ts`, `schema.ts`                        |
+| Private class members           | `private` keyword           | `private readonly client`                      |
 
-- Start Boolean variable names with `is`, `has`, `should`, or `can`.
-- Use plural names for collections, such as `matches` and `playerStats`.
-- Do not append `Effect` or `Async` to function names.
-- Treat abbreviations of three or more letters as words, such as `AflApi` and
-  `HttpClient`.
+### Naming Principles
+
+- Start Boolean variables with `is`, `has`, `should`, or `can`.
+- Use plural names for collections such as `matches`, `playerStats`, and
+  `rounds`.
+- Omit `Effect` or `Async` suffixes from function names. The return type
+  identifies the Effect or Promise.
+- Write abbreviations of three or more letters in `PascalCase`, such as `AflApi`
+  and `HttpClient`.
 - Keep two-letter abbreviations uppercase, such as `ID` and `IO`.
-
----
 
 ## Type System and Schema Validation
 
-Model domain data with types and schemas before you write behaviour.
+Use strict types and schemas to represent valid states and check external data.
 
 ### Interfaces, Types, and Schemas
 
 - Use `interface` for internal object shapes and service contracts.
 - Use `type` for unions, intersections, and mapped types.
-- Use `effect/Schema` for all domain models that cross system boundaries.
-- Mark all properties `readonly` and prefer `ReadonlyArray<T>`.
-- Do not use `enum` or `any`. Use `Schema.Literal` or union types.
+- Use `effect/Schema` for all data models that cross system boundaries.
+- Mark all properties `readonly` and use `ReadonlyArray<T>`.
+- Do not use `enum` or `any`. Use `Schema.Literal` or union types instead.
+- Add explicit return types to all exported functions and service methods to
+  satisfy `isolatedDeclarations`.
 
-### Boundary Validation with `effect/Schema`
+### Boundary Validation with Schema
 
-Decode all external data with `effect/Schema`. External data includes API
-responses, user inputs, remote procedure call payloads, and agent tool
-arguments. Derive static types from each schema.
+Decode all external data with `effect/Schema`. Derive static types from the
+schema definition.
 
 ```typescript
-import { Schema } from "effect";
+import { type Effect, Schema } from "effect";
+import { type ParseError } from "effect/ParseResult";
 
 export const AflMatchResponseSchema = Schema.Struct({
   "match.matchId": Schema.String,
@@ -310,17 +295,22 @@ export const AflMatchResponseSchema = Schema.Struct({
 
 export type AflMatchResponse = typeof AflMatchResponseSchema.Type;
 
-export const parseMatchResponse = Schema.decodeUnknownEffect(AflMatchResponseSchema);
+export const parseMatchResponse: (
+  input: unknown,
+) => Effect.Effect<AflMatchResponse, ParseError> = Schema.decodeUnknown(
+  AflMatchResponseSchema,
+);
 ```
 
-### Tagged Unions and `Match`
+### Tagged Unions and Match
 
-Model mixed results as tagged unions. Handle every case with `Match`.
+Use `Data.TaggedEnum` and exhaustive `Match` pipelines instead of `switch`
+statements over discriminant fields.
 
 ```typescript
 import { Data, Match } from "effect";
 
-type SearchResult = Data.TaggedEnum<{
+export type SearchResult = Data.TaggedEnum<{
   MatchResult: {
     readonly matchId: number;
     readonly homeTeam: string;
@@ -335,37 +325,35 @@ type SearchResult = Data.TaggedEnum<{
   };
 }>;
 
-const formatResult = Match.type<SearchResult>().pipe(
-  Match.tag("MatchResult", (r) => `${r.homeTeam} vs ${r.awayTeam}`),
-  Match.tag("PlayerSeasonResult", (r) => `${r.playerName} (${r.year})`),
-  Match.exhaustive,
-);
+export const formatResult: (result: SearchResult) => string =
+  Match.type<SearchResult>().pipe(
+    Match.tag("MatchResult", (r) => `${r.homeTeam} vs ${r.awayTeam}`),
+    Match.tag("PlayerSeasonResult", (r) => `${r.playerName} (${r.year})`),
+    Match.exhaustive,
+  );
 ```
-
----
 
 ## Documentation with TSDoc
 
-Write TSDoc comments for the public surface of each module.
+Follow Google Python docstring conventions, adapted to TSDoc syntax.
 
 - Document all exported functions, Effect services, schemas, interfaces, and
-  module-level constants.
-- Document private helpers only when their logic is not self-evident.
-- Do not document one-line functions whose names and signatures explain their
+  module constants.
+- Document private helpers when their logic is not clear from the signature.
+- Do not document one-line functions when their names and types explain their
   behaviour.
 
 ```typescript
 /**
- * Fetch AFL match results for a given season.
+ * Fetch AFL match results for a season.
  *
- * Resolves season and round IDs from the official AFL API, then fetches
- * all completed match results. Falls back to FootyWire if the primary API
- * fails or returns stale data (more than 3 days behind).
+ * Resolves season and round identifiers from the official AFL API, then
+ * fetches completed match results. Falls back to FootyWire when the primary
+ * API fails or returns stale data.
  *
  * @param season - The season year, for example 2027.
- * @param roundNumber - Specific round to fetch. Fetches all completed
- *   rounds if omitted.
- * @returns An Effect yielding match results sorted by date.
+ * @param roundNumber - Optional round number to fetch.
+ * @returns An Effect that yields match results sorted by date.
  *
  * @example
  * ```typescript
@@ -383,16 +371,13 @@ export const fetchMatchResults = (
 > => ...
 ```
 
----
-
 ## Error Handling and Effect Control Flow
 
-Keep every expected failure in the Effect error channel.
+Represent expected failures as values in the Effect `E` channel. Do not use
+`throw`, `try/catch`, or `Effect.orDie` in domain logic.
 
-- Do not use `throw` or `try/catch` in application logic.
-- Define domain errors with `Schema.TaggedError` or `Data.TaggedError`.
-- Wrap third-party APIs that return a `Promise` with `Effect.tryPromise` at
-  the boundary.
+- Define domain errors with `Schema.TaggedError`.
+- Wrap Promise-based third-party APIs at boundaries with `Effect.tryPromise`.
 - Handle retries and fallback sources with `Effect.retry`, `Schedule`, and
   `Effect.catchTags`.
 
@@ -411,109 +396,115 @@ export class AflApiError extends Schema.TaggedError<AflApiError>()(
 export class StaleDataError extends Schema.TaggedError<StaleDataError>()(
   "StaleDataError",
   {
-    lastUpdate: Schema.Date,
+    lastUpdate: Schema.DateFromSelf,
     thresholdDays: Schema.Number,
   },
 ) {}
 
-export const fetchWithFallback = (season: number) =>
+export const fetchWithFallback = (
+  season: number,
+): Effect.Effect<
+  ReadonlyArray<Match>,
+  FootywireError,
+  AflApi | FootywireApi
+> =>
   fetchFromAflApi(season).pipe(
     Effect.retry(
-      Schedule.exponential("200 millis").pipe(Schedule.upTo({ times: 3 })),
+      Schedule.exponential("200 millis").pipe(
+        Schedule.compose(Schedule.recurs(3)),
+      ),
     ),
     Effect.catchTags({
       AflApiError: (err) =>
         Effect.logWarning(`AFL API failed (${err.endpoint}), falling back`).pipe(
-          Effect.andThen(fetchFromFootywire(season)),
+          Effect.zipRight(fetchFromFootywire(season)),
         ),
       StaleDataError: (err) =>
-        Effect.logWarning(`AFL API stale (${err.lastUpdate.toISOString()}), falling back`).pipe(
-          Effect.andThen(fetchFromFootywire(season)),
-        ),
+        Effect.logWarning(
+          `AFL API stale (${err.lastUpdate.toISOString()}), falling back`,
+        ).pipe(Effect.zipRight(fetchFromFootywire(season))),
     }),
   );
 ```
 
----
-
 ## Frontend and Full-Stack Frameworks
 
-Use TanStack Start by default. Use Foldkit for state-machine interfaces.
+Separate server and browser runtime boundaries clearly.
 
 ### Primary Framework: TanStack Start
 
-Use TanStack Start for web applications, server rendering, and interactive
-dashboards on Cloudflare Workers.
+Use TanStack Start for web applications, server-side rendering (SSR), and
+dashboards on Cloudflare Workers. Run Effect workflows on the server inside
+`createServerFn` with `AppRuntime`, and return plain serialisable data to React
+components. Do not run `Effect` `Fiber` instances inside React client hooks.
 
 - Validate router parameters and server function inputs with
-  `Schema.toStandardSchemaV1(MyEffectSchema)`.
-- Run Effect workflows inside `createServerFn` with `Effect.runPromise` or
-  `ManagedRuntime`.
-- Agree a release procedure in `cloudflare-infra` before the first deployment.
-  TanStack Start emits several modules and static assets, and the standard
-  single-bundle release cannot carry them. HK Food uses its own procedure for
-  the same reason.
+  `Schema.standardSchemaV1(MyEffectSchema)`.
+- Run server effects through `AppRuntime.runPromise` from `/src/layers.ts`.
+- Do not call `Effect.provide(AppLayer)` inside a request handler.
+- Log server failures with `Effect.tapErrorCause(Effect.logError)` before
+  returning across the network boundary.
 
 ```typescript
 import { createServerFn } from "@tanstack/react-start";
-import { Schema, Effect } from "effect";
+import { Effect, Schema } from "effect";
 import { getLadderForSeason } from "../etl/pipeline";
-import { AppLayer } from "../layers";
+import { AppRuntime } from "../layers";
 
 const SeasonInput = Schema.Struct({ year: Schema.Number });
 
 export const fetchLadderFn = createServerFn({ method: "GET" })
-  .inputValidator(Schema.toStandardSchemaV1(SeasonInput))
-  .handler(async ({ data }) => {
-    return Effect.runPromise(
-      getLadderForSeason(data.year).pipe(Effect.provide(AppLayer)),
+  .inputValidator(Schema.standardSchemaV1(SeasonInput))
+  .handler(async ({ data }): Promise<ReadonlyArray<LadderEntry>> => {
+    return AppRuntime.runPromise(
+      getLadderForSeason(data.year).pipe(
+        Effect.tapErrorCause(Effect.logError),
+      ),
     );
   });
 ```
 
 ### Secondary Framework: Foldkit
 
-Use Foldkit for complex state-machine interfaces. Also use it for internal
-tools that you inspect with the Foldkit DevTools MCP server.
+Use Foldkit for client-side state machines or internal tools that connect to the
+Foldkit DevTools Model Context Protocol (MCP) server.
 
-- Define UI state in a single immutable `Schema.Struct` named `Model`.
-- Define transitions as `Message` tagged unions.
-- Keep `update(model, message)` pure. Return `[nextModel, commands]`.
-
----
+- Define user interface state in one immutable `Schema.Struct` named `Model`.
+- Define state transitions as `Message` tagged unions.
+- Keep `update(model, message)` pure and return `[nextModel, commands]`.
+- Represent browser side effects such as HTTP requests, timers, and WebSockets
+  as Foldkit `Command` and `Subscription` values.
 
 ## Project Structure
 
-Use this layout for an Effect Worker project:
+Organise project files using this directory layout:
 
 ```text
 src/
-  types.ts              # Shared domain schemas & types (define first)
-  worker.ts             # Entry point: Worker fetch / TanStack Start / cron handler
-  layers.ts             # Effect Layer composition (Live vs Test bindings)
+  types.ts              # Shared domain schemas, tagged errors, and types
+  worker.ts             # Worker fetch, TanStack Start, and cron entry point
+  layers.ts             # AppLayer and ManagedRuntime wired to Worker bindings
   db/
     schema.ts           # Drizzle SQLite table definitions
-    service.ts          # Drizzle wrapped as an Effect Context.Service
+    service.ts          # Drizzle wrapped as an Effect.Service
   etl/
-    afl-api.ts          # AFL official API Effect service & layer
-    footywire.ts        # FootyWire fallback Effect service & layer
-    transforms.ts       # Pure synchronous functions: normalisation, flattening
-    pav.ts              # Pure synchronous functions: PAV calculation
-    pipeline.ts         # Effect.gen orchestrator: freshness -> extract -> load -> embed
+    afl-api.ts          # AFL official API Effect.Service
+    footywire.ts        # FootyWire fallback Effect.Service
+    transforms.ts       # Pure synchronous functions for normalisation
+    pav.ts              # Pure synchronous functions for PAV calculation
+    pipeline.ts         # Effect.fn orchestrator for the ETL workflow
   mcp/
     server.ts           # MCP protocol handler
-    tools.ts            # Tool definitions (validated via effect/Schema)
+    tools.ts            # Tool definitions validated with effect/Schema
     code-mode.ts        # Dynamic Worker Code Mode handler
   lib/
     team-mapping.ts     # Team name normalisation
-    date-utils.ts       # AEST/AEDT-aware date handling
-
-migrations/             # Generated Drizzle SQL, published with each release
+    date-utils.ts       # AEST and AEDT date handling
 
 tools/
   oxlint/
     anti-slop/          # Vendored anti-slop AST rules
-      effect/           # Vendored Effect AST rules
+    anti-slop-effect/   # Vendored Effect AST rules
 
 test/
   etl/
@@ -522,82 +513,111 @@ test/
     pav.test.ts
   mcp/
     tools.test.ts
-  fixtures/             # Snapshot API payloads for offline testing
+  fixtures/             # Snapshot API payloads for offline tests
     afl-api-round-1.json
     footywire-results-2027.html
 
-wrangler.jsonc             # Local bindings for vp dev, Miniflare, and wrangler types
-worker-configuration.d.ts  # Generated Env type (vp run types)
-vite.config.ts             # Vite+, Oxlint, Oxfmt, and Vitest configuration
-drizzle.config.ts          # Drizzle Kit migration config
-.node-version              # Node.js version pinned by vp env pin
-tsconfig.json
+alchemy.run.ts          # Cloudflare infrastructure and resource bindings
+vite.config.ts          # Vite+, Oxlint, Oxfmt, and Vitest configuration
+drizzle.config.ts       # Drizzle Kit migration configuration
+tsconfig.json           # Root project references
+tsconfig.app.json       # Worker and user interface compiler configuration
+tsconfig.node.json      # Tooling and infrastructure compiler configuration
 package.json
-pnpm-lock.yaml
 ```
-
----
 
 ## Code Patterns
 
-Apply these patterns to workflows, services, concurrency, transforms, delivery,
-and data access.
+Use these patterns for Effect services, concurrency, database access, and
+infrastructure bindings.
 
-### Workflows with `Effect.gen`
+### Workflows with `Effect.fn`
 
-Write each multi-step workflow as one `Effect.gen` function.
+Define exported Effect workflows with `Effect.fn("traceName")` and an explicit
+return type annotation. This pattern adds call-site stack traces and telemetry
+spans automatically.
 
 ```typescript
 import { Effect } from "effect";
+import { Database, type DatabaseError } from "../db/service";
+import { AflApi, type AflApiError } from "./afl-api";
+import { VectorStore, type VectorStoreError } from "./vector-store";
 
-export const runEtlPipeline = (currentYear: number) =>
-  Effect.gen(function* () {
-    const afl = yield* AflApi;
-    const db = yield* Database;
-    const vectorStore = yield* VectorStore;
+export interface EtlSummary {
+  readonly newData: boolean;
+  readonly matchesLoaded: number;
+}
 
-    const seasonId = yield* afl.getSeasonId(currentYear);
-    const rounds = yield* afl.getRoundIds(seasonId);
-    const freshness = yield* db.checkFreshness();
+export const runEtlPipeline: (
+  currentYear: number,
+) => Effect.Effect<
+  EtlSummary,
+  AflApiError | DatabaseError | VectorStoreError,
+  AflApi | Database | VectorStore
+> = Effect.fn("runEtlPipeline")(function* (currentYear: number) {
+  const afl = yield* AflApi;
+  const db = yield* Database;
+  const vectorStore = yield* VectorStore;
 
-    if (!freshness.isStale) {
-      return { newData: false, matchesLoaded: 0 } as const;
-    }
+  const seasonId = yield* afl.getSeasonId(currentYear);
+  const rounds = yield* afl.getRoundIds(seasonId);
+  const freshness = yield* db.checkFreshness();
 
-    const matches = yield* afl.fetchNewMatches(rounds, freshness.lastRound);
-    yield* db.loadMatches(matches);
-    yield* vectorStore.generateEmbeddings(matches);
+  if (!freshness.isStale) {
+    return { newData: false, matchesLoaded: 0 };
+  }
 
-    return { newData: true, matchesLoaded: matches.length } as const;
-  });
+  const matches = yield* afl.fetchNewMatches(rounds, freshness.lastRound);
+  yield* db.loadMatches(matches);
+  yield* vectorStore.generateEmbeddings(matches);
+
+  return { newData: true, matchesLoaded: matches.length };
+});
 ```
 
 ### Services and Layers
 
 Do not pass raw `env: Env` objects through domain functions. Define services
-with `Context.Service` and construct implementations with `Layer`. Read bindings
-from `Env` only in the entry point and in `Layer` constructors.
+with `Effect.Service` and build `AppRuntime` once in `/src/layers.ts` using
+`cloudflare:workers`.
 
 ```typescript
-import { Context, Effect, Layer } from "effect";
+import { Effect } from "effect";
+import { type AflApiError, type Match } from "../types";
 
-export class AflApi extends Context.Service<
-  AflApi,
-  {
-    readonly getSeasonId: (year: number) => Effect.Effect<number, AflApiError>;
-    readonly fetchMatchResults: (seasonId: number) => Effect.Effect<ReadonlyArray<Match>, AflApiError>;
-  }
->()("AflApi") {}
+export class AflApi extends Effect.Service<AflApi>()("AflApi", {
+  succeed: {
+    getSeasonId: (year: number): Effect.Effect<number, AflApiError> =>
+      Effect.succeed(year),
+    fetchMatchResults: (
+      seasonId: number,
+    ): Effect.Effect<ReadonlyArray<Match>, AflApiError> =>
+      Effect.succeed([]),
+  },
+}) {}
+```
 
-export const AflApiLive = Layer.succeed(AflApi, {
-  getSeasonId: (year) => /* live implementation */,
-  fetchMatchResults: (seasonId) => /* live implementation */,
-});
+Assemble the shared runtime in `/src/layers.ts`:
+
+```typescript
+import { env } from "cloudflare:workers";
+import { Layer, ManagedRuntime } from "effect";
+import { makeDatabaseLayer } from "./db/service";
+import { AflApi } from "./etl/afl-api";
+import { FootywireApi } from "./etl/footywire";
+
+export const AppLayer = Layer.mergeAll(
+  AflApi.Default,
+  FootywireApi.Default,
+  makeDatabaseLayer(env.DB),
+);
+
+export const AppRuntime = ManagedRuntime.make(AppLayer);
 ```
 
 ### Bounded Concurrency
 
-Specify an explicit concurrency limit when you map over a collection.
+Specify explicit concurrency limits when you run Effects over collections:
 
 ```typescript
 const [results, stats, ladder] = yield* Effect.all(
@@ -609,7 +629,7 @@ const [results, stats, ladder] = yield* Effect.all(
   { concurrency: "unbounded" },
 );
 
-const [successes, failures] = yield* Effect.partition(
+const [failures, successes] = yield* Effect.partition(
   roundIds,
   (id) => afl.fetchRoundResults(id),
   { concurrency: 5 },
@@ -618,8 +638,10 @@ const [successes, failures] = yield* Effect.partition(
 
 ### Pure Transforms and Lookups
 
-Use `Map` for key-value lookups. Use immutable array methods such as
-`.filter`, `.map`, and `.toSorted` for data transformations.
+Use `Map` for key-value lookups. Use immutable array methods such as `.filter`,
+`.map`, and `.toSorted` for data transformations.
+
+Write:
 
 ```typescript
 const teamNameMap = new Map<string, string>([
@@ -645,135 +667,123 @@ export function processMatchResults(
 }
 ```
 
-### Cloudflare Delivery
-
-The `cloudflare-infra` repository manages every Cloudflare resource with
-OpenTofu. Application repositories own code, tests, and migrations. They do
-not create, change, or deploy Cloudflare resources.
-
-- Declare production bindings, routes, cron triggers, and the compatibility
-  date in `targets/<app>/worker.json` in `cloudflare-infra`.
-- Keep `wrangler.jsonc` in the application repository for local development
-  only.
-- Copy the binding names from `worker.json` into `wrangler.jsonc`. Local
-  development, Miniflare, and `wrangler types` then match production.
-- Generate `Env` with `vp run types`. Do not write `interface Env` by hand.
-- Set Worker secrets with `wrangler secret put`. Never commit or print a
-  secret value.
-
-#### Warning: Untracked Production State
-
-Do not run `wrangler deploy` or `wrangler d1 migrations apply --remote`. Do
-not run an infrastructure-as-code tool such as Alchemy against the account.
-These commands create live state that OpenTofu does not manage. The nightly
-drift check then fails.
-
-#### Supported Bindings
-
-The shared `worker-app` module supports these binding types:
-
-- D1 databases, KV namespaces, and Queue producers.
-- Rate limits, Workers AI, and Workflows.
-- Plain-text variables, secrets, and the Dynamic Worker Loader.
-
-Add support to `modules/worker-app` in `cloudflare-infra` before you use
-another binding type, such as Vectorize.
-
-#### Publish a Release
-
-Continuous integration publishes each release from `main`:
-
-1. Run `vp run build` to produce one ES module bundle.
-2. Upload the bundle to R2 as `worker-artifacts/<app>/<git-sha>.js`.
-3. If the Worker uses D1, upload the migration archive to R2.
-
-Name the migration archive `worker-artifacts/<app>/<git-sha>-migrations.tar.gz`.
-Put only regular SQL files under one `migrations/` directory in the archive.
-The Worker loads the bundle as its `index.js` main module.
-
-#### Promote a Release
-
-Run the promotion workflow in `cloudflare-infra` with the full commit SHA:
-
-```shell
-gh workflow run promote-worker.yml -f app=<app> -f version=<full-40-character-sha>
-```
-
-The workflow checks the bundle and migration digests. It then opens a
-promotion pull request. After you merge the pull request, dispatch
-`apply-prod` for the Target. The pipeline applies the pinned migrations,
-deploys the bundle, and verifies the Worker.
-
-### Drizzle ORM
-
-Define all tables in `src/db/schema.ts`. Wrap Drizzle inside an Effect service
-in `src/db/service.ts`.
+Do not write:
 
 ```typescript
-// src/db/service.ts
-import { Context, Effect, Layer, Schema } from "effect";
+export function processMatchResults(raw: Array<AflMatchResponse>): void {
+  for (const m of raw) {
+    m["venue.name"] = normaliseTeamName(m["venue.name"]);
+  }
+  raw.sort();
+}
+```
+
+### Infrastructure with Alchemy
+
+Declare all Cloudflare resources and Worker bindings in `alchemy.run.ts`. Do not
+maintain manual `wrangler.toml` or `interface Env` definitions unless the
+Minimal-Worker Exception applies.
+
+```typescript
+import alchemy from "alchemy";
+import { Ai, D1Database, VectorizeIndex, Worker } from "alchemy/cloudflare";
+
+const app = await alchemy("afl-mcp");
+
+export const db = await D1Database("afl-db", {
+  name: "afl-mcp-db",
+  migrationsDir: "./migrations",
+});
+
+export const vectorIndex = await VectorizeIndex("afl-vectors", {
+  name: "afl-match-embeddings",
+  dimensions: 768,
+  metric: "cosine",
+});
+
+export const worker = await Worker("afl-worker", {
+  name: "afl-mcp",
+  entrypoint: "./src/worker.ts",
+  bindings: {
+    DB: db,
+    VECTORIZE: vectorIndex,
+    AI: Ai(),
+  },
+});
+
+export type WorkerEnv = typeof worker.Env;
+
+await app.finalize();
+```
+
+### Database Layer with Drizzle ORM
+
+Define all tables in `/src/db/schema.ts` and wrap Drizzle inside an
+`Effect.Service` in `/src/db/service.ts`. Generate migrations with
+`bunx drizzle-kit generate`. Do not write migration SQL by hand.
+
+```typescript
+import { Effect, Layer, Schema } from "effect";
 import { drizzle, type DrizzleD1Database } from "drizzle-orm/d1";
 import * as schema from "./schema";
 
 export class DatabaseError extends Schema.TaggedError<DatabaseError>()(
   "DatabaseError",
-  { message: Schema.String, cause: Schema.optional(Schema.Unknown) },
+  {
+    message: Schema.String,
+    cause: Schema.optional(Schema.Unknown),
+  },
 ) {}
 
-export class Database extends Context.Service<
-  Database,
-  {
-    readonly query: <A>(
-      fn: (db: DrizzleD1Database<typeof schema>) => Promise<A>,
-    ) => Effect.Effect<A, DatabaseError>;
-  }
->()("Database") {}
+export interface DatabaseImpl {
+  readonly query: <A>(
+    fn: (db: DrizzleD1Database<typeof schema>) => Promise<A>,
+  ) => Effect.Effect<A, DatabaseError>;
+}
 
-export const DatabaseLive = (d1: D1Database) => {
+export class Database extends Effect.Service<Database>()("Database", {
+  succeed: {
+    query: () =>
+      Effect.fail(
+        new DatabaseError({ message: "Database layer not initialised" }),
+      ),
+  } satisfies DatabaseImpl,
+}) {}
+
+export const makeDatabaseLayer = (
+  d1: D1Database,
+): Layer.Layer<Database> => {
   const client = drizzle(d1, { schema });
-  return Layer.succeed(Database, {
-    query: (fn) =>
-      Effect.tryPromise({
-        try: () => fn(client),
-        catch: (cause) =>
-          new DatabaseError({ message: "D1 query failed", cause }),
-      }),
-  });
+  return Layer.succeed(
+    Database,
+    Database.make({
+      query: (fn) =>
+        Effect.tryPromise({
+          try: () => fn(client),
+          catch: (cause) =>
+            new DatabaseError({ message: "D1 query failed", cause }),
+        }),
+    }),
+  );
 };
 ```
 
-Generate migrations into `migrations/` with `vp exec drizzle-kit generate`. Do
-not write migration SQL by hand. Apply migrations to the local database only:
-
-```shell
-vp exec wrangler d1 migrations apply <database-name> --local
-```
-
-The `apply-prod` pipeline applies remote migrations from the pinned release.
-Do not edit or reverse a migration after a release publishes it. Write a new
-migration to correct a fault.
-
----
-
 ## Testing
 
-Test pure logic and Effect workflows without network access.
+Use `@effect/vitest` and Miniflare for unit and Worker integration tests.
 
-- Run tests with `vp test`, which uses `@effect/vitest` and Miniflare.
-- Store snapshot API payloads in `test/fixtures/`.
-- Never make live network requests in tests.
+- Run tests with `vp test`.
+- Save snapshot API payloads in `/test/fixtures/`.
+- Do not make live network requests in tests.
 - Test pure transforms with standard `it(...)` blocks.
-- Test Effect workflows with `it.effect(...)` and test `Layer`
-  implementations.
-- Never use `vi.mock()`.
-- Name each test as a behavioural sentence, such as
-  `falls back to FootyWire when AFL API returns 503`.
+- Test Effect workflows with `it.effect(...)` and test `Layer` implementations.
+- Name each test with a sentence that states the expected behaviour.
 
 ```typescript
 import { describe, expect, it } from "@effect/vitest";
 import { Effect, Layer } from "effect";
-import { flattenMatchScores } from "../../src/etl/transforms";
 import { AflApi } from "../../src/etl/afl-api";
+import { flattenMatchScores } from "../../src/etl/transforms";
 import rawRound1 from "../fixtures/afl-api-round-1.json";
 
 describe("flattenMatchScores", () => {
@@ -787,90 +797,86 @@ describe("flattenMatchScores", () => {
 });
 
 describe("AflApi workflow", () => {
-  const MockAflApiLayer = Layer.succeed(AflApi, {
-    getSeasonId: () => Effect.succeed(2027),
-    fetchMatchResults: () => Effect.succeed([]),
-  });
+  const AflApiTest = Layer.succeed(
+    AflApi,
+    AflApi.make({
+      getSeasonId: () => Effect.succeed(2027),
+      fetchMatchResults: () => Effect.succeed([]),
+    }),
+  );
 
   it.effect("resolves matches using injected test layer", () =>
     Effect.gen(function* () {
       const api = yield* AflApi;
       const matches = yield* api.fetchMatchResults(2027);
       expect(matches).toEqual([]);
-    }).pipe(Effect.provide(MockAflApiLayer)),
+    }).pipe(Effect.provide(AflApiTest)),
   );
 });
 ```
 
----
+## Design Principles
 
-## Core Rules
-
-Apply these rules when two conventions appear to conflict.
+Apply these principles when two implementation options appear to conflict.
 
 ### 1. Define Schemas and Types First
 
-Define `effect/Schema` models, tagged errors, and service interfaces in
-`types.ts` before you write implementation code.
+Define `effect/Schema` models, tagged errors, and service contracts in
+`/src/types.ts` before you write implementation code.
 
-### 2. Decode at Boundaries and Trust Internally
+### 2. Decode at Boundaries and Trust Internal Types
 
-Validate external data one time at the system edge with `effect/Schema`. Do
-not use `typeof` checks or `unknown` parameters inside domain logic.
+Validate external data one time at the system edge with `effect/Schema`. Do not
+use `typeof` checks, speculative fallback values, or `unknown` parameters inside
+domain logic.
 
-### 3. Separate Pure Logic from Input and Output
+### 3. Separate Pure Logic from Effectful Operations
 
 Keep calculations and data transformations in pure synchronous functions. Keep
-HTTP, database, and AI operations inside Effect `Layer` services.
+HTTP, database, and AI operations inside `Effect.Service` layers.
 
-### 4. Make Errors and Dependencies Explicit
+### 4. Track Errors and Dependencies in Types
 
-Track all expected failures in the Effect `E` channel with
-`Schema.TaggedError`. Track all capabilities in the `R` channel with
-`Context.Service`.
+Record all expected failures in the Effect `E` channel with
+`Schema.TaggedError`.
+Record all required capabilities in the `R` channel with `Effect.Service`.
 
-### 5. Pass `vp check`
+### 5. Pass All Automated Checks
 
-Make all code pass `vp check` with zero warnings or errors before completion.
-The check runs Oxfmt, Oxlint with `anti-slop`, and `tsgo`.
+Run `vp check` and `vp test --run` with zero warnings or errors before you
+finish a task.
 
-### 6. Minimise Dependencies
+### 6. Minimise External Dependencies
 
-Prefer Web Standard APIs, `effect`, and native Cloudflare Workers bindings over
-third-party utilities.
+Prefer Web Standard APIs, `effect`, and Cloudflare Workers bindings over
+third-party utility libraries.
 
-### 7. Keep One Responsibility in Each Module
+### 7. Keep One Responsibility in Each File
 
-Put one concern in each file. For example, `afl-api.ts` holds the API service,
-`transforms.ts` holds pure transforms, and `pipeline.ts` holds orchestration.
-
-### 8. Deploy Only Through `cloudflare-infra`
-
-Publish a build artefact and let the GitOps pipeline deploy it. Do not deploy
-from an application repository.
-
----
+Give each module one clear purpose. Split a file when it handles two unrelated
+responsibilities.
 
 ## References
 
 Read the linked documentation before you configure tools or write application
-code. Each link uses the `defuddle.md` prefix to return agent-readable
-Markdown.
+code. Each link uses the `defuddle.md` prefix to return Markdown suitable for
+agents.
 
 - [Google TypeScript Style Guide](https://defuddle.md/google.github.io/styleguide/tsguide.html)
 - [TSDoc specification](https://defuddle.md/tsdoc.org/)
 - [Vite+ documentation](https://defuddle.md/viteplus.dev/guide/)
-- [pnpm documentation](https://defuddle.md/pnpm.io/)
 - [Oxc documentation](https://defuddle.md/oxc.rs/docs/guide/introduction.html)
 - [dmmulroy/anti-slop Oxlint rules](https://defuddle.md/github.com/dmmulroy/anti-slop)
 - [Effect documentation](https://defuddle.md/effect.website/docs/)
 - [TanStack Start documentation](https://defuddle.md/tanstack.com/start/latest/docs/framework/react/overview)
 - [Foldkit documentation](https://defuddle.md/foldkit.dev/)
+- [Alchemy documentation](https://defuddle.md/alchemy.run/)
+- [Bun documentation](https://defuddle.md/bun.sh/docs)
 - [Hono documentation](https://defuddle.md/hono.dev/)
 - [Drizzle ORM documentation](https://defuddle.md/orm.drizzle.team/)
 - [Cloudflare Workers documentation](https://defuddle.md/developers.cloudflare.com/workers/)
-- [Cloudflare Wrangler CLI documentation](https://defuddle.md/developers.cloudflare.com/workers/wrangler/)
 - [Cloudflare D1 documentation](https://defuddle.md/developers.cloudflare.com/d1/)
+- [Cloudflare Vectorize documentation](https://defuddle.md/developers.cloudflare.com/vectorize/)
 - [Cloudflare Workers AI documentation](https://defuddle.md/developers.cloudflare.com/workers-ai/)
 - [Cloudflare Dynamic Workers documentation](https://defuddle.md/developers.cloudflare.com/workers/runtime-apis/dynamic-worker/)
 - [Vitest documentation](https://defuddle.md/vitest.dev/)
