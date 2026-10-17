@@ -637,6 +637,9 @@ exactly three MCP tools.
 - The `sync_lease` table contains a single-row mutual-exclusion lock. The lock
   ensures that cron and admin syncs
   cannot overlap (10-minute stale timeout).
+- From AFL-MCP 5.0.0, the scheduled sync resumes a public write marker left by
+  its own interrupted run on the next tick and logs `sync:recovered`. Other
+  interrupted operations still require explicit recovery.
 
 ### Common Query Patterns
 
