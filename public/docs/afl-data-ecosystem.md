@@ -2,8 +2,8 @@
 
 Jack McPherson maintains this suite of TypeScript tools for Australian football
 data. The suite includes fitzroy, AFL-MCP, rds-js, tipper, and footyBot. The data
-covers AFL Men's, AFL Women's, VFL, and VFLW. All projects use strict TypeScript,
-Bun, and Biome. Cloudflare Workers runs the deployed services.
+covers AFL Men's, AFL Women's, VFL, and VFLW. All projects use strict TypeScript
+and Bun. Cloudflare Workers runs the deployed services.
 
 ## Ecosystem Overview
 
@@ -119,16 +119,44 @@ The AFL-MCP server exposes two Model Context Protocol tools. Use the
 `tools` tool: its sandbox constraints now travel in the `code` tool's
 description, the only surface every MCP client reads.
 
-| Tool     | Purpose                                                                                               |
-| -------- | ----------------------------------------------------------------------------------------------------- |
-| `schema` | Database structure and typed coverage. Optional bounded observation for one competition-season        |
-| `code`   | Execute TypeScript against D1 in an isolated sandbox. Optional `competition` arg as a hint to the LLM |
+| Tool     | Title           | Purpose                                                                                        |
+| -------- | --------------- | ---------------------------------------------------------------------------------------------- |
+| `schema` | Database schema | Database structure and typed coverage. Optional bounded observation for one competition-season |
+| `code`   | Run query code  | Execute TypeScript against D1 in an isolated sandbox                                           |
 
 The `code` tool runs user-submitted TypeScript in a Dynamic Worker isolate
 with read-only database access via a `db.prepare(sql).bind(...).all()` bridge.
-Queries must filter by competition explicitly: the `competition` argument is
-documentation, not auto-injection. Sandbox constraints: no network, no npm,
-a 30-second timeout, a 1 MB result cap, and 60 requests per minute per IP.
+Sandbox constraints: no network, no npm, a 30-second timeout, a 1 MB result
+cap, and 60 requests per minute per IP.
+
+Queries must filter by competition explicitly. The optional `competition`
+argument never changes the submitted SQL. From AFL-MCP 5.0.0 it must be
+`AFLM`, `AFLW`, `VFL` or `VFLW`. Omitting it or passing `null` has the same
+effect. Any other value returns an `isError` result that lists the valid
+codes, and the code does not run. Earlier releases ignored an unknown value.
+
+AFL-MCP 5.0.0 changes the protocol surface:
+
+- `initialize` negotiates MCP revisions 2025-11-25, 2025-06-18 and
+  2025-03-26. It echoes a supported requested revision and otherwise
+  answers 2025-11-25.
+- The `initialize` result carries server `instructions`: call `schema`
+  first, and always filter SQL by competition.
+- Both tools carry a `title`, repeated in `annotations.title`, and
+  annotations that mark them read-only, non-destructive, idempotent and
+  closed-world.
+- `schema` results and object `code` results add `structuredContent` next
+  to the unchanged text block. Array, scalar and truncated `code` results
+  stay text only.
+- `tools/call` naming an unknown tool returns JSON-RPC error `-32602`
+  instead of an `isError` result.
+- A request other than `initialize` that carries an unsupported
+  `MCP-Protocol-Version` header, or 2026-07-28 request metadata, gets HTTP
+  400 with error `-32600`. Clients that speak both eras fall back to the
+  `initialize` handshake.
+- Request bodies over 4 MiB get HTTP 413. A 405 response carries an
+  `Allow` header. Errors for a request whose id is unknown carry
+  `id: null`.
 
 The `schema` tool accepts three parameter shapes. A no-argument call returns
 static expectations for all four competitions in
@@ -150,6 +178,11 @@ lineup coverage uses `match_presence`. The server caches successful
 measurements for 15 minutes. The server rejects any other combination and
 returns a contract error. For example, `includeObserved` requires both
 `competition` and `season`.
+
+From AFL-MCP 5.0.0, an argument error names the failing key, for example
+`Expected boolean at "includeObserved"` or
+`Expected no excess property at "table"`. Contract errors keep their own
+text.
 
 `GET /mcp/health` reports sync freshness. It returns 503 when no sync occurred
 for more than three hours or a recent critical sync error remains unresolved.
@@ -174,8 +207,8 @@ All public endpoints are rate-limited to 60 requests/minute per IP.
 
 ## Explicit Seasons and Reviewed Remediation
 
-Fitzroy 6.0.0 introduces canonical season keys. Production now runs AFL-MCP 4,
-Tipper 4 and
+Fitzroy 6.0.0 introduces canonical season keys. Production now runs AFL-MCP 4
+or later, Tipper 4 and
 footyBot 0.12 with compatible readers. Ordinary seasons use keys
 such as `2026`. AFLW
 season six uses `2022-S6` and season seven uses `2022-S7`. Competition remains a
