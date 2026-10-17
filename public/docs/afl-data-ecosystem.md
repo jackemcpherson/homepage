@@ -182,7 +182,8 @@ returns a contract error. For example, `includeObserved` requires both
 From AFL-MCP 5.0.0, an argument error names the failing key, for example
 `Expected boolean at "includeObserved"` or
 `Expected no excess property at "table"`. Contract errors keep their own
-text.
+text. Every argument error, including contract errors, ends with the usage
+hint listing the valid calls.
 
 `GET /mcp/health` reports sync freshness. It returns 503 when no sync occurred
 for more than three hours or a recent critical sync error remains unresolved.
