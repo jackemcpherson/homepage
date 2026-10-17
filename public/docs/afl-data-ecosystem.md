@@ -130,8 +130,9 @@ for JavaScript instead of TypeScript, because the sandbox does not compile
 TypeScript. Its description declares the `db` API in TypeScript for
 reference: `db.prepare(sql)` returns a statement with `bind(...values)`,
 `all()` and `first()`. Code that uses TypeScript syntax fails to parse, and
-the error adds a JavaScript hint. A syntax error names its line and column,
-counted from 1 in the submitted code.
+the error adds a JavaScript hint. A syntax error names its line and column
+only when the runtime reports a position, which production currently does
+not.
 
 The tool accepts the body of an async
 function or a single `async () => { ... }` function, optionally inside a
