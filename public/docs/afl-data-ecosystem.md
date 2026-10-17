@@ -131,7 +131,9 @@ TypeScript. Its description declares the `db` API in TypeScript for
 reference: `db.prepare(sql)` returns a statement with `bind(...values)`,
 `all()` and `first()`. Code that uses TypeScript syntax fails to parse, and
 the error adds a JavaScript hint. A syntax error names its line and column,
-counted from 1 in the submitted code. The tool accepts the body of an async
+counted from 1 in the submitted code.
+
+The tool accepts the body of an async
 function or a single `async () => { ... }` function, optionally inside a
 Markdown fence. Code that returns nothing gets a clear error.
 
@@ -142,7 +144,9 @@ From AFL-MCP 5.0.0, output from `console.log`, `info`, `warn`, `error` and
 `debug` comes back after the result or error in a separate
 `Console output:` text block. The block keeps at most 100 lines and 10,000
 characters. A run that times out still returns the console lines written
-before the timeout. Results over 100,000 characters come back shortened but still
+before the timeout.
+
+Results over 100,000 characters come back shortened but still
 valid JSON. A long array keeps its first items and ends with a
 `--- TRUNCATED ---` notice that gives the full count. A long string keeps
 its start and states its full length. Earlier releases cut the result text
