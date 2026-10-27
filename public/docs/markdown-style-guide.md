@@ -130,9 +130,16 @@ style = "---"
 
 [MD063]
 style = "title-case"
+
+# Every release section repeats the same subheadings, such as "Added", so
+# their anchors collide by design.
+[per-file-ignores]
+"CHANGELOG.md" = ["MD080"]
 ```
 
 Keep all findings enabled unless this guide permits an exception.
+A changelog repeats subheadings such as `Added` in each release section.
+Ignore MD080 for `CHANGELOG.md` only.
 Run `rumdl` with its default `--fail-on any` setting.
 
 ### Configure Vale
