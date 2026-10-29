@@ -1,0 +1,218 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Western Bulldogs 2027 AFL Calendar//EN
+X-WR-CALNAME:Western Bulldogs 2027
+X-WR-TIMEZONE:Australia/Melbourne
+BEGIN:VEVENT
+UID:CD_M20270140102@jackemcpherson.com
+DTSTAMP:20261029T050143Z
+SUMMARY:Round 1: Fremantle vs. Western Bulldogs (Optus Stadium)
+DTSTART;TZID=Australia/Melbourne:20270318T201000
+DTEND;TZID=Australia/Melbourne:20270318T224000
+DESCRIPTION:TV: TBC
+LOCATION:Optus Stadium
+END:VEVENT
+BEGIN:VEVENT
+UID:CD_M20270140208@jackemcpherson.com
+DTSTAMP:20261029T050143Z
+SUMMARY:Round 2: Western Bulldogs vs. St Kilda (Marvel Stadium)
+DTSTART;TZID=Australia/Melbourne:20270328T192000
+DTEND;TZID=Australia/Melbourne:20270328T215000
+DESCRIPTION:TV: TBC
+LOCATION:Marvel Stadium
+END:VEVENT
+BEGIN:VEVENT
+UID:CD_M20270140305@jackemcpherson.com
+DTSTAMP:20261029T050143Z
+SUMMARY:Round 3: Adelaide Crows vs. Western Bulldogs (Adelaide Oval)
+DTSTART;TZID=Australia/Melbourne:20270403T163500
+DTEND;TZID=Australia/Melbourne:20270403T190500
+DESCRIPTION:TV: TBC
+LOCATION:Adelaide Oval
+END:VEVENT
+BEGIN:VEVENT
+UID:CD_M20270140409@jackemcpherson.com
+DTSTAMP:20261029T050143Z
+SUMMARY:Round 4 (Gather Round): Port Adelaide vs. Western Bulldogs (Adelaid
+ e Oval)
+DTSTART;TZID=Australia/Melbourne:20270411T191500
+DTEND;TZID=Australia/Melbourne:20270411T214500
+DESCRIPTION:TV: TBC
+LOCATION:Adelaide Oval
+END:VEVENT
+BEGIN:VEVENT
+UID:CD_M20270140506@jackemcpherson.com
+DTSTAMP:20261029T050143Z
+SUMMARY:Round 5: Western Bulldogs vs. Hawthorn (Marvel Stadium)
+DTSTART;TZID=Australia/Melbourne:20270417T193500
+DTEND;TZID=Australia/Melbourne:20270417T220500
+DESCRIPTION:TV: TBC
+LOCATION:Marvel Stadium
+END:VEVENT
+BEGIN:VEVENT
+UID:CD_M20270140607@jackemcpherson.com
+DTSTAMP:20261029T050143Z
+SUMMARY:Round 6 (Anzac Round): GWS Giants vs. Western Bulldogs (Corroboree 
+ Group Oval Manuka)
+DTSTART;TZID=Australia/Melbourne:20270425T121500
+DTEND;TZID=Australia/Melbourne:20270425T144500
+DESCRIPTION:TV: TBC
+LOCATION:Corroboree Group Oval Manuka
+END:VEVENT
+BEGIN:VEVENT
+UID:CD_M20270140707@jackemcpherson.com
+DTSTAMP:20261029T050143Z
+SUMMARY:Round 7: Western Bulldogs vs. Gold Coast Suns (Mars Stadium)
+DTSTART;TZID=Australia/Melbourne:20270502T123000
+DTEND;TZID=Australia/Melbourne:20270502T150000
+DESCRIPTION:TV: TBC
+LOCATION:Mars Stadium
+END:VEVENT
+BEGIN:VEVENT
+UID:CD_M20270140802@jackemcpherson.com
+DTSTAMP:20261029T050143Z
+SUMMARY:Round 8: Collingwood vs. Western Bulldogs (Marvel Stadium)
+DTSTART;TZID=Australia/Melbourne:20270507T194000
+DTEND;TZID=Australia/Melbourne:20270507T221000
+DESCRIPTION:TV: TBC
+LOCATION:Marvel Stadium
+END:VEVENT
+BEGIN:VEVENT
+UID:CD_M20270140908@jackemcpherson.com
+DTSTAMP:20261029T050143Z
+SUMMARY:Round 9 (Sir Doug Nicholls Indigenous Round): Carlton vs. Western B
+ ulldogs (MCG)
+DTSTART;TZID=Australia/Melbourne:20270516T151500
+DTEND;TZID=Australia/Melbourne:20270516T174500
+DESCRIPTION:TV: TBC
+LOCATION:MCG
+END:VEVENT
+BEGIN:VEVENT
+UID:CD_M20270141005@jackemcpherson.com
+DTSTAMP:20261029T050143Z
+SUMMARY:Round 10 (Sir Doug Nicholls Indigenous Round): Western Bulldogs vs.
+  North Melbourne (Marvel Stadium)
+DTSTART;TZID=Australia/Melbourne:20270522T163500
+DTEND;TZID=Australia/Melbourne:20270522T190500
+DESCRIPTION:TV: TBC
+LOCATION:Marvel Stadium
+END:VEVENT
+BEGIN:VEVENT
+UID:CD_M20270141101@jackemcpherson.com
+DTSTAMP:20261029T050143Z
+SUMMARY:Round 11: Western Bulldogs vs. Sydney Swans (Marvel Stadium)
+DTSTART;TZID=Australia/Melbourne:20270527T193000
+DTEND;TZID=Australia/Melbourne:20270527T220000
+DESCRIPTION:TV: TBC
+LOCATION:Marvel Stadium
+END:VEVENT
+BEGIN:VEVENT
+UID:CD_M20270141201@jackemcpherson.com
+DTSTAMP:20261029T050143Z
+SUMMARY:Round 12: Western Bulldogs vs. Melbourne (Marvel Stadium)
+DTSTART;TZID=Australia/Melbourne:20270603T193000
+DTEND;TZID=Australia/Melbourne:20270603T220000
+DESCRIPTION:TV: TBC
+LOCATION:Marvel Stadium
+END:VEVENT
+BEGIN:VEVENT
+UID:CD_M20270141305@jackemcpherson.com
+DTSTAMP:20261029T050143Z
+SUMMARY:Round 13: West Coast Eagles vs. Western Bulldogs (Optus Stadium)
+DTSTART;TZID=Australia/Melbourne:20270612T193500
+DTEND;TZID=Australia/Melbourne:20270612T220500
+DESCRIPTION:TV: TBC
+LOCATION:Optus Stadium
+END:VEVENT
+BEGIN:VEVENT
+UID:CD_M20270141402@jackemcpherson.com
+DTSTAMP:20261029T050143Z
+SUMMARY:Round 14: Western Bulldogs vs. Geelong Cats (Marvel Stadium)
+DTSTART;TZID=Australia/Melbourne:20270618T194000
+DTEND;TZID=Australia/Melbourne:20270618T221000
+DESCRIPTION:TV: TBC
+LOCATION:Marvel Stadium
+END:VEVENT
+BEGIN:VEVENT
+UID:CD_M20270141609@jackemcpherson.com
+DTSTAMP:20261029T050143Z
+SUMMARY:Round 16: St Kilda vs. Western Bulldogs (Marvel Stadium)
+DTSTART;TZID=Australia/Melbourne:20270704T171000
+DTEND;TZID=Australia/Melbourne:20270704T194000
+DESCRIPTION:TV: TBC
+LOCATION:Marvel Stadium
+END:VEVENT
+BEGIN:VEVENT
+UID:CD_M20270141704@jackemcpherson.com
+DTSTAMP:20261029T050143Z
+SUMMARY:Round 17: Gold Coast Suns vs. Western Bulldogs (People First Stadiu
+ m)
+DTSTART;VALUE=DATE:20270708
+DTEND;VALUE=DATE:20270712
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:People First Stadium
+END:VEVENT
+BEGIN:VEVENT
+UID:CD_M20270141809@jackemcpherson.com
+DTSTAMP:20261029T050143Z
+SUMMARY:Round 18: Western Bulldogs vs. Adelaide Crows (Marvel Stadium)
+DTSTART;VALUE=DATE:20270715
+DTEND;VALUE=DATE:20270719
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:Marvel Stadium
+END:VEVENT
+BEGIN:VEVENT
+UID:CD_M20270141909@jackemcpherson.com
+DTSTAMP:20261029T050143Z
+SUMMARY:Round 19: Western Bulldogs vs. Brisbane Lions (Marvel Stadium)
+DTSTART;VALUE=DATE:20270722
+DTEND;VALUE=DATE:20270726
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:Marvel Stadium
+END:VEVENT
+BEGIN:VEVENT
+UID:CD_M20270142009@jackemcpherson.com
+DTSTAMP:20261029T050143Z
+SUMMARY:Round 20: Western Bulldogs vs. GWS Giants (Mars Stadium)
+DTSTART;VALUE=DATE:20270729
+DTEND;VALUE=DATE:20270802
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:Mars Stadium
+END:VEVENT
+BEGIN:VEVENT
+UID:CD_M20270142103@jackemcpherson.com
+DTSTAMP:20261029T050143Z
+SUMMARY:Round 21: Essendon vs. Western Bulldogs (Marvel Stadium)
+DTSTART;VALUE=DATE:20270805
+DTEND;VALUE=DATE:20270809
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:Marvel Stadium
+END:VEVENT
+BEGIN:VEVENT
+UID:CD_M20270142204@jackemcpherson.com
+DTSTAMP:20261029T050143Z
+SUMMARY:Round 22: Melbourne vs. Western Bulldogs (MCG)
+DTSTART;VALUE=DATE:20270812
+DTEND;VALUE=DATE:20270816
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:MCG
+END:VEVENT
+BEGIN:VEVENT
+UID:CD_M20270142309@jackemcpherson.com
+DTSTAMP:20261029T050143Z
+SUMMARY:Round 23: Western Bulldogs vs. Richmond (Marvel Stadium)
+DTSTART;VALUE=DATE:20270819
+DTEND;VALUE=DATE:20270823
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:Marvel Stadium
+END:VEVENT
+BEGIN:VEVENT
+UID:CD_M20270142405@jackemcpherson.com
+DTSTAMP:20261029T050143Z
+SUMMARY:Round 24: Hawthorn vs. Western Bulldogs (MCG)
+DTSTART;VALUE=DATE:20270826
+DTEND;VALUE=DATE:20270830
+DESCRIPTION:Exact date and time TBD. Check AFL.com.au for updates.
+LOCATION:MCG
+END:VEVENT
+END:VCALENDAR
