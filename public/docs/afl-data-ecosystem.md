@@ -90,7 +90,7 @@ AFL Tables, Squiggle, and Fryzigg.
 Pass `competition: "AFLM" | "AFLW" | "VFL" | "VFLW"` to scope to a specific
 competition (defaults to AFLM for sources that support multiple). As of
 fitzroy 7.0.0, every `fetch*` function returns an `Effect` instead of a
-`Promise`; install the `effect` peer dependency and provide `FitzroyLive`
+`Promise`. Install the `effect` peer dependency and provide `FitzroyLive`
 once at the edge of your program.
 
 ### 2. D1 Database (Pre-Computed Historical Data)
@@ -768,13 +768,13 @@ PAV when new AFLM or AFLW player statistics arrive.
 The top-of-hour pipeline also runs a weather stage. It refreshes seven-day
 forecasts daily and match-day forecasts hourly. It writes a fast observation
 after each match and upgrades the provenance to ERA5 after six days. Each
-pass permits up to 25 fetches per candidate query — forecast, fast-observed,
-and final-observed are each capped independently, so a single pass can run
-up to 75 fetches — and records failures in `sync_log`. A local script
+pass permits up to 25 fetches per candidate query. Forecast, fast-observed,
+and final-observed queries are each capped independently, so a single pass
+can run up to 75 fetches. It records failures in `sync_log`. A local script
 performed the initial historical weather backfill.
 
-`POST /mcp/admin/backfill` exposes the backfill operation. Its parameters are
-`competitions`, `fromYear`, `toYear`, and `skipShouldRunNow`; the retired
+`POST /mcp/admin/backfill` exposes the backfill operation. Its parameters
+are `competitions`, `fromYear`, `toYear`, and `skipShouldRunNow`. The retired
 `skipPav` flag now fails validation. A request can cover no more than 30
 years. `GET /mcp/health` reports staleness for monitoring.
 Release 3.4.0 also added the annual, dry-run-first
@@ -1153,7 +1153,7 @@ CI checks schema parity and both real D1 migration paths.
 
 fitzroy has shipped npm provenance, verified package contents, and
 standalone Linux x64, Linux ARM64 and macOS ARM64 binaries since its 1.0.0
-release; 5.0.0 itself only adds `fetchMatchCoaches` and the Brisbane
+release. Version 5.0.0 itself only adds `fetchMatchCoaches` and the Brisbane
 Bears/Lions split described above. From fitzroy 7.0.0, those binaries are
 Node.js single-executable applications built with `vp pack` instead of
 Bun-compiled binaries. AFL-MCP deployment verification covers the pinned
