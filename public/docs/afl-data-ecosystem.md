@@ -770,13 +770,13 @@ forecasts daily and match-day forecasts hourly. It writes a fast observation
 after each match and upgrades the provenance to ERA5 after six days. Each
 pass permits up to 25 fetches per candidate query. Forecast, fast-observed,
 and final-observed queries are each capped independently, so a single pass
-can run up to 75 fetches. It records failures in `sync_log`. A local script
-performed the initial historical weather backfill.
+can run up to 75 fetches, and it records failures in `sync_log`. A local
+script performed the initial historical weather backfill.
 
 `POST /mcp/admin/backfill` exposes the backfill operation. Its parameters
-are `competitions`, `fromYear`, `toYear`, and `skipShouldRunNow`. The retired
-`skipPav` flag now fails validation. A request can cover no more than 30
-years. `GET /mcp/health` reports staleness for monitoring.
+are `competitions`, `fromYear`, `toYear`, and `skipShouldRunNow`, and the
+retired `skipPav` flag now fails validation. A request can cover no more
+than 30 years. `GET /mcp/health` reports staleness for monitoring.
 Release 3.4.0 also added the annual, dry-run-first
 `POST /mcp/admin/backfill-brownlow` operation and aggregate-only
 `GET /mcp/admin/status`. Both require the existing admin bearer token.
