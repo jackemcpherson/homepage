@@ -60,35 +60,38 @@ bun add fitzroy
 ```
 
 ```typescript
-import { fetchMatches, fetchPlayerStats } from "fitzroy";
+import { Effect } from "effect";
+import { FitzroyLive, fetchMatches, fetchPlayerStats } from "fitzroy";
 
-// Current season completed matches from AFL API
-const results = await fetchMatches({
-  source: "afl-api",
-  season: 2026,
-  status: "Complete",
-});
-if (results.success) {
-  console.log(results.data.length, "matches");
-}
+const program = Effect.gen(function* () {
+  // Current season completed matches from AFL API
+  const matches = yield* fetchMatches({
+    source: "afl-api",
+    season: 2026,
+    status: "Complete",
+  });
+  console.log(matches.length, "matches");
 
-// Player stats for a specific round. Version 3 returns a partial-result
-// envelope: { stats, failedMatchIds }.
-const statsResult = await fetchPlayerStats({
-  source: "afl-api",
-  season: 2026,
-  round: 10,
+  // Player stats for a specific round. Returns a partial-result envelope:
+  // { stats, failedMatchIds } (v3+).
+  const { stats, failedMatchIds } = yield* fetchPlayerStats({
+    source: "afl-api",
+    season: 2026,
+    round: 10,
+  });
 });
-if (statsResult.success) {
-  const { stats, failedMatchIds } = statsResult.data;
-}
+
+await Effect.runPromise(program.pipe(Effect.provide(FitzroyLive)));
 ```
 
 Each call retrieves current data from an upstream source. The client requires no
-database or credentials. It supports AFL API, FootyWire, AFL Tables, Squiggle,
-and Fryzigg.
+database or credentials beyond `FitzroyLive`. It supports AFL API, FootyWire,
+AFL Tables, Squiggle, and Fryzigg.
 Pass `competition: "AFLM" | "AFLW" | "VFL" | "VFLW"` to scope to a specific
-competition (defaults to AFLM for sources that support multiple).
+competition (defaults to AFLM for sources that support multiple). As of
+fitzroy 7.0.0, every `fetch*` function returns an `Effect` instead of a
+`Promise`. Install the `effect` peer dependency and provide `FitzroyLive`
+once at the edge of your program.
 
 ### 2. D1 Database (Pre-Computed Historical Data)
 
@@ -305,9 +308,10 @@ derived season values null. Cancelled and live matches do not contribute.
 Each pass rebuilds at most 20 queued seasons. Remaining derived work retains
 the public write marker until explicit recovery finishes it.
 
-The Bears repair preview includes exact match IDs and a digest. Apply requires
-that digest, and interrupted repairs resume with their matching operation
-marker. Coaching imports follow the Bears repair.
+`POST /mcp/admin/reconcile-bears` previews and applies the Bears repair. Its
+preview includes exact match IDs and a digest. Apply requires that digest,
+and interrupted repairs resume with their matching operation marker.
+Coaching imports follow the Bears repair.
 
 Native readers check `public_input_revision` before and after reading inputs,
 and reject active or stale write markers. Transactional repairs verify lease
@@ -373,8 +377,10 @@ The following sections describe the supported fitzroy interface and data sources
 | `fetchAwards`        | `AwardResult`         | Award rows with failed coaches rounds                                                                                                                                         |
 
 As of v3 the package root exports only this supported surface. Raw AFL
-API / Squiggle wire schemas (Zod) moved to the `fitzroy/schemas` subpath
-export, so upstream drift no longer forces a major release.
+API / Squiggle wire schemas moved to the `fitzroy/schemas` subpath export, so
+upstream drift no longer forces a major release. From fitzroy 7.0.0,
+`fitzroy/schemas` exports an Effect schema for every domain model (such as
+`MatchSchema` and `LadderSchema`) instead of the earlier Zod schemas.
 
 The package also exports `resolveDefaultSeasonForCompetition(competition)`
 in v3.2 and later. This asynchronous function selects the current or most
@@ -477,23 +483,33 @@ AFL-MCP rows contain values for all three fields.
 
 ### Error Handling
 
-fitzroy returns a `Result<T, E>` for fetch operations:
+As of fitzroy 7.0.0, fetch operations return an `Effect` whose error channel
+carries a tagged error (`Schema.TaggedError`), not a `Result<T, E>`:
 
 ```typescript
-import { fetchMatches } from "fitzroy";
+import { Effect } from "effect";
+import { FitzroyLive, fetchMatches } from "fitzroy";
 
-const result = await fetchMatches({ source: "afl-api", season: 2026 });
-if (!result.success) {
-  console.error("fetch failed:", result.error.message);
-} else {
-  for (const match of result.data) {
-    // ...
-  }
-}
+const program = fetchMatches({ source: "afl-api", season: 2026 }).pipe(
+  Effect.tap((matches) =>
+    Effect.sync(() => {
+      for (const match of matches) {
+        // ...
+      }
+    }),
+  ),
+  Effect.catchTag("ValidationError", (error) =>
+    Effect.sync(() => console.error("fetch failed:", error.message)),
+  ),
+);
+
+await Effect.runPromise(program.pipe(Effect.provide(FitzroyLive)));
 ```
 
-Zod validates all external data. A failure `Result` contains the original Zod
-error details for an invalid API response.
+Effect Schema validates all external data. A `ValidationError` carries
+`issues` (an array of `{ path, message }`) describing the invalid API
+response, rather than a raw Zod error. `instanceof` checks on error classes
+still work, and `Effect.catchTag` dispatches on each error's `_tag`.
 
 Successful results can still be incomplete. Check `failedMatchIds`,
 `failedTeams`, or `failedRounds` before publishing derived data. Check squad
@@ -676,7 +692,9 @@ still exposed three MCP tools. Release 3.7.0 removed `tools`, leaving two.
   aliases, for example Domain Stadium to Subiaco. Join weather through the
   canonical venue).
 - The `players` table contains master data and external identifiers.
-- The `seasons` table has a unique `(competition_id, year)` key.
+- The `seasons` table has a unique `(competition_id, season_key)` key, not
+  `(competition_id, year)`: AFLW 2022 has two rows that share `year = 2022`
+  (`season_key` `2022-S6` and `2022-S7`), which a year-only key would forbid.
 - The `sync_log` table contains append-only cron history (`timestamp`, `type`,
   `rows_affected`, `error`) used for freshness checks and backfill audits.
   Successful no-op ticks are not logged. The system removes rows after 90 days.
@@ -749,14 +767,16 @@ PAV when new AFLM or AFLW player statistics arrive.
 
 The top-of-hour pipeline also runs a weather stage. It refreshes seven-day
 forecasts daily and match-day forecasts hourly. It writes a fast observation
-after each match and upgrades the provenance to ERA5 after six days. Each pass
-permits 25 fetches and records failures in `sync_log`. A local script performed
-the initial historical weather backfill.
+after each match and upgrades the provenance to ERA5 after six days. Each
+pass permits up to 25 fetches per candidate query. Forecast, fast-observed,
+and final-observed queries are each capped independently, so a single pass
+can run up to 75 fetches, and it records failures in `sync_log`. A local
+script performed the initial historical weather backfill.
 
-`POST /mcp/admin/backfill` exposes the backfill operation. Its parameters are
-`competitions`, `fromYear`, `toYear`, `skipShouldRunNow`, and `skipPav`. A request
-can cover no more than 30 years. `GET /mcp/health` reports staleness for
-monitoring.
+`POST /mcp/admin/backfill` exposes the backfill operation. Its parameters
+are `competitions`, `fromYear`, `toYear`, and `skipShouldRunNow`, and the
+retired `skipPav` flag now fails validation. A request can cover no more
+than 30 years. `GET /mcp/health` reports staleness for monitoring.
 Release 3.4.0 also added the annual, dry-run-first
 `POST /mcp/admin/backfill-brownlow` operation and aggregate-only
 `GET /mcp/admin/status`. Both require the existing admin bearer token.
@@ -886,19 +906,24 @@ consumes the rest of the ecosystem two ways:
 
 - The `/ask <question>` command uses a manual MCP tool-use loop against
   `https://afl.jackemcpherson.com/mcp`. It routes the question through the
-  configured LLM. `gemini-3-flash-preview` is the default through Google AI
-  Studio's `v1beta` endpoint. `claude-sonnet-4-5` runs when
-  `LLM_PROVIDER="anthropic"`.
-  All LLM traffic is proxied through Cloudflare AI Gateway with
-  Authenticated Gateway enabled so Unified Billing covers it. A `/help`
-  command posts usage examples.
+  configured LLM. Production runs `LLM_PROVIDER="openai"`, which selects
+  GPT-6 Luna (`openai/gpt-6-luna`) through the Cloudflare Workers AI binding.
+  An unset `LLM_PROVIDER` falls back to the historical default,
+  `claude-sonnet-4-5` (Anthropic). `LLM_PROVIDER="gemini"` selects
+  `google/gemini-3-flash`, also through the Workers AI binding, as an
+  explicit rollback option.
+  All LLM traffic is proxied through Cloudflare AI Gateway (and, for the
+  OpenAI and Gemini providers, the Workers AI binding) with Authenticated
+  Gateway enabled so Unified Billing covers it. A `/help` command posts usage
+  examples.
 - One per-minute cron starts durable Cloudflare Workflows.
   - One Live Match-Day Workflow polls the competitions in the day's fixture
     with round-scoped fetches. It posts QT, HT, 3QT, and FT scoreboards in
     channel order. Five consecutive failed polls raise an ops alert. The
     workflow then errors so the cron restarts it with a fresh engine context.
-  - Separate Round Preview and Round Review Workflows retry within their
-    Melbourne-time publication windows.
+  - A single `RoundPublicationWorkflow` class runs two instances per day, one
+    for the Preview and one for the Review, each retrying within its own
+    Melbourne-time publication window.
 
 Each Round Publication contains exactly two messages. An authoritative factual
 post comes first, followed by an AI-written editorial post.
@@ -1114,8 +1139,9 @@ must review historical joins and stored mappings before ingesting these rows.
 Fitzroy remains separate. Downstream consumers own any rating continuity.
 
 AFL-MCP 3.8.0 adds canonical `match_coaches`, retained source observations,
-verified coach mappings, authenticated coaching operations with checkpoints,
-and `public_input_revision` for consistent native snapshots. Historical repair
+verified coach mappings, authenticated coaching operations with checkpoints
+(`POST /mcp/admin/backfill-coaches`), and `public_input_revision` for
+consistent native snapshots. Historical repair
 and backfill remain separate operator actions after deployment.
 
 The migration cleanup follows two reviewed GitOps stages. Version 3.8.1 adds
@@ -1125,10 +1151,14 @@ schema and reference seeds, including venue coordinates and canonical aliases.
 Existing databases retain their rows and IDs and skip the adopted baseline.
 CI checks schema parity and both real D1 migration paths.
 
-fitzroy 5.0.0 has npm provenance and verified package contents. Its release
-includes Linux x64, Linux ARM64 and macOS ARM64 binaries. AFL-MCP deployment
-verification covers the pinned Worker, required bindings, cron, health,
-production schema parity, integrity counts and native coaching reads.
+fitzroy has shipped npm provenance, verified package contents, and
+standalone Linux x64, Linux ARM64 and macOS ARM64 binaries since its 1.0.0
+release. Version 5.0.0 itself only adds `fetchMatchCoaches` and the Brisbane
+Bears/Lions split described above. From fitzroy 7.0.0, those binaries are
+Node.js single-executable applications built with `vp pack` instead of
+Bun-compiled binaries. AFL-MCP deployment verification covers the pinned
+Worker, required bindings, cron, health, production schema parity, integrity
+counts and native coaching reads.
 
 Read the [fitzroy 5 migration guide](https://github.com/jackemcpherson/fitzRoy-ts/blob/v5.0.0/docs/migration-v5.md)
 and [AFL-MCP operator guide](https://github.com/jackemcpherson/AFL-MCP/blob/main/docs/coaching-release-operations.md)
