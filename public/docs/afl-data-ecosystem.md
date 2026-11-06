@@ -886,12 +886,16 @@ consumes the rest of the ecosystem two ways:
 
 - The `/ask <question>` command uses a manual MCP tool-use loop against
   `https://afl.jackemcpherson.com/mcp`. It routes the question through the
-  configured LLM. `gemini-3-flash-preview` is the default through Google AI
-  Studio's `v1beta` endpoint. `claude-sonnet-4-5` runs when
-  `LLM_PROVIDER="anthropic"`.
-  All LLM traffic is proxied through Cloudflare AI Gateway with
-  Authenticated Gateway enabled so Unified Billing covers it. A `/help`
-  command posts usage examples.
+  configured LLM. Production runs `LLM_PROVIDER="anthropic"`, which selects
+  `claude-sonnet-5-5`. An unset `LLM_PROVIDER` does the same.
+  `LLM_PROVIDER="openai"` selects GPT-6 Luna (`openai/gpt-6-luna`) and
+  `LLM_PROVIDER="gemini"` selects `google/gemini-3-flash`, both through the
+  Cloudflare Workers AI binding, as explicit rollback options.
+  All LLM traffic is proxied through Cloudflare AI Gateway (and, for the
+  OpenAI and Gemini providers, the Workers AI binding) with Authenticated
+  Gateway enabled. A stored key bills Anthropic usage to Claude Console
+  credits, and Unified Billing covers the other providers. A `/help` command
+  posts usage examples.
 - One per-minute cron starts durable Cloudflare Workflows.
   - One Live Match-Day Workflow polls the competitions in the day's fixture
     with round-scoped fetches. It posts QT, HT, 3QT, and FT scoreboards in
