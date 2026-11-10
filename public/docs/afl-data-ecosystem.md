@@ -768,6 +768,7 @@ forecasts daily and match-day forecasts hourly. It writes a fast observation
 after each match and upgrades the provenance to ERA5 after six days. Each pass
 permits 25 fetches and records failures in `sync_log`. A local script performed
 the initial historical weather backfill.
+
 From AFL-MCP 5.1.0, a failed forecast fetch retries after one hour, then after
 2, 4, 8, 16 and 24 hours. A failed observation still retries daily and
 becomes unavailable after three retries.
@@ -779,6 +780,7 @@ monitoring.
 Release 3.4.0 also added the annual, dry-run-first
 `POST /mcp/admin/backfill-brownlow` operation and aggregate-only
 `GET /mcp/admin/status`. Both require the existing admin bearer token.
+
 From AFL-MCP 5.1.0, the status response reports `statisticsDue` for scheduled
 matches and `statisticsAwaitingOperator` for operator requests. A backfill
 result reports `statsPending`, the matches still queued for statistics.
