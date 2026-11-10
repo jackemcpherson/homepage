@@ -526,8 +526,8 @@ Each row contains one match. Identity columns include `season_id`,
 The nullable `kickoff_at` column records the canonical UTC source instant.
 Unknown kickoff times remain null. Prediction deadlines use this column.
 Never combine `date` and Melbourne `local_time` to reconstruct a deadline.
-The nullable `lineups_observed_at` column records the last validated lineup
-snapshot observation.
+The nullable `lineups_observed_at` column records when AFL-MCP first observed
+the current validated lineup snapshot.
 
 The `round` column contains a long label such as `Round 1` or `Grand Final`.
 The `round_abbreviation` column contains AFL short codes from `OR` through
@@ -646,7 +646,8 @@ coverage is best-effort from 2023.
 
 AFL-MCP replaces each validated current snapshot atomically and removes omitted
 players. Invalid or incomplete source responses preserve the last valid snapshot.
-The match's `lineups_observed_at` records its observation time. Lineup refreshes
+The match's `lineups_observed_at` records when the current snapshot was first
+observed. An identical refresh writes nothing. Lineup refreshes
 continue for unlocked matches after their round starts, including the final
 90 minutes before kickoff.
 
@@ -683,7 +684,9 @@ still exposed three MCP tools. Release 3.7.0 removed `tools`, leaving two.
   complete.
 - The `sync_log` table contains append-only cron history (`timestamp`, `type`,
   `rows_affected`, `error`) used for freshness checks and backfill audits.
-  Successful no-op ticks are not logged. The system removes rows after 90 days.
+  Successful no-op ticks are not logged, except one recovery row after a
+  competition error. The `error` text keeps its first line, without URL query
+  strings, up to 500 characters. Hourly ticks remove rows after 90 days.
 - The `sync_lease` table contains a single-row mutual-exclusion lock. The lock
   ensures that cron and admin syncs
   cannot overlap (10-minute stale timeout).
@@ -773,17 +776,44 @@ From AFL-MCP 5.1.0, a failed forecast fetch retries after one hour, then after
 2, 4, 8, 16 and 24 hours. A failed observation still retries daily and
 becomes unavailable after three retries.
 
-`POST /mcp/admin/backfill` exposes the backfill operation. Its parameters are
-`competitions`, `fromYear`, `toYear`, `skipShouldRunNow`, and `skipPav`. A request
-can cover no more than 30 years. `GET /mcp/health` reports staleness for
-monitoring.
-Release 3.4.0 also added the annual, dry-run-first
-`POST /mcp/admin/backfill-brownlow` operation and aggregate-only
-`GET /mcp/admin/status`. Both require the existing admin bearer token.
+`POST /mcp/admin/backfill` exposes the backfill operation. It accepts either
+`competitions`, `fromYear` and `toYear`, or one exact `competition` and
+`season`, plus `skipShouldRunNow`. Requests containing the retired `skipPav`
+fail validation. A range can cover no more than 30 years.
+
+`GET /mcp/health` reports staleness for monitoring. Release 3.4.0 also added the
+annual, dry-run-first `POST /mcp/admin/backfill-brownlow` operation and
+aggregate-only `GET /mcp/admin/status`. Both require the existing admin bearer
+token.
 
 From AFL-MCP 5.1.0, the status response reports `statisticsDue` for scheduled
 matches and `statisticsAwaitingOperator` for operator requests. A backfill
 result reports `statsPending`, the matches still queued for statistics.
+
+From AFL-MCP 6.0.0:
+
+- A provider failure in one competition no longer stops the other
+  competitions in the same pass.
+- A wrong media type on `/mcp` returns HTTP 415 with error `-32600`, not
+  `-32700`. Paths under `/mcp/` other than `/mcp`, `/mcp/health` and
+  `/mcp/admin/*` return 404.
+- An observed `schema` call can name a season the database does not hold, or
+  hit a data update in progress. Both now return an `isError` tool result
+  instead of a JSON-RPC internal error.
+- The `code` tool rejects a sandbox reply over 4 MiB with a "Result too large"
+  error.
+- Every admin route reports a held lease as HTTP 409
+  `{ "error": "operation lease held", "code": "OPERATION_BUSY", "busy": true }`.
+  Request validation failures return HTTP 400 with the first problem, and
+  every admin body rejects unknown keys.
+- An upstream failure during `backfill-coaches` returns HTTP 502 with code
+  `SOURCE_UNAVAILABLE` and clears the public write marker.
+- A completed match whose statistics keep failing stops retrying at day 37.
+  An approved statistics refresh queues it again.
+- Live score updates no longer queue a PAV rebuild. A rebuild whose results
+  match the stored rows writes nothing.
+- The local `backfill-brownlow`, `backfill-lineups` and `refetch-lineups`
+  scripts are gone. The authenticated admin routes replace them.
 
 ## Tipper: Production Prediction Worker
 
