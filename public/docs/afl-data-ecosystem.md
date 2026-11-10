@@ -677,6 +677,10 @@ still exposed three MCP tools. Release 3.7.0 removed `tools`, leaving two.
   canonical venue).
 - The `players` table contains master data and external identifiers.
 - The `seasons` table has a unique `(competition_id, year)` key.
+  From AFL-MCP 5.1.0, `is_complete` is 1 when a season has matches and every
+  match is `Complete` or `Cancelled`. Scores no longer decide it. AFLM 2015,
+  VFL 2021 and VFLW 2021 each contain a cancelled match and now read as
+  complete.
 - The `sync_log` table contains append-only cron history (`timestamp`, `type`,
   `rows_affected`, `error`) used for freshness checks and backfill audits.
   Successful no-op ticks are not logged. The system removes rows after 90 days.
@@ -686,6 +690,8 @@ still exposed three MCP tools. Release 3.7.0 removed `tools`, leaving two.
 - From AFL-MCP 5.0.0, the scheduled sync resumes a public write marker left by
   its own interrupted run on the next tick and logs `sync:recovered`. Other
   interrupted operations still require explicit recovery.
+  From AFL-MCP 5.1.0, that recovery also works after a competition's current
+  season changes between ticks.
 
 ### Common Query Patterns
 
@@ -747,11 +753,24 @@ AFL-MCP runs one `*/5 * * * *` cron for all four competitions. The
 a match in the previous day or next three days. The same pipeline recalculates
 PAV when new AFLM or AFLW player statistics arrive.
 
+From AFL-MCP 5.1.0, each competition syncs its current season and every later
+season. The AFL API treats a season as current only after its first match
+starts. The later seasons load a new fixture, its lineups and its forecasts
+before that match. The `matches` table therefore holds `Upcoming` rows for a
+season that has not started. Do not select the latest season with `MAX(year)`
+when a query needs results. Filter on `status = 'Complete'` instead.
+
+The cron uses its scheduled time to choose the stages of a pass. A pass that
+starts late still runs the hourly statistics, coaching and weather work.
+
 The top-of-hour pipeline also runs a weather stage. It refreshes seven-day
 forecasts daily and match-day forecasts hourly. It writes a fast observation
 after each match and upgrades the provenance to ERA5 after six days. Each pass
 permits 25 fetches and records failures in `sync_log`. A local script performed
 the initial historical weather backfill.
+From AFL-MCP 5.1.0, a failed forecast fetch retries after one hour, then after
+2, 4, 8, 16 and 24 hours. A failed observation still retries daily and
+becomes unavailable after three retries.
 
 `POST /mcp/admin/backfill` exposes the backfill operation. Its parameters are
 `competitions`, `fromYear`, `toYear`, `skipShouldRunNow`, and `skipPav`. A request
@@ -760,6 +779,9 @@ monitoring.
 Release 3.4.0 also added the annual, dry-run-first
 `POST /mcp/admin/backfill-brownlow` operation and aggregate-only
 `GET /mcp/admin/status`. Both require the existing admin bearer token.
+From AFL-MCP 5.1.0, the status response reports `statisticsDue` for scheduled
+matches and `statisticsAwaitingOperator` for operator requests. A backfill
+result reports `statsPending`, the matches still queued for statistics.
 
 ## Tipper: Production Prediction Worker
 
@@ -946,9 +968,17 @@ Each season has 23 home-and-away rounds and a Finals series.
 
 ### AFLM Opening Round
 
-The Opening Round precedes Round 1.
+The Opening Round preceded Round 1 in 2024, 2025 and 2026 only. The AFL
+removed it for 2027.
 
-From 2024 onward, AFL-MCP stores zero in its round number field.
+For those three seasons, AFL-MCP stores zero in its round number field. From
+2027, the AFLM season starts at Round 1 again. Never assume that a round zero
+exists.
+
+AFL Tables numbers the Opening Round as Round 1. From fitzroy 7.0.1, the
+library shifts AFL Tables round numbers down by one for 2024 to 2026 only.
+Earlier versions shifted any season from 2024 whose first round had fewer
+than nine games.
 
 ### AFLM Finals Labels
 
